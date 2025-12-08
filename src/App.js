@@ -1,12 +1,28 @@
 import React from "react";
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import Reviews from "./components/Reviews";
+import About from "./components/About";
+import Services from "./components/Services";
+import WhyUs from "./components/WhyUs";
+import Closing from "./components/Closing";
+import CheckoutForm from "./components/CheckoutForm";
+import Footer from "./components/Footer";
 
-function App() {
+const App = () => {
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-4xl font-bold">Welcome to My Website</h1>
-            <p>This is a basic React app with TailwindCSS!</p>
+        <div>
+            <Header />
+            <Hero />
+            <Reviews />
+            <About />
+            <Services />
+            <WhyUs />
+            <Closing />
+            <CheckoutForm />
+            <Footer />
         </div>
     );
-}
+};
 
 export default App;
