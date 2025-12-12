@@ -1,21 +1,39 @@
-import React from 'react';
-import { FaPhoneAlt, FaEnvelope } from 'react-icons/fa';
+import React from "react";
+import { FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 
 const Header = () => {
     return (
         <header className="bg-gray-800 text-white py-4">
-            <div className="max-w-screen-xl mx-auto flex justify-between items-center px-4">
-                <div className="text-2xl font-bold">Dion Transport</div>
-                <nav className="flex space-x-6">
-                    <a href="/" className="hover:text-gray-400">Home</a>
-                    <a href="/about" className="hover:text-gray-400">About</a>
-                    <a href="/catalog" className="hover:text-gray-400">Catalog</a>
-                    <a href="/contact" className="hover:text-gray-400">Contact</a>
-                    <a href="/terms" className="hover:text-gray-400">T&C</a>
-                </nav>
-                <div className="flex space-x-4">
-                    <FaPhoneAlt />
-                    <FaEnvelope />
+            <div className="max-w-screen-xl mx-auto flex items-center justify-between px-4">
+                {/* Left: Logo + Menu */}
+                <div className="flex items-center gap-8">
+                    {/* Logo */}
+                    <a href="/" className="flex items-center">
+                        <img
+                            src="/logo.png"
+                            alt="Dion Transport"
+                            className="h-9 w-auto"
+                        />
+                    </a>
+
+                    {/* Menu */}
+                    <nav className="hidden md:flex items-center space-x-6">
+                        <a href="/" className="text-sm hover:text-gray-400">HOME</a>
+                        <a href="/about" className="text-sm hover:text-gray-400">ABOUT</a>
+                        <a href="/catalog" className="text-sm hover:text-gray-400">CATALOG</a>
+                        <a href="/contact" className="text-sm hover:text-gray-400">CONTACT</a>
+                        <a href="/terms" className="text-sm hover:text-gray-400">T&amp;C</a>
+                    </nav>
+                </div>
+
+                {/* Right: Icons */}
+                <div className="flex items-center space-x-4 text-lg">
+                    <a href="tel:+49123456789" className="hover:text-gray-400" aria-label="Call">
+                        <FaPhoneAlt />
+                    </a>
+                    <a href="mailto:info@diontransport.com" className="hover:text-gray-400" aria-label="Email">
+                        <FaEnvelope />
+                    </a>
                 </div>
             </div>
         </header>
