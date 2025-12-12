@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaHome, FaPhoneAlt, FaEnvelope } from 'react-icons/fa';
+import { FaPhoneAlt, FaEnvelope } from 'react-icons/fa';
 
 const Header = () => {
     return (
@@ -9,7 +9,7 @@ const Header = () => {
                 <nav className="flex space-x-6">
                     <a href="/" className="hover:text-gray-400">Home</a>
                     <a href="/about" className="hover:text-gray-400">About</a>
-                    <a href="/services" className="hover:text-gray-400">Services</a>
+                    <a href="/catalog" className="hover:text-gray-400">Catalog</a>
                     <a href="/contact" className="hover:text-gray-400">Contact</a>
                     <a href="/terms" className="hover:text-gray-400">T&C</a>
                 </nav>

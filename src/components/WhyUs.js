@@ -19,7 +19,7 @@ const WhyUs = () => {
                 </p>
                 <div className="flex justify-center sm:justify-start">
                     <a
-                        href="#services"
+                        href="/catalog"
                         className="inline-flex items-center bg-red-800 hover:bg-red-900 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform transition-all duration-300 hover:scale-105"
                     >
                         SHIP NOW
