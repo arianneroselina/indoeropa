@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
-
-const CART_KEY = "shipping_cart_items";
+import {CART_KEY} from "../utils/CatalogHelper";
 
 const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -93,10 +92,12 @@ const CartPage = () => {
                             <Link to="/catalog" className="button-text bg-gray-800">
                                 Continue Shopping
                             </Link>
-                            <Link to="/checkout" className="button-text font-semibold">
-                                Proceed to Checkout
-                                <FaArrowRight className="ml-2 text-sm" />
-                            </Link>
+                            {cartItems.length > 0 && (
+                                <Link to="/checkout" className="button-text font-semibold">
+                                    Proceed to Checkout
+                                    <FaArrowRight className="ml-2 text-sm" />
+                                </Link>
+                            )}
                         </div>
                     </div>
                 )}

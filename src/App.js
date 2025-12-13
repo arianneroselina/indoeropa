@@ -9,6 +9,7 @@ import ScrollToTop from "./utils/ScrollToTop";
 import ContactPage from "./pages/ContactPage";
 import TermsConditionsPage from "./pages/TermsConditionsPage";
 import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 const App = () => {
     return (
@@ -22,6 +23,7 @@ const App = () => {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/terms" element={<TermsConditionsPage />} />
                 <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
             </Routes>
             <Footer />
         </Router>
