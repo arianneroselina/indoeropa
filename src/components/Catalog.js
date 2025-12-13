@@ -26,7 +26,6 @@ const DHL_TIERS = [
     { id: "dhl20", label: "DHL Paket 20kg", maxKg: 20, price: 19.99 },
 ];
 
-// Function to pick the correct tier based on weight
 function pickTier(weightKg) {
     if (!weightKg || weightKg <= 0) return null;
     if (weightKg <= 2) return DHL_TIERS[0];
@@ -36,7 +35,7 @@ function pickTier(weightKg) {
     return null;
 }
 
-const CART_KEY = "shipping_cart_item";
+const CART_KEY = "shipping_cart_items";
 
 const Catalog = () => {
     const [activeRouteKey, setActiveRouteKey] = useState(null);
@@ -50,12 +49,39 @@ const Catalog = () => {
         address: "",
     });
 
-    const [cartItem, setCartItem] = useState(null);
+    const [cartItems, setCartItems] = useState([]);
+    //const [cartItem, setCartItem] = useState(null);
+    const [feedbackCartItem, setFeedbackCartItem] = useState(null);
+    const [feedbackVisible, setFeedbackVisible] = useState(false);
+
+    const weightNum = useMemo(() => {
+        const w = parseFloat(weight);
+        return Number.isFinite(w) ? w : 0;
+    }, [weight]);
+
+    // Select DHL tier based on weight
+    const selectedTier = useMemo(() => pickTier(weightNum), [weightNum]);
+
+    // Check if the weight is valid (between 0.1 and 20 kg)
+    const invalidWeight = weightNum !== 0 && (weightNum < 0.1 || weightNum > 20);
+
+    const isCustomerValid =
+        customer.email.trim().length > 0 &&
+        customer.phone.trim().length > 0 &&
+        customer.address.trim().length > 0;
+
+    const canAddToCart =
+        !!activeRouteKey &&
+        !!selectedTier &&
+        !invalidWeight &&
+        weightNum > 0 &&
+        shipmentDate &&
+        isCustomerValid;
 
     useEffect(() => {
         try {
             const saved = localStorage.getItem(CART_KEY);
-            if (saved) setCartItem(JSON.parse(saved));
+            if (saved) setCartItems(JSON.parse(saved));
         } catch {
             // ignore
         }
@@ -65,20 +91,6 @@ const Catalog = () => {
         () => ROUTES.find((r) => r.key === activeRouteKey) ?? null,
         [activeRouteKey]
     );
-
-    const weightNum = useMemo(() => {
-        const w = parseFloat(weight);
-        return Number.isFinite(w) ? w : 0;
-    }, [weight]);
-
-    const selectedTier = useMemo(() => pickTier(weightNum), [weightNum]);
-
-    const invalidWeight = weightNum !== 0 && (weightNum < 0.1 || weightNum > 20);
-
-    const isCustomerValid =
-        customer.email.trim().length > 0 &&
-        customer.phone.trim().length > 0 &&
-        customer.address.trim().length > 0;
 
     const signature = useMemo(() => {
         return [
@@ -101,24 +113,19 @@ const Catalog = () => {
     ]);
 
     // If user changes inputs after adding to cart -> require re-add (avoid stale cart)
-    useEffect(() => {
+    /*useEffect(() => {
         if (cartItem?.signature && cartItem.signature !== signature) {
+            console.log("cartItem.signature:", cartItem.signature)
+            console.log("signature:", signature)
             setCartItem(null);
             try {
                 localStorage.removeItem(CART_KEY);
+                console.log("Signature changes. Removing..")
             } catch {
                 // ignore
             }
         }
-    }, [signature, cartItem]);
-
-    const canAddToCart =
-        !!activeRoute &&
-        !!selectedTier &&
-        !invalidWeight &&
-        weightNum > 0 &&
-        shipmentDate &&
-        isCustomerValid;
+    }, [signature, cartItem]);*/
 
     const toggleRoute = (key) => {
         setActiveRouteKey((prev) => (prev === key ? null : key));
@@ -143,12 +150,45 @@ const Catalog = () => {
             createdAt: new Date().toISOString(),
         };
 
-        setCartItem(item);
-        try {
-            localStorage.setItem(CART_KEY, JSON.stringify(item));
-        } catch {
-            // ignore
+        // Check if item already exists in cart (based on signature)
+        const existingItemIndex = cartItems.findIndex((cartItem) => cartItem.signature === item.signature);
+
+        let updatedCartItems;
+        if (existingItemIndex >= 0) {
+            // If item exists, update the quantity
+            updatedCartItems = [...cartItems];
+            updatedCartItems[existingItemIndex].quantity += 1;
+        } else {
+            // If item doesn't exist, add it to the cart
+            updatedCartItems = [...cartItems, item];
         }
+
+        // Update the cart in state and localStorage
+        setCartItems(updatedCartItems);
+        localStorage.setItem(CART_KEY, JSON.stringify(updatedCartItems));
+        console.log("Storing last state of cart items:", updatedCartItems)
+
+        // Reset the form immediately
+        setFeedbackCartItem(item);
+        resetForm();
+
+        // Show feedback for 5 seconds
+        setFeedbackVisible(true);
+        setTimeout(() => {
+            setFeedbackVisible(false);
+            setFeedbackCartItem(null)
+        }, 5000);
+    };
+
+    const resetForm = () => {
+        setWeight("");
+        setShipmentDate("");
+        setCustomer({
+            fullName: "",
+            email: "",
+            phone: "",
+            address: "",
+        });
     };
 
     return (
@@ -337,12 +377,12 @@ const Catalog = () => {
                                 </div>
 
                                 {/* Cart feedback */}
-                                {cartItem && (
+                                {feedbackVisible && feedbackCartItem && (
                                     <div className="rounded-xl border bg-green-50 p-4">
                                         <div className="text-sm font-semibold text-green-800">Added to cart</div>
-                                        <div className="text-xs text-green-800/80 mt-1">
-                                            {cartItem.routeTitle} • {cartItem.tierLabel} • €{cartItem.priceEur ? cartItem.priceEur.toFixed(2) : ""} •{" "}
-                                            {cartItem.weightKg} kg • {cartItem.shipmentDate}
+                                        <div className="subtext text-xs text-green-800/80 mt-1">
+                                            {feedbackCartItem.routeTitle} • {feedbackCartItem.tierLabel} • €{feedbackCartItem.priceEur ? feedbackCartItem.priceEur.toFixed(2) : ""} •{" "}
+                                            {feedbackCartItem.weightKg} kg • {feedbackCartItem.shipmentDate}
                                         </div>
                                     </div>
                                 )}
