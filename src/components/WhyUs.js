@@ -1,5 +1,6 @@
 import React from 'react';
 import {FaArrowRight} from "react-icons/fa";
+import {Link} from "react-router-dom";
 
 const WhyUs = () => {
     return (
@@ -18,13 +19,13 @@ const WhyUs = () => {
                     Even though we are thousands of kilometers apart, the smile on your face is the most beautiful gift. We send this as a sign that distance is just a number. This gift may be delivered by courier, but the love that accompanies it is sent directly from our hearts. Distance is not a barrier for family.
                 </p>
                 <div className="flex justify-center sm:justify-start">
-                    <a
-                        href="/catalog"
-                        className="inline-flex items-center bg-red-800 hover:bg-red-900 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform transition-all duration-300 hover:scale-105"
+                    <Link
+                        to="/catalog"
+                        className="button-text"
                     >
-                        SHIP NOW
+                        Ship Now
                         <FaArrowRight className="ml-2 text-l" />
-                    </a>
+                    </Link>
                 </div>
             </div>
         </section>

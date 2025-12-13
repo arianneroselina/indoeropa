@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { FaArrowRight } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const ROUTES = [
     {
@@ -25,7 +26,7 @@ const DHL_TIERS = [
     { id: "dhl20", label: "DHL Paket 20kg", maxKg: 20, price: 19.99 },
 ];
 
-// “Next package automatically”: weight is rounded UP to the next tier.
+// Function to pick the correct tier based on weight
 function pickTier(weightKg) {
     if (!weightKg || weightKg <= 0) return null;
     if (weightKg <= 2) return DHL_TIERS[0];
@@ -43,6 +44,7 @@ const Catalog = () => {
     const [shipmentDate, setShipmentDate] = useState("");
 
     const [customer, setCustomer] = useState({
+        fullName: "",
         email: "",
         phone: "",
         address: "",
@@ -137,6 +139,7 @@ const Catalog = () => {
             priceEur: selectedTier.price,
             customer,
             signature,
+            quantity: 1,
             createdAt: new Date().toISOString(),
         };
 
@@ -148,17 +151,12 @@ const Catalog = () => {
         }
     };
 
-    const scrollToCheckout = () => {
-        const el = document.getElementById("checkout");
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    };
-
     return (
         <section id="catalog" className="py-16 bg-white">
             <div className="max-w-screen-xl mx-auto px-4">
                 <div className="text-center mb-10">
-                    <h2 className="text-3xl font-semibold">Our Catalogs</h2>
-                    <p className="mt-2 subtext text-gray-600">
+                    <h2 className="text-4xl font-semibold">Our Catalogs</h2>
+                    <p className="mt-2 subtext text-lg text-gray-600">
                         Select a route to view pricing. DHL package is automatically selected based on weight.
                     </p>
                 </div>
@@ -277,7 +275,7 @@ const Catalog = () => {
                                                     </div>
                                                 </div>
                                                 <div className="text-lg font-bold">
-                                                    {selectedTier && !invalidWeight ? `€${selectedTier.price.toFixed(2)}` : "—"}
+                                                    {selectedTier && selectedTier.price && !invalidWeight ? `€${selectedTier.price.toFixed(2)}` : "—"}
                                                 </div>
                                             </div>
                                         </div>
@@ -303,6 +301,14 @@ const Catalog = () => {
                                     <h4 className="font-semibold text-gray-900">Customer details (required)</h4>
 
                                     <div className="mt-4 space-y-3">
+                                        <input
+                                            type="name"
+                                            required
+                                            value={customer.fullName}
+                                            onChange={(e) => setCustomer((c) => ({ ...c, fullName: e.target.value }))}
+                                            placeholder="Full name"
+                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        />
                                         <input
                                             type="email"
                                             required
@@ -330,12 +336,12 @@ const Catalog = () => {
                                     </div>
                                 </div>
 
-                                {/* Cart feedback (above footer so buttons are last) */}
+                                {/* Cart feedback */}
                                 {cartItem && (
                                     <div className="rounded-xl border bg-green-50 p-4">
                                         <div className="text-sm font-semibold text-green-800">Added to cart</div>
                                         <div className="text-xs text-green-800/80 mt-1">
-                                            {cartItem.routeTitle} • {cartItem.tierLabel} • €{cartItem.priceEur.toFixed(2)} •{" "}
+                                            {cartItem.routeTitle} • {cartItem.tierLabel} • €{cartItem.priceEur ? cartItem.priceEur.toFixed(2) : ""} •{" "}
                                             {cartItem.weightKg} kg • {cartItem.shipmentDate}
                                         </div>
                                     </div>
@@ -366,7 +372,7 @@ const Catalog = () => {
                                             >
                                                 <div className="p-3">up to {t.maxKg} kg</div>
                                                 <div className="p-3 font-semibold">{t.label}</div>
-                                                <div className="p-3 text-right font-semibold">€{t.price.toFixed(2)}</div>
+                                                <div className="p-3 text-right font-semibold">€{t.price ? t.price.toFixed(2) : ""}</div>
                                             </div>
                                         );
                                     })}
@@ -385,14 +391,22 @@ const Catalog = () => {
                                 onClick={handleAddToCart}
                                 disabled={!canAddToCart}
                                 className={[
-                                    "w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full py-3 px-7 font-semibold",
+                                    "button-text font-semibold",
                                     canAddToCart
                                         ? "bg-blue-800 hover:bg-blue-900 text-white"
                                         : "bg-gray-200 text-gray-500 cursor-not-allowed",
                                 ].join(" ")}
                             >
-                                Add to cart <FaArrowRight />
+                                Add to cart
+                                <FaArrowRight className="ml-2 text-sm" />
                             </button>
+
+                            <Link
+                                to="/cart"
+                                className="button-text bg-gray-800 hover:bg-gray-900"
+                            >
+                                Go to Cart
+                            </Link>
                         </div>
                     </div>
                 )}

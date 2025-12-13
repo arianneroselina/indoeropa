@@ -1,5 +1,6 @@
 import React from "react";
-import { FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import { FaShoppingCart } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Header = () => {
     return (
@@ -26,14 +27,11 @@ const Header = () => {
                     </nav>
                 </div>
 
-                {/* Right: Icons */}
+                {/* Right: Cart Button */}
                 <div className="flex items-center space-x-4 text-lg">
-                    <a href="tel:+49123456789" className="hover:text-gray-400" aria-label="Call">
-                        <FaPhoneAlt />
-                    </a>
-                    <a href="mailto:info@diontransport.com" className="hover:text-gray-400" aria-label="Email">
-                        <FaEnvelope />
-                    </a>
+                    <Link to="/cart" className="hover:text-gray-400" aria-label="Go to Cart">
+                        <FaShoppingCart />
+                    </Link>
                 </div>
             </div>
         </header>

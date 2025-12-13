@@ -5,7 +5,7 @@ import About from "../components/About";
 import Catalog from "../components/Catalog";
 import WhyUs from "../components/WhyUs";
 import Closing from "../components/Closing";
-import CheckoutForm from "../components/CheckoutForm";
+import Contact from "../components/Contact";
 
 const HomePage = () => {
     return (
@@ -16,7 +16,7 @@ const HomePage = () => {
             <Catalog />
             <WhyUs />
             <Closing />
-            <CheckoutForm />
+            <Contact />
         </div>
     );
 };
