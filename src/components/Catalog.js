@@ -8,13 +8,6 @@ const Catalog = () => {
     const [weight, setWeight] = useState("");
     const [shipmentDate, setShipmentDate] = useState("");
 
-    const [customer, setCustomer] = useState({
-        fullName: "",
-        email: "",
-        phone: "",
-        address: "",
-    });
-
     const [cartItems, setCartItems] = useState([]);
     //const [cartItem, setCartItem] = useState(null);
     const [feedbackCartItem, setFeedbackCartItem] = useState(null);
@@ -31,18 +24,12 @@ const Catalog = () => {
     // Check if the weight is valid (between 0.1 and 20 kg)
     const invalidWeight = weightNum !== 0 && (weightNum < 0.1 || weightNum > 20);
 
-    const isCustomerValid =
-        customer.email.trim().length > 0 &&
-        customer.phone.trim().length > 0 &&
-        customer.address.trim().length > 0;
-
     const canAddToCart =
         !!activeRouteKey &&
         !!selectedTier &&
         !invalidWeight &&
         weightNum > 0 &&
-        shipmentDate &&
-        isCustomerValid;
+        shipmentDate;
 
     useEffect(() => {
         try {
@@ -64,18 +51,12 @@ const Catalog = () => {
             selectedTier?.id ?? "",
             weightNum ? weightNum.toFixed(2) : "",
             shipmentDate ?? "",
-            customer.email.trim(),
-            customer.phone.trim(),
-            customer.address.trim(),
         ].join("|");
     }, [
         activeRouteKey,
         selectedTier?.id,
         weightNum,
         shipmentDate,
-        customer.email,
-        customer.phone,
-        customer.address,
     ]);
 
     // If user changes inputs after adding to cart -> require re-add (avoid stale cart)
@@ -110,7 +91,6 @@ const Catalog = () => {
             tierLabel: selectedTier.label,
             tierMaxKg: selectedTier.maxKg,
             priceEur: selectedTier.price,
-            customer,
             signature,
             quantity: 1,
             createdAt: new Date().toISOString(),
@@ -149,12 +129,6 @@ const Catalog = () => {
     const resetForm = () => {
         setWeight("");
         setShipmentDate("");
-        setCustomer({
-            fullName: "",
-            email: "",
-            phone: "",
-            address: "",
-        });
     };
 
     return (
@@ -298,46 +272,7 @@ const Catalog = () => {
                                             onChange={(e) => setShipmentDate(e.target.value)}
                                             className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
                                             required
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Required customer info */}
-                                <div className="rounded-xl border p-4">
-                                    <h4 className="font-semibold text-gray-900">Customer details (required)</h4>
-
-                                    <div className="mt-4 space-y-3">
-                                        <input
-                                            type="name"
-                                            required
-                                            value={customer.fullName}
-                                            onChange={(e) => setCustomer((c) => ({ ...c, fullName: e.target.value }))}
-                                            placeholder="Full name"
-                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                        />
-                                        <input
-                                            type="email"
-                                            required
-                                            value={customer.email}
-                                            onChange={(e) => setCustomer((c) => ({ ...c, email: e.target.value }))}
-                                            placeholder="Email"
-                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                        />
-                                        <input
-                                            type="tel"
-                                            required
-                                            value={customer.phone}
-                                            onChange={(e) => setCustomer((c) => ({ ...c, phone: e.target.value }))}
-                                            placeholder="Phone number"
-                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                        />
-                                        <textarea
-                                            required
-                                            rows={3}
-                                            value={customer.address}
-                                            onChange={(e) => setCustomer((c) => ({ ...c, address: e.target.value }))}
-                                            placeholder="Full address"
-                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                            min={new Date().toISOString().split('T')[0]}
                                         />
                                     </div>
                                 </div>
