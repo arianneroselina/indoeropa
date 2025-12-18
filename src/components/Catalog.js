@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import {CART_KEY, DHL_LOGO, DHL_TIERS, pickTier, ROUTES} from "../utils/CatalogHelper";
+import {CART_KEY, DHL_LOGO, ROUTES} from "../utils/CatalogHelper";
+import DHL_TIERS from '../data/dhl-tiers.json';
 
 const Catalog = () => {
     const [activeRouteKey, setActiveRouteKey] = useState(null);
@@ -20,6 +21,12 @@ const Catalog = () => {
 
     // Select DHL tier based on weight
     const selectedTier = useMemo(() => pickTier(weightNum), [weightNum]);
+
+    function pickTier(weightKg) {
+        if (!weightKg || weightKg <= 0) return null;
+        const tiers = DHL_TIERS;
+        return tiers.find((tier) => weightKg <= tier.maxKg) || null;
+    }
 
     // Check if the weight is valid (between 0.1 and 20 kg)
     const invalidWeight = weightNum !== 0 && (weightNum < 0.1 || weightNum > 20);
