@@ -19,6 +19,7 @@ const ContactPage = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log('Form submitted:', formData);
+        // TODO
     };
 
     return (
@@ -115,6 +116,7 @@ const ContactPage = () => {
                             <strong>Address:</strong> Jl. Utama 2 No.14-15 Komp. Perumahan Dasana Indah, Bojong Nangka, Kecamatan Kelapa Dua, Kabupaten Tangerang, Banten 15810
                         </p>
                         <p className="subtext text-gray-600 mb-4">
+                            // TODO
                             <strong>Email:</strong> <a href="mailto:info@diontransport.com">info@diontransport.com</a>
                         </p>
                         <p className="subtext text-gray-600 mb-4">

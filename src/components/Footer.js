@@ -7,6 +7,7 @@ const Footer = () => {
             <div className="max-w-screen-xl mx-auto text-center">
                 <div className="flex justify-center space-x-6 mt-4">
                     <a
+                        // TODO
                         href="https://facebook.com"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -16,6 +17,7 @@ const Footer = () => {
                         <FaFacebook className="text-2xl" />
                     </a>
                     <a
+                        // TODO
                         href="https://twitter.com"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -25,6 +27,7 @@ const Footer = () => {
                         <FaTwitter className="text-2xl" />
                     </a>
                     <a
+                        // TODO
                         href="https://linkedin.com"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -43,6 +46,7 @@ const Footer = () => {
                         <FaWhatsapp className="text-2xl" />
                     </a>
                     <a
+                        // TODO
                         href="mailto:info@diontransport.com"
                         className="hover:text-gray-400"
                         aria-label="Email"
