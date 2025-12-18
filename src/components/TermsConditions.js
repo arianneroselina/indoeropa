@@ -1,7 +1,7 @@
 
 const TermsConditions = () => {
     return (
-        <section className="py-16 bg-white text-gray-800">
+        <section className="py-24 bg-white text-gray-800">
             <div className="max-w-screen-xl mx-auto px-4">
                 {/* Title and Date */}
                 <h2 className="text-3xl font-semibold text-center mb-2">Terms of Use for Dion Transport Logistics Services</h2>

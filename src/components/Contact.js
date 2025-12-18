@@ -4,14 +4,14 @@ import { Link } from 'react-router-dom';
 const Contact = () => {
     return (
         <section
-            className="relative bg-cover bg-center bg-no-repeat py-48"
+            className="relative bg-cover bg-center bg-no-repeat py-36"
             style={{
                 backgroundImage: "url('/boxes.jpg')",
             }}
         >
             <div className="absolute inset-0 bg-black opacity-50"></div>
             <div className="max-w-screen-xl mx-auto px-4 text-center relative z-10">
-                <h2 className="text-4xl font-semibold text-white mb-4">
+                <h2 className="text-4xl font-semibold text-white mb-12">
                     Have Any Questions?
                 </h2>
                 <p className="subtext text-lg text-white mb-8 max-w-3xl mx-auto">

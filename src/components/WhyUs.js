@@ -4,7 +4,7 @@ import {Link} from "react-router-dom";
 
 const WhyUs = () => {
     return (
-        <section id="why-us" className="py-16 px-8 bg-white flex items-center">
+        <section id="why-us" className="py-24 px-8 bg-white flex items-center">
             <div className="w-1/2">
                 <img
                     src="/girl-dion-transport.png"
@@ -14,7 +14,7 @@ const WhyUs = () => {
             </div>
 
             <div className="w-1/2 pl-8">
-                <h2 className="text-2xl font-bold mb-6">DISTANCE IS NO <br/> LONGER A PROBLEM.</h2>
+                <h2 className="text-4xl font-bold mb-6">DISTANCE IS NO <br/> LONGER A PROBLEM.</h2>
                 <p className="text-lg mb-6">
                     Even though we are thousands of kilometers apart, the smile on your face is the most beautiful gift. We send this as a sign that distance is just a number. This gift may be delivered by courier, but the love that accompanies it is sent directly from our hearts. Distance is not a barrier for family.
                 </p>

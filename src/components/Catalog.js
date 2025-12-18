@@ -132,7 +132,7 @@ const Catalog = () => {
     };
 
     return (
-        <section id="catalog" className="py-16 bg-white">
+        <section id="catalog" className="py-24 bg-white">
             <div className="max-w-screen-xl mx-auto px-4">
                 <div className="text-center mb-10">
                     <h2 className="text-4xl font-semibold">Our Catalogs</h2>

@@ -38,7 +38,7 @@ const CartPage = () => {
     };
 
     return (
-        <section className="py-16 bg-white">
+        <section className="py-24 bg-white">
             <div className="max-w-screen-xl mx-auto px-4">
                 <h2 className="text-4xl font-semibold text-center mb-6">Your Cart</h2>
 

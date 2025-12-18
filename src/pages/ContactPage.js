@@ -22,7 +22,7 @@ const ContactPage = () => {
     };
 
     return (
-        <section id="contact" className="py-16 bg-gray-100">
+        <section id="contact" className="py-24 bg-gray-100">
             <div className="max-w-screen-xl mx-auto px-4">
                 <div className="text-center mb-12">
                     <h2 className="text-4xl font-semibold text-gray-800">
@@ -112,19 +112,19 @@ const ContactPage = () => {
                     <div className="bg-white p-8 rounded-lg shadow-lg">
                         <h3 className="text-2xl font-semibold text-gray-800 mb-6">Contact Information</h3>
                         <p className="subtext text-gray-600 mb-4">
-                            <strong>Address:</strong> 123 Transport Street, Berlin, Germany
+                            <strong>Address:</strong> Jl. Utama 2 No.14-15 Komp. Perumahan Dasana Indah, Bojong Nangka, Kecamatan Kelapa Dua, Kabupaten Tangerang, Banten 15810
                         </p>
                         <p className="subtext text-gray-600 mb-4">
                             <strong>Email:</strong> <a href="mailto:info@diontransport.com">info@diontransport.com</a>
                         </p>
                         <p className="subtext text-gray-600 mb-4">
-                            <strong>Phone:</strong> <a href="tel:+49123456789">+49 123 456 789</a>
+                            <strong>Phone:</strong> <a href="tel:+491754513280">+49 175 4513280</a>
                         </p>
 
                         {/* Embedded Google Map */}
                         <div className="mt-6">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d243647.93912932944!2d13.088418298394155!3d52.53064083189166!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47b202b95b1cb0b1%3A0x423d28ab1e45a9fe!2sBerlin%2C%20Germany!5e0!3m2!1sen!2sus!4v1632501187680!5m2!1sen!2sus"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.064155817739!2d106.60179149999999!3d-6.2552786!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69fd0fa4cbcbc3%3A0x6b0ad38449bc58ca!2sINDOEROPA%20DionTransport!5e0!3m2!1sen!2sid!4v1766055699386!5m2!1sen!2sid"
                                 width="100%"
                                 height="300"
                                 style={{ border: "0" }}

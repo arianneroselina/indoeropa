@@ -3,10 +3,12 @@ import {FaArrowRight, FaCheckCircle} from "react-icons/fa";
 
 const AboutUsPage = () => {
     return (
-        <section id="about-us" className="bg-gray-100 py-16">
+        <section id="about-us" className="bg-gray-100 py-24">
             <div className="max-w-screen-xl mx-auto px-4">
                 <div className="text-center mb-12 animate__animated animate__fadeIn animate__delay-1s">
-                    <h2 className="text-4xl font-bold text-gray-800">About Dion Transport</h2>
+                    <h2 className="text-4xl font-bold text-gray-800">
+                        About <span className="text-red-800">Dion Transport</span>
+                    </h2>
                     <p className="subtext mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
                         Dion Transport – The largest hand-carry luggage delivery service provider in Europe, based in Germany and Indonesia. We ensure that your goods are delivered safely, quickly, and professionally.
                     </p>

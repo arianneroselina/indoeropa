@@ -4,9 +4,9 @@ import {FaArrowRight} from "react-icons/fa";
 
 const About = () => {
     return (
-        <section className="bg-gray-100 py-16">
+        <section className="bg-gray-100 py-24">
             <div className="max-w-screen-xl mx-auto px-4">
-                <h2 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
+                <h2 className="text-4xl font-semibold text-gray-800 mb-12 text-center">
                     About <span className="text-red-800">Dion Transport</span>
                 </h2>
 

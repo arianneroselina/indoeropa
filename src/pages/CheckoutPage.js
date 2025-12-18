@@ -47,7 +47,7 @@ const CheckoutPage = () => {
     };
 
     return (
-        <section className="py-16 bg-gray-100">
+        <section className="py-24 bg-gray-100">
             <div className="max-w-screen-xl mx-auto px-4">
                 {/* Back to Cart button */}
                 <div className="flex justify-between items-center mb-6">
