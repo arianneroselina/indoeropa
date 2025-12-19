@@ -2,7 +2,9 @@ import React, { useEffect, useState, useMemo } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import {CART_KEY, DHL_LOGO, ROUTES} from "../utils/CatalogHelper";
-import DHL_TIERS from '../data/dhl-tiers.json';
+import Options from '../data/options.json';
+import Calendar from "./Calendar";
+import {formatDateToDDMMYYYY} from "../utils/FormatDate";
 
 const Catalog = () => {
     const [activeRouteKey, setActiveRouteKey] = useState(null);
@@ -24,7 +26,7 @@ const Catalog = () => {
 
     function pickTier(weightKg) {
         if (!weightKg || weightKg <= 0) return null;
-        const tiers = DHL_TIERS;
+        const tiers = Options.shipmentTiers;
         return tiers.find((tier) => weightKg <= tier.maxKg) || null;
     }
 
@@ -116,6 +118,9 @@ const Catalog = () => {
             updatedCartItems = [...cartItems, item];
         }
 
+        // Sort the cart items based on shipmentDate (earliest to latest)
+        updatedCartItems.sort((a, b) => new Date(a.shipmentDate) - new Date(b.shipmentDate));
+
         // Update the cart in state and localStorage
         setCartItems(updatedCartItems);
         localStorage.setItem(CART_KEY, JSON.stringify(updatedCartItems));
@@ -129,7 +134,7 @@ const Catalog = () => {
         setFeedbackVisible(true);
         setTimeout(() => {
             setFeedbackVisible(false);
-            setFeedbackCartItem(null)
+            setFeedbackCartItem(null);
         }, 5000);
     };
 
@@ -268,20 +273,7 @@ const Catalog = () => {
                                         </div>
                                     </div>
 
-                                    {/* Calendar only */}
-                                    <div className="mt-5">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-2">
-                                            Shipment date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={shipmentDate}
-                                            onChange={(e) => setShipmentDate(e.target.value)}
-                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                            required
-                                            min={new Date().toISOString().split('T')[0]}
-                                        />
-                                    </div>
+                                    <Calendar routeKey={activeRoute.key} shipmentDate={shipmentDate} setShipmentDate={setShipmentDate} />
                                 </div>
 
                                 {/* Cart feedback */}
@@ -290,7 +282,7 @@ const Catalog = () => {
                                         <div className="text-sm font-semibold text-green-800">Added to cart</div>
                                         <div className="subtext text-xs text-green-800/80 mt-1">
                                             {feedbackCartItem.routeTitle} • {feedbackCartItem.tierLabel} • €{feedbackCartItem.priceEur ? feedbackCartItem.priceEur.toFixed(2) : ""} •{" "}
-                                            {feedbackCartItem.weightKg} kg • {feedbackCartItem.shipmentDate}
+                                            {feedbackCartItem.weightKg} kg • {formatDateToDDMMYYYY(feedbackCartItem.shipmentDate)}
                                         </div>
                                     </div>
                                 )}
@@ -307,7 +299,7 @@ const Catalog = () => {
                                         <div className="p-3 text-right">Price</div>
                                     </div>
 
-                                    {DHL_TIERS.map((t) => {
+                                    {Options.shipmentTiers.map((t) => {
                                         const active = selectedTier?.id === t.id && !invalidWeight && weightNum > 0;
 
                                         return (

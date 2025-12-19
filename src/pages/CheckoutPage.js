@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
 import {CART_KEY} from "../utils/CatalogHelper";
+import {formatDateToDDMMYYYY} from "../utils/FormatDate";
 
 const CheckoutPage = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -76,7 +77,7 @@ const CheckoutPage = () => {
                                         <div className="flex items-center gap-4">
                                             <div>
                                                 <p className="text-lg font-semibold">{item.routeTitle} - {item.tierLabel}</p>
-                                                <p className="text-sm text-gray-500">{item.shipmentDate}</p>
+                                                <p className="text-sm text-gray-500">{formatDateToDDMMYYYY(item.shipmentDate)}</p>
                                                 <p className="text-sm text-gray-500">{item.weightKg} kg</p>
                                             </div>
                                         </div>
