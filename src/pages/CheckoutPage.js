@@ -204,7 +204,7 @@ const CheckoutPage = () => {
                                         className="mr-2"
                                         required
                                     />
-                                    <span>I accept the</span>
+                                    <span>I have read and accept the</span>
                                     <Link
                                         to="/terms"
                                         target="_blank"
