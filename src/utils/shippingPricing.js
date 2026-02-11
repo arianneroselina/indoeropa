@@ -61,7 +61,7 @@ export function calcPrice({ selectedPackageType, billedWeight, documentPages }) 
         const firstKgPrice = selectedPackageType.pricing.firstKg;
 
         const fullKg = Math.floor(billedWeight);
-        const hasHalf = billedWeight % 1 !== 0;
+        //const hasHalf = billedWeight % 1 !== 0;
 
         let total = 0;
         let breakdown = "";

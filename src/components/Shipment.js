@@ -29,6 +29,7 @@ export default function Shipment() {
     const [progressStep, setProgressStep] = useState(0);
 
     const [cartItems, setCartItems] = useState([]);
+    const [feedbackItem, setFeedbackItem] = useState(null);
     const [feedbackVisible, setFeedbackVisible] = useState(false);
 
     const shipmentRef = useRef(null);
@@ -189,11 +190,16 @@ export default function Shipment() {
             fromCountry,
             toCountry,
             weightKg: weightNum,
+            billedWeightKg: roundedWeight,
             dimensionsCm: { ...dims },
             packageTypeId: selectedPackageTypeId,
             packageTypeLabel: selectedPackageType?.label ?? "",
+            priceEur: priceResult.total,
+            priceBreakdown: priceResult.breakdown,
             quantity: 1,
             createdAt: new Date().toISOString(),
+            documentPages: isDocument ? Number(documentPages) : undefined,
+            originalPrice: isShoes ? Number(originalPrice) : undefined,
         };
 
         const signature = [
@@ -223,10 +229,23 @@ export default function Shipment() {
         setCartItems(updated);
         localStorage.setItem(CART_KEY, JSON.stringify(updated));
 
-        setFeedbackVisible(true);
-        setTimeout(() => setFeedbackVisible(false), 4000);
+        setFeedbackItem({
+            fromLabel,
+            toLabel,
+            billed: isDocument
+                ? `${documentPages || "—"} pages`
+                : `${roundedWeight ? roundedWeight.toFixed(1) : "—"} kg`,
+            packageLabel: selectedPackageType?.label ?? "—",
+            priceLabel: priceResult.total ? `€${priceResult.total.toFixed(2)}` : "—",
+        });
 
-        // Keep route + package; reset shipment basics
+        setFeedbackVisible(true);
+        setTimeout(() => {
+            setFeedbackVisible(false);
+            setFeedbackItem(null);
+        }, 4000);
+
+        // reset
         setWeight("");
     };
 
@@ -450,15 +469,12 @@ export default function Shipment() {
                                             </div>
                                         </div>
 
-                                        {feedbackVisible && (
+                                        {feedbackVisible && feedbackItem && (
                                             <div className="rounded-2xl border bg-green-50 p-3">
                                                 <div className="text-sm font-semibold text-green-800">Added to cart</div>
                                                 <div className="text-xs text-green-800/80 mt-1">
-                                                    {fromLabel} → {toLabel} •{" "}
-                                                    {isDocument
-                                                        ? `${documentPages || "—"} pages`
-                                                        : `${roundedWeight ? roundedWeight.toFixed(1) : "—"} kg`}{" "}
-                                                    • {selectedPackageType?.label}
+                                                    {feedbackItem.fromLabel} → {feedbackItem.toLabel} • {feedbackItem.billed} •{" "}
+                                                    {feedbackItem.packageLabel} • {feedbackItem.priceLabel}
                                                 </div>
                                             </div>
                                         )}

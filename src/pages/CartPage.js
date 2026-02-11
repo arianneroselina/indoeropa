@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
-import {CART_KEY} from "../utils/shipmentHelper";
-import {formatDateToDDMMYYYY} from "../utils/formatDate";
+import { CART_KEY } from "../utils/shipmentHelper";
+//import { formatDateToDDMMYYYY } from "../utils/formatDate";
 
 const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -19,7 +19,7 @@ const CartPage = () => {
     // Calculate total price based on cart items and quantity
     const calculateTotalPrice = () => {
         return cartItems.reduce(
-            (total, item) => total + item.priceEur * item.quantity,
+            (total, item) => total + (Number(item.priceEur) || 0) * (item.quantity || 1),
             0
         );
     };
@@ -56,11 +56,25 @@ const CartPage = () => {
                         {cartItems.map((item, index) => (
                             <div key={index} className="flex justify-between items-center border-b py-4">
                                 <div className="flex items-center gap-4">
-                                    <div>
-                                        <p className="text-lg font-semibold">{item.routeTitle} - {item.tierLabel}</p>
-                                        <p className="text-sm text-gray-500">{formatDateToDDMMYYYY(item.shipmentDate)}</p>
-                                        <p className="text-sm text-gray-500">{item.weightKg} kg</p>
-                                    </div>
+                                    <p className="text-lg font-semibold">
+                                        {item.fromCountry} → {item.toCountry} • {item.packageTypeLabel}
+                                    </p>
+
+                                    <p className="subtext text-sm text-gray-500">
+                                        Added: {new Date(item.createdAt).toLocaleDateString()}
+                                    </p>
+
+                                    {item.billedWeightKg ? (
+                                        <p className="subtext text-sm text-gray-500">
+                                            Billed weight: {Number(item.billedWeightKg).toFixed(1)} kg
+                                        </p>
+                                    ) : null}
+
+                                    {item.documentPages ? (
+                                        <p className="subtext text-sm text-gray-500">
+                                            Pages: {item.documentPages}
+                                        </p>
+                                    ) : null}
                                 </div>
 
                                 <div className="flex items-center gap-4">
@@ -72,7 +86,7 @@ const CartPage = () => {
                                         className="w-16 p-2 border border-gray-300 rounded-md"
                                     />
                                     <p className="text-lg font-semibold">
-                                        €{(item.priceEur * item.quantity)?.toFixed(2)}
+                                        €{((item.priceEur ?? 0) * item.quantity).toFixed(2)}
                                     </p>
                                     <button
                                         onClick={() => handleRemoveItem(index)}
