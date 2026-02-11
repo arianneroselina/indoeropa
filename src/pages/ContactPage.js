@@ -116,8 +116,7 @@ const ContactPage = () => {
                             <strong>Address:</strong> Jl. Utama 2 No.14-15 Komp. Perumahan Dasana Indah, Bojong Nangka, Kecamatan Kelapa Dua, Kabupaten Tangerang, Banten 15810
                         </p>
                         <p className="subtext text-gray-600 mb-4">
-                            // TODO
-                            <strong>Email:</strong> <a href="mailto:info@diontransport.com">info@diontransport.com</a>
+                            <strong>Email:</strong> <a href="mailto:diontransport@hotmail.com">diontransport@hotmail.com</a>
                         </p>
                         <p className="subtext text-gray-600 mb-4">
                             <strong>Phone:</strong> <a href="tel:+491754513280">+49 175 4513280</a>
@@ -126,13 +125,13 @@ const ContactPage = () => {
                         {/* Embedded Google Map */}
                         <div className="mt-6">
                             <iframe
+                                title="Dion Transport Location"
                                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.064155817739!2d106.60179149999999!3d-6.2552786!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69fd0fa4cbcbc3%3A0x6b0ad38449bc58ca!2sINDOEROPA%20DionTransport!5e0!3m2!1sen!2sid!4v1766055699386!5m2!1sen!2sid"
                                 width="100%"
                                 height="300"
                                 style={{ border: "0" }}
                                 allowFullScreen=""
                                 loading="lazy"
-                                title="Dion Transport Location"
                             ></iframe>
                         </div>
                     </div>
