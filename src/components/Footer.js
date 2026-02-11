@@ -1,13 +1,12 @@
 import React from "react";
-import { FaFacebook, FaTwitter, FaLinkedin, FaWhatsapp, FaEnvelope } from "react-icons/fa";
+import { FaWhatsapp, FaEnvelope } from "react-icons/fa6";
 
 const Footer = () => {
     return (
         <footer className="bg-gray-800 text-white py-8">
             <div className="max-w-screen-xl mx-auto text-center">
                 <div className="flex justify-center space-x-6 mt-4">
-                    <a
-                        // TODO
+                    {/*<a
                         href="https://facebook.com"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -17,17 +16,15 @@ const Footer = () => {
                         <FaFacebook className="text-2xl" />
                     </a>
                     <a
-                        // TODO
-                        href="https://twitter.com"
+                        href="https://x.com"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-gray-400"
-                        aria-label="Twitter"
+                        aria-label="X"
                     >
-                        <FaTwitter className="text-2xl" />
+                        <FaXTwitter className="text-2xl" />
                     </a>
                     <a
-                        // TODO
                         href="https://linkedin.com"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -35,7 +32,7 @@ const Footer = () => {
                         aria-label="LinkedIn"
                     >
                         <FaLinkedin className="text-2xl" />
-                    </a>
+                    </a>*/}
                     <a
                         href="https://wa.me/%2B491754513280/?text=Halo%20admin%20dion%2C%20saya%20mau%20pesan%20bagasi"
                         target="_blank"
@@ -46,8 +43,7 @@ const Footer = () => {
                         <FaWhatsapp className="text-2xl" />
                     </a>
                     <a
-                        // TODO
-                        href="mailto:info@diontransport.com"
+                        href="mailto:diontransport@hotmail.com"
                         className="hover:text-gray-400"
                         aria-label="Email"
                     >
