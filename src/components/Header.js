@@ -21,7 +21,7 @@ const Header = () => {
                     <nav className="hidden md:flex items-center space-x-6">
                         <a href="/" className="text-sm hover:text-gray-400">HOME</a>
                         <a href="/about" className="text-sm hover:text-gray-400">ABOUT</a>
-                        <a href="/catalog" className="text-sm hover:text-gray-400">CATALOG</a>
+                        <a href="/shipment" className="text-sm hover:text-gray-400">SHIPMENT</a>
                         <a href="/contact" className="text-sm hover:text-gray-400">CONTACT</a>
                         <a href="/terms" className="text-sm hover:text-gray-400">T&amp;C</a>
                     </nav>

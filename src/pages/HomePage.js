@@ -2,7 +2,7 @@ import React from "react";
 import Hero from "../components/Hero";
 import Reviews from "../components/Reviews";
 import About from "../components/About";
-import Catalog from "../components/Catalog";
+import Shipment from "../components/Shipment";
 import WhyUs from "../components/WhyUs";
 import Closing from "../components/Closing";
 import Contact from "../components/Contact";
@@ -13,7 +13,7 @@ const HomePage = () => {
             <Hero />
             <Reviews />
             <About />
-            <Catalog />
+            <Shipment />
             <WhyUs />
             <Closing />
             <Contact />

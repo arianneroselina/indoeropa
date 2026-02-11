@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
-import {CART_KEY} from "../utils/CatalogHelper";
-import {formatDateToDDMMYYYY} from "../utils/FormatDate";
+import {CART_KEY} from "../utils/shipmentHelper";
+import {formatDateToDDMMYYYY} from "../utils/formatDate";
 
 const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -46,7 +46,7 @@ const CartPage = () => {
                 {!cartItems.length ? (
                     <div className="subtext text-center text-lg text-gray-600">
                         Your cart is empty.{" "}
-                        <Link to="/catalog" className="text-red-800 font-semibold">
+                        <Link to="/shipment" className="text-red-800 font-semibold">
                             Browse our catalog
                         </Link>{" "}
                         to add items to your cart.
@@ -89,7 +89,7 @@ const CartPage = () => {
                         </div>
 
                         <div className="mt-6 flex justify-end gap-4">
-                            <Link to="/catalog" className="button-text bg-gray-800">
+                            <Link to="/shipment" className="button-text bg-gray-800">
                                 Continue Shopping
                             </Link>
                             {cartItems.length > 0 && (

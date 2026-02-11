@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DatePicker } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Options from '../data/options.json';
-import {formatDateToISO} from "../utils/FormatDate";
+import {formatDateToISO} from "../utils/formatDate";
 
 const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {
     const [availableDates, setAvailableDates] = useState([]);

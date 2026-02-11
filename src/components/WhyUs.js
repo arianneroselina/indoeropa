@@ -20,7 +20,7 @@ const WhyUs = () => {
                 </p>
                 <div className="flex justify-center sm:justify-start">
                     <Link
-                        to="/catalog"
+                        to="/shipment"
                         className="button-text"
                     >
                         Ship Now

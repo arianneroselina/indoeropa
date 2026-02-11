@@ -1,13 +1,13 @@
-import Catalog from "../components/Catalog";
+import Shipment from "../components/Shipment";
 import Closing from "../components/Closing";
 import React from "react";
 
-const CatalogPage = () => {
+const ShipmentPage = () => {
     return (
         <div>
-            <Catalog/>
+            <Shipment/>
             <Closing />
         </div>
 );};
 
-export default CatalogPage;
+export default ShipmentPage;

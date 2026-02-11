@@ -21,7 +21,7 @@ const AboutUsPage = () => {
                             We offer the most reliable luggage shipping service. Your items are delivered directly by our trusted team, ensuring that they arrive safely and on time.
                         </p>
                         <a
-                            href="/catalog"
+                            href="/shipment"
                             className="button-text mt-6 font-semibold"
                         >
                             Explore Our Catalog
@@ -82,7 +82,7 @@ const AboutUsPage = () => {
                     <h3 className="text-3xl font-semibold text-gray-800 mb-4">Ready to Ship?</h3>
                     <p className="subtext text-lg text-gray-600 mb-6">Trust us with your belongings and enjoy a seamless shipping experience.</p>
                     <a
-                        href="/catalog"
+                        href="/shipment"
                         className="button-text font-semibold text-lg"
                     >
                         Get Started
