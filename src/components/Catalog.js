@@ -1,44 +1,51 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { FaArrowRight } from "react-icons/fa";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { FaArrowRight, FaExchangeAlt, FaInfoCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import {CART_KEY, DHL_LOGO, ROUTES} from "../utils/CatalogHelper";
-import Options from '../data/options.json';
-import Calendar from "./Calendar";
-import {formatDateToDDMMYYYY} from "../utils/FormatDate";
+import { CART_KEY } from "../utils/CatalogHelper";
 
-const Catalog = () => {
-    const [activeRouteKey, setActiveRouteKey] = useState(null);
+const COUNTRIES = [
+    { id: "ID", name: "Indonesia" },
+    { id: "DE", name: "Germany" },
+];
+
+const PACKAGE_TYPES = [
+    { id: "pkg_1_vol", label: "1 kg Volume" },
+    { id: "pkg_1_super", label: "1 kg Super Volume" },
+    { id: "bag", label: "Bag" },
+    { id: "hat", label: "Hat" },
+    { id: "shoes", label: "Shoes" },
+    { id: "documents", label: "Documents" },
+    { id: "wallet", label: "Wallet/Clutch" },
+];
+
+const SIZE_PRESETS = [
+    { id: "a4", label: "A4 Envelope", dims: { l: 32, w: 24, h: 1 } },
+    { id: "books", label: "Books", dims: { l: 23, w: 14, h: 4 } },
+    { id: "shoebox", label: "Shoe box", dims: { l: 35, w: 20, h: 15 } },
+    { id: "moving", label: "Moving box", dims: { l: 75, w: 35, h: 35 } },
+];
+
+function snapToHalf(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 0;
+    return Math.round(n * 2) / 2;
+}
+
+export default function Catalog() {
+    const [fromCountry, setFromCountry] = useState("ID");
+    const [toCountry, setToCountry] = useState("");
+
     const [weight, setWeight] = useState("");
-    const [shipmentDate, setShipmentDate] = useState("");
+    const [lengthCm, setLengthCm] = useState("");
+    const [widthCm, setWidthCm] = useState("");
+    const [heightCm, setHeightCm] = useState("");
+
+    const [selectedPackageTypeId, setSelectedPackageTypeId] = useState("pkg_0_5");
 
     const [cartItems, setCartItems] = useState([]);
-    //const [cartItem, setCartItem] = useState(null);
-    const [feedbackCartItem, setFeedbackCartItem] = useState(null);
     const [feedbackVisible, setFeedbackVisible] = useState(false);
 
-    const weightNum = useMemo(() => {
-        const w = parseFloat(weight);
-        return Number.isFinite(w) ? w : 0;
-    }, [weight]);
-
-    // Select DHL tier based on weight
-    const selectedTier = useMemo(() => pickTier(weightNum), [weightNum]);
-
-    function pickTier(weightKg) {
-        if (!weightKg || weightKg <= 0) return null;
-        const tiers = Options.shipmentTiers;
-        return tiers.find((tier) => weightKg <= tier.maxKg) || null;
-    }
-
-    // Check if the weight is valid (between 0.1 and 20 kg)
-    const invalidWeight = weightNum !== 0 && (weightNum < 0.1 || weightNum > 20);
-
-    const canAddToCart =
-        !!activeRouteKey &&
-        !!selectedTier &&
-        !invalidWeight &&
-        weightNum > 0 &&
-        shipmentDate;
+    const shipmentRef = useRef(null);
 
     useEffect(() => {
         try {
@@ -49,310 +56,532 @@ const Catalog = () => {
         }
     }, []);
 
-    const activeRoute = useMemo(
-        () => ROUTES.find((r) => r.key === activeRouteKey) ?? null,
-        [activeRouteKey]
-    );
+    const canShowShipment = useMemo(() => {
+        return !!fromCountry && !!toCountry && fromCountry !== toCountry;
+    }, [fromCountry, toCountry]);
 
-    const signature = useMemo(() => {
-        return [
-            activeRouteKey ?? "",
-            selectedTier?.id ?? "",
-            weightNum ? weightNum.toFixed(2) : "",
-            shipmentDate ?? "",
-        ].join("|");
-    }, [
-        activeRouteKey,
-        selectedTier?.id,
-        weightNum,
-        shipmentDate,
-    ]);
+    const weightNum = useMemo(() => {
+        if (weight === "") return 0;
+        return snapToHalf(weight);
+    }, [weight]);
 
-    // If user changes inputs after adding to cart -> require re-add (avoid stale cart)
-    /*useEffect(() => {
-        if (cartItem?.signature && cartItem.signature !== signature) {
-            console.log("cartItem.signature:", cartItem.signature)
-            console.log("signature:", signature)
-            setCartItem(null);
-            try {
-                localStorage.removeItem(CART_KEY);
-                console.log("Signature changes. Removing..")
-            } catch {
-                // ignore
-            }
-        }
-    }, [signature, cartItem]);*/
+    const dims = useMemo(() => {
+        const l = Number(lengthCm);
+        const w = Number(widthCm);
+        const h = Number(heightCm);
+        return {
+            l: Number.isFinite(l) ? l : 0,
+            w: Number.isFinite(w) ? w : 0,
+            h: Number.isFinite(h) ? h : 0,
+        };
+    }, [lengthCm, widthCm, heightCm]);
 
-    const toggleRoute = (key) => {
-        setActiveRouteKey((prev) => (prev === key ? null : key));
+    const selectedPackageType = useMemo(() => {
+        return PACKAGE_TYPES.find((p) => p.id === selectedPackageTypeId) ?? null;
+    }, [selectedPackageTypeId]);
+
+    const canAddToCart = useMemo(() => {
+        if (!canShowShipment) return false;
+        if (!selectedPackageType) return false;
+        if (weightNum <= 0) return false;
+        return true;
+    }, [canShowShipment, selectedPackageType, weightNum]);
+
+    const handleSwap = () => {
+        if (!toCountry) return;
+        setFromCountry(toCountry);
+        setToCountry(fromCountry);
     };
+
+    const handleWeightChange = (e) => {
+        const raw = e.target.value;
+        if (raw === "") {
+            setWeight("");
+            return;
+        }
+
+        // 1 decimal place
+        if (/^\d*\.?\d?$/.test(raw)) {
+            setWeight(raw);
+        }
+    };
+
+    const roundUpToHalf = (value) => {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return 0;
+        return Math.ceil(n * 2) / 2;
+    };
+
+    const roundedWeight = weight ? roundUpToHalf(weight) : 0;
+    const willBeRounded = weight && Number(weight) !== roundedWeight;
+
+    const applyPreset = (preset) => {
+        setLengthCm(String(preset.dims.l));
+        setWidthCm(String(preset.dims.w));
+        setHeightCm(String(preset.dims.h));
+    };
+
+    const priceEur = useMemo(() => {
+        if (!roundedWeight || roundedWeight <= 0) return 0;
+
+        const fullKg = Math.floor(roundedWeight);
+        const hasHalf = roundedWeight % 1 !== 0;  // remaining 0.5kg
+
+        return (fullKg * 15) + (hasHalf ? 10 : 0);
+    }, [roundedWeight]);
+
+    const priceBreakdown = useMemo(() => {
+        if (!roundedWeight || roundedWeight <= 0) return "";
+
+        const fullKg = Math.floor(roundedWeight);
+        const hasHalf = roundedWeight % 1 !== 0;
+
+        if (fullKg === 0 && hasHalf) {
+            return "1 × 10€";
+        }
+
+        if (fullKg > 0 && hasHalf) {
+            return `${fullKg} × 15€ + 1 × 10€`;
+        }
+
+        if (fullKg > 0 && !hasHalf) {
+            return `${fullKg} × 15€`;
+        }
+
+        return "";
+    }, [roundedWeight]);
+
+    const roundedText = useMemo(() => {
+        if (!weight) return "";
+        return `${Number(weight).toFixed(1)} kg → billed as ${roundedWeight.toFixed(1)} kg`;
+    }, [weight, roundedWeight]);
+
+    const priceLabel = useMemo(() => {
+        if (!roundedWeight || roundedWeight <= 0) return "—";
+        return `€${priceEur.toFixed(2)}`;
+    }, [roundedWeight, priceEur]);
 
     const handleAddToCart = () => {
         if (!canAddToCart) return;
 
         const item = {
             type: "shipping",
-            routeKey: activeRoute.key,
-            routeTitle: activeRoute.title,
+            fromCountry,
+            toCountry,
             weightKg: weightNum,
-            shipmentDate,
-            tierId: selectedTier.id,
-            tierLabel: selectedTier.label,
-            tierMaxKg: selectedTier.maxKg,
-            priceEur: selectedTier.price,
-            signature,
+            dimensionsCm: { ...dims },
+            packageTypeId: selectedPackageTypeId,
+            packageTypeLabel: selectedPackageType?.label ?? "",
             quantity: 1,
             createdAt: new Date().toISOString(),
         };
 
-        // Check if item already exists in cart (based on signature)
-        const existingItemIndex = cartItems.findIndex((cartItem) => cartItem.signature === item.signature);
+        const signature = [
+            item.fromCountry,
+            item.toCountry,
+            item.weightKg.toFixed(1),
+            item.packageTypeId,
+            item.dimensionsCm.l,
+            item.dimensionsCm.w,
+            item.dimensionsCm.h,
+        ].join("|");
 
-        let updatedCartItems;
-        if (existingItemIndex >= 0) {
-            // If item exists, update the quantity
-            updatedCartItems = [...cartItems];
-            updatedCartItems[existingItemIndex].quantity += 1;
+        const existingIndex = cartItems.findIndex((x) => x.signature === signature);
+        let updated = [...cartItems];
+
+        if (existingIndex >= 0) {
+            updated[existingIndex] = {
+                ...updated[existingIndex],
+                quantity: (updated[existingIndex].quantity ?? 1) + 1,
+            };
         } else {
-            // If item doesn't exist, add it to the cart
-            updatedCartItems = [...cartItems, item];
+            updated.push({ ...item, signature });
         }
 
-        // Sort the cart items based on shipmentDate (earliest to latest)
-        updatedCartItems.sort((a, b) => new Date(a.shipmentDate) - new Date(b.shipmentDate));
+        setCartItems(updated);
+        localStorage.setItem(CART_KEY, JSON.stringify(updated));
 
-        // Update the cart in state and localStorage
-        setCartItems(updatedCartItems);
-        localStorage.setItem(CART_KEY, JSON.stringify(updatedCartItems));
-        console.log("Storing last state of cart items:", updatedCartItems)
-
-        // Reset the form immediately
-        setFeedbackCartItem(item);
-        resetForm();
-
-        // Show feedback for 5 seconds
         setFeedbackVisible(true);
-        setTimeout(() => {
-            setFeedbackVisible(false);
-            setFeedbackCartItem(null);
-        }, 5000);
+        setTimeout(() => setFeedbackVisible(false), 4000);
+
+        // Keep route selection; reset shipment basics
+        setWeight("");
     };
 
-    const resetForm = () => {
-        setWeight("");
-        setShipmentDate("");
-    };
+    const fromLabel = COUNTRIES.find((c) => c.id === fromCountry)?.name ?? fromCountry;
+    const toLabel = COUNTRIES.find((c) => c.id === toCountry)?.name ?? toCountry;
 
     return (
         <section id="catalog" className="py-24 bg-white">
-            <div className="max-w-screen-xl mx-auto px-4">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6">
                 <div className="text-center mb-10">
-                    <h2 className="text-4xl font-semibold">Our Catalogs</h2>
+                    <h2 className="text-4xl font-semibold">Shipping</h2>
                     <p className="mt-2 subtext text-lg text-gray-600">
-                        Select a route to view pricing. DHL package is automatically selected based on weight.
+                        Choose destination, then describe your shipment.
                     </p>
                 </div>
 
-                {/* Route cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                    {ROUTES.map((route) => {
-                        const active = route.key === activeRouteKey;
+                {/* Step 1: Route card */}
+                <div className="rounded-2xl border bg-white shadow-lg overflow-hidden">
+                    <div className="h-1 w-full bg-gradient-to-r from-red-800 via-red-600 to-red-400" />
 
-                        return (
-                            <button
-                                key={route.key}
-                                type="button"
-                                onClick={() => toggleRoute(route.key)}
-                                aria-expanded={active}
-                                className={[
-                                    "group relative overflow-hidden rounded-2xl shadow-lg min-h-[320px] sm:min-h-[360px]",
-                                    "transform transition-all duration-300 hover:scale-[1.02]",
-                                    "focus:outline-none focus:ring-2 focus:ring-blue-600",
-                                    active ? "ring-2 ring-blue-700" : "",
-                                ].join(" ")}
-                                style={{
-                                    backgroundImage: `url('${route.image}')`,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                }}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/10" />
-
-                                <div className="relative h-full p-6 flex flex-col justify-end text-left text-white">
-                                    <h3 className="text-2xl font-bold">{route.title}</h3>
-                                    <p className="mt-1 subtext text-xs text-white/90">{route.subtitle}</p>
-
-                                    <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold">
-                                        {active ? "Hide details" : "View details"} <FaArrowRight />
-                                    </div>
-                                </div>
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* Inline details panel */}
-                {activeRoute && (
-                    <div className="mt-10 rounded-2xl border bg-white shadow-lg overflow-hidden">
-                        {/* Header */}
-                        <div className="p-6 border-b flex items-start justify-between gap-6">
-                            <div>
-                                <h3 className="text-xl font-semibold">{activeRoute.title}</h3>
-                                <p className="text-xs subtext text-gray-600 mt-1">{activeRoute.subtitle}</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => toggleRoute(activeRoute.key)}
-                                className="text-gray-500 hover:text-gray-800 text-2xl leading-none"
-                                aria-label="Close details"
-                            >
-                                ×
-                            </button>
+                    <div className="p-6 border-b flex items-start justify-between gap-6">
+                        <div>
+                            <h3 className="mt-3 text-xl font-semibold text-gray-900">Where are we shipping?</h3>
+                            <p className="text-xs subtext text-gray-600 mt-1">
+                                Currently available: Indonesia ↔ Germany
+                            </p>
                         </div>
+                    </div>
 
-                        {/* Main content */}
-                        <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* Left: inputs */}
-                            <div className="space-y-6">
-                                {/* Weight + calendar */}
-                                <div className="rounded-xl border p-4">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <h4 className="font-semibold text-gray-900">Shipping cost</h4>
-                                        <img
-                                            src={DHL_LOGO}
-                                            alt="DHL"
-                                            className="h-6 w-auto opacity-90"
-                                            onError={(e) => {
-                                                e.currentTarget.style.display = "none";
-                                            }}
-                                        />
-                                    </div>
-
-                                    <p className="subtext text-xs text-gray-600 mt-2">
-                                        We automatically select the <b>next DHL package</b> based on weight.
-                                    </p>
-
-                                    <div className="mt-4">
-                                        <label className="block text-sm font-semibold text-gray-800 mb-2">
-                                            Package weight (kg)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            step="0.1"
-                                            min="0.1"
-                                            max="20"
-                                            value={weight}
-                                            onChange={(e) => setWeight(e.target.value)}
-                                            placeholder="e.g. 2.1"
-                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                            required
-                                        />
-                                        {invalidWeight && (
-                                            <p className="mt-2 subtext text-sm text-red-600">
-                                                Please enter a weight between 0.1 and 20 kg.
-                                            </p>
-                                        )}
-
-                                        <div className="mt-4 rounded-xl bg-gray-50 border p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <div className="text-xs text-gray-500">Selected DHL package</div>
-                                                    <div className="text-base font-semibold text-gray-900">
-                                                        {selectedTier && !invalidWeight ? selectedTier.label : "—"}
-                                                    </div>
-                                                    <div className="subtext text-xs text-gray-500 mt-1">
-                                                        {selectedTier && !invalidWeight && weightNum > 0
-                                                            ? `${weightNum} kg → automatically rounded up to ≤ ${selectedTier.maxKg} kg tier`
-                                                            : "Enter weight to see the auto-selection"}
-                                                    </div>
-                                                </div>
-                                                <div className="text-lg font-bold">
-                                                    {selectedTier && selectedTier.price && !invalidWeight ? `€${selectedTier.price.toFixed(2)}` : "—"}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <Calendar routeKey={activeRoute.key} shipmentDate={shipmentDate} setShipmentDate={setShipmentDate} />
+                    <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-6 items-stretch">
+                            {/* From */}
+                            <div className="rounded-xl border p-4">
+                                <div className="text-xs text-gray-500">From</div>
+                                <div className="mt-4 flex items-center justify-between">
+                                    <div className="text-lg font-semibold text-gray-900">{fromLabel}</div>
+                                    <span className="text-xs text-gray-500">Billing country</span>
                                 </div>
+                            </div>
 
-                                {/* Cart feedback */}
-                                {feedbackVisible && feedbackCartItem && (
-                                    <div className="rounded-xl border bg-green-50 p-4">
-                                        <div className="text-sm font-semibold text-green-800">Added to cart</div>
-                                        <div className="subtext text-xs text-green-800/80 mt-1">
-                                            {feedbackCartItem.routeTitle} • {feedbackCartItem.tierLabel} • €{feedbackCartItem.priceEur ? feedbackCartItem.priceEur.toFixed(2) : ""} •{" "}
-                                            {feedbackCartItem.weightKg} kg • {formatDateToDDMMYYYY(feedbackCartItem.shipmentDate)}
-                                        </div>
+                            {/* Swap */}
+                            <div className="relative flex items-center justify-center">
+                                <div className="hidden md:block absolute left-0 right-0 h-px bg-gray-200" />
+                                <div className="md:hidden absolute top-0 bottom-0 w-px bg-gray-200" />
+
+                                <button
+                                    type="button"
+                                    onClick={handleSwap}
+                                    disabled={!toCountry}
+                                    className={[
+                                        "relative z-10 w-12 h-12 rounded-full border bg-white shadow-md",
+                                        "flex items-center justify-center transition",
+                                        toCountry
+                                            ? "hover:scale-[1.03] hover:bg-gray-50 text-gray-900"
+                                            : "text-gray-400 cursor-not-allowed bg-gray-100 shadow-sm",
+                                    ].join(" ")}
+                                    title="Swap From/To"
+                                >
+                                    <FaExchangeAlt />
+                                </button>
+                            </div>
+
+                            {/* To */}
+                            <div className="relative rounded-2xl border bg-white p-5 shadow-sm">
+                                <div className="text-xs font-semibold text-gray-500">To</div>
+
+                                <select
+                                    value={toCountry}
+                                    onChange={(e) => setToCountry(e.target.value)}
+                                    className="mt-2 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                >
+                                    <option value="">Select destination</option>
+                                    {COUNTRIES.filter((c) => c.id !== fromCountry).map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                {fromCountry && toCountry && fromCountry === toCountry && (
+                                    <div className="mt-2 text-sm text-red-800">
+                                        From and To can’t be the same country.
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    </div>
+                </div>
 
-                            {/* Right: pricing table */}
-                            <div className="rounded-xl border p-4 h-fit">
-                                <h4 className="font-semibold text-gray-900 mb-3">DHL package tiers</h4>
 
-                                <div className="overflow-hidden rounded-xl border">
-                                    <div className="grid grid-cols-3 bg-gray-50 text-xs font-semibold text-gray-600">
-                                        <div className="p-3">Weight</div>
-                                        <div className="p-3">Auto DHL</div>
-                                        <div className="p-3 text-right">Price</div>
+                {/* Step 2: Shipment card */}
+                {canShowShipment && (
+                    <div ref={shipmentRef} className="mt-10">
+                        <div className="rounded-2xl border bg-gradient-to-b bg-red-800 shadow-lg overflow-hidden">
+
+                            {/* Header */}
+                            <div className="p-5 sm:p-6 flex items-start justify-between gap-6">
+                                <div>
+                                    <h3 className="mt-3 text-xl font-semibold text-white">Shipment details</h3>
+                                    <div className="mt-3 inline-flex items-center gap-3 rounded-full bg-white/15 backdrop-blur-sm px-4 py-2">
+                                        <span className="subtext text-sm text-white">
+                                            {fromLabel}
+                                        </span>
+                                        <span className="subtext text-sm text-white">→</span>
+                                        <span className="subtext text-sm text-white">
+                                            {toLabel}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="px-4 pb-5 sm:px-6 sm:pb-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-5">
+                                    <div className="space-y-4">
+                                        {/* Weight block */}
+                                        <div className="rounded-2xl border bg-gray-50/80 p-4">
+                                            <h4 className="font-semibold text-gray-900">Weight</h4>
+
+                                            <div className="mt-2">
+                                                <label className="block text-xs font-semibold text-gray-700 mb-2">
+                                                    Package weight (kg)
+                                                </label>
+
+                                                <input
+                                                    type="number"
+                                                    inputMode="decimal"
+                                                    step="0.1"
+                                                    min="0.1"
+                                                    max="20"
+                                                    value={weight}
+                                                    onChange={handleWeightChange}
+                                                    placeholder="e.g. 2.3"
+                                                    className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                                                />
+
+                                                {willBeRounded && (
+                                                    <p className="subtext mt-2 text-xs text-gray-700">
+                                                        Your entered weight will automatically be rounded <b>up</b> to the next 0.5 kg tier.
+                                                    </p>
+                                                )}
+
+                                                {roundedWeight > 0 && (
+                                                    <div className="mt-3 rounded-xl bg-white/50 border p-4">
+                                                        <div className="flex items-center justify-between gap-4">
+                                                            <div>
+                                                                <div className="subtext text-xs text-gray-500">
+                                                                    Estimated price
+                                                                </div>
+
+                                                                <div className="text-base font-semibold text-gray-900">
+                                                                    {willBeRounded
+                                                                        ? `Rounded to ${roundedWeight.toFixed(1)} kg`
+                                                                        : `${roundedWeight.toFixed(1)} kg`}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="text-right">
+                                                                {/* Tooltip wrapper */}
+                                                                <div className="relative inline-block group">
+                                                                    {/* Hoverable price */}
+                                                                    <div
+                                                                        className={[
+                                                                            "text-lg font-bold text-gray-900 inline-flex items-center gap-2",
+                                                                            "cursor-help select-none",
+                                                                        ].join(" ")}
+                                                                        title="" // prevent default browser tooltip
+                                                                    >
+                                                                        {priceLabel}
+                                                                        <FaInfoCircle className="text-gray-500 text-sm" />
+                                                                    </div>
+
+                                                                    {/* Tooltip */}
+                                                                    {priceBreakdown && (
+                                                                        <div
+                                                                            className={[
+                                                                                "absolute right-0 top-full mt-2 w-64",
+                                                                                "rounded-xl border bg-white shadow-lg",
+                                                                                "px-3 py-2 text-left",
+                                                                                "opacity-0 pointer-events-none translate-y-1",
+                                                                                "group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0",
+                                                                                "transition duration-150",
+                                                                            ].join(" ")}
+                                                                            role="tooltip"
+                                                                        >
+                                                                            <div className="text-xs font-semibold text-gray-900">
+                                                                                Price calculation
+                                                                            </div>
+
+                                                                            {willBeRounded && (
+                                                                                <div className="subtext text-xs text-gray-600 mt-1">
+                                                                                    {roundedText}
+                                                                                </div>
+                                                                            )}
+
+                                                                            <div className="subtext text-xs text-gray-700 mt-2">
+                                                                                {priceBreakdown}
+                                                                            </div>
+
+                                                                            <div className="subtext text-[11px] text-gray-500 mt-2">
+                                                                                1 kg = 15€ • 0.5 kg = 10€ (rounded up)
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+
+                                        {/* Dimensions block */}
+                                        <div className="rounded-2xl border bg-gray-50/80 p-4">
+                                            <h4 className="font-semibold text-gray-900">Dimensions</h4>
+
+                                            {/* Inputs */}
+                                            <div className="mt-2">
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    <div>
+                                                        <label className="subtext text-xs text-gray-500">
+                                                            Length (cm)
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={lengthCm}
+                                                            onChange={(e) => setLengthCm(e.target.value)}
+                                                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="subtext text-xs text-gray-500">
+                                                            Width (cm)
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={widthCm}
+                                                            onChange={(e) => setWidthCm(e.target.value)}
+                                                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="subtext text-xs text-gray-500">
+                                                            Height (cm)
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={heightCm}
+                                                            onChange={(e) => setHeightCm(e.target.value)}
+                                                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Presets */}
+                                            <div className="mt-2">
+                                                <div className="subtext text-xs text-gray-500 mb-2">
+                                                    Quick presets
+                                                </div>
+
+                                                <div className="flex flex-wrap gap-2">
+                                                    {SIZE_PRESETS.map((p) => (
+                                                        <button
+                                                            key={p.id}
+                                                            type="button"
+                                                            onClick={() => applyPreset(p)}
+                                                            className="rounded-xl border bg-white px-4 py-2 text-left hover:bg-gray-100 transition"
+                                                        >
+                                                            <div className="text-xs font-semibold text-gray-900">
+                                                                {p.label}
+                                                            </div>
+
+                                                            <div className="subtext text-[11px] text-gray-500">
+                                                                {p.dims.l} × {p.dims.w} × {p.dims.h} cm
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {Options.shipmentTiers.map((t) => {
-                                        const active = selectedTier?.id === t.id && !invalidWeight && weightNum > 0;
-
-                                        return (
-                                            <div
-                                                key={t.id}
-                                                className={[
-                                                    "grid grid-cols-3 border-t text-sm",
-                                                    active ? "bg-blue-50" : "bg-white",
-                                                ].join(" ")}
-                                            >
-                                                <div className="p-3">up to {t.maxKg} kg</div>
-                                                <div className="p-3 font-semibold">{t.label}</div>
-                                                <div className="p-3 text-right font-semibold">€{t.price ? t.price.toFixed(2) : ""}</div>
+                                    <div className="space-y-4">
+                                        {/* Package Type block */}
+                                        <div className="rounded-2xl border bg-gray-50/80 p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900">Package type</h4>
+                                                    <p className="text-xs subtext text-gray-600 mt-0.5">
+                                                        Choose one option
+                                                    </p>
+                                                </div>
                                             </div>
-                                        );
-                                    })}
+
+                                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                {PACKAGE_TYPES.map((p) => {
+                                                    const active = p.id === selectedPackageTypeId;
+                                                    return (
+                                                        <button
+                                                            key={p.id}
+                                                            type="button"
+                                                            onClick={() => setSelectedPackageTypeId(p.id)}
+                                                            className={[
+                                                                "rounded-xl border px-3 py-3 text-left transition",
+                                                                "bg-white",
+                                                                active
+                                                                    ? "border-red-800 ring-1 ring-red-200"
+                                                                    : "border-gray-200 hover:bg-gray-50",
+                                                            ].join(" ")}
+                                                        >
+                                                            <div className="text-sm font-semibold text-gray-900">{p.label}</div>
+                                                            <div className="text-xs subtext text-gray-500 mt-0.5">
+                                                                {active ? "Selected" : "Select"}
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Summary block */}
+                                        <div className="rounded-2xl border bg-white p-4">
+                                            <h4 className="font-semibold text-gray-900">Summary</h4>
+
+                                            <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                                                <div className="text-gray-500">Route</div>
+                                                <div className="font-semibold text-gray-900 text-right">
+                                                    {fromLabel} → {toLabel}
+                                                </div>
+
+                                                <div className="text-gray-500">Weight</div>
+                                                <div className="font-semibold text-gray-900 text-right">
+                                                    {weightNum ? `${weightNum.toFixed(1)} kg` : "—"}
+                                                </div>
+
+                                                <div className="text-gray-500">Package</div>
+                                                <div className="font-semibold text-gray-900 text-right">
+                                                    {selectedPackageType?.label ?? "—"}
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 flex justify-end">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddToCart}
+                                                    disabled={!canAddToCart}
+                                                    className={[
+                                                        "button-text font-semibold inline-flex items-center justify-center",
+                                                        canAddToCart
+                                                            ? "bg-red-800 hover:bg-red-900 text-white"
+                                                            : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                                                    ].join(" ")}
+                                                >
+                                                    Add to cart
+                                                    <FaArrowRight className="ml-2 text-sm" />
+                                                </button>
+                                            </div>
+
+                                            {feedbackVisible && (
+                                                <div className="mt-4 rounded-xl border bg-green-50 p-3">
+                                                    <div className="text-sm font-semibold text-green-800">Added to cart</div>
+                                                    <div className="text-xs text-green-800/80 mt-1">
+                                                        {fromLabel} → {toLabel} • {weightNum.toFixed(1)} kg • {selectedPackageType?.label}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <p className="subtext text-xs text-gray-600 mt-3">
-                                    Example: 2.1 kg automatically selects the next tier (≤ 5 kg).
-                                </p>
                             </div>
-                        </div>
-
-                        {/* Footer buttons (outer part, bottom-right, last thing) */}
-                        <div className="p-6 border-t flex flex-col sm:flex-row gap-3 sm:justify-end">
-                            <button
-                                type="button"
-                                onClick={handleAddToCart}
-                                disabled={!canAddToCart}
-                                className={[
-                                    "button-text font-semibold",
-                                    canAddToCart
-                                        ? "bg-blue-800 hover:bg-blue-900 text-white"
-                                        : "bg-gray-200 text-gray-500 cursor-not-allowed",
-                                ].join(" ")}
-                            >
-                                Add to cart
-                                <FaArrowRight className="ml-2 text-sm" />
-                            </button>
-
-                            <Link
-                                to="/cart"
-                                className="button-text bg-gray-800 hover:bg-gray-900"
-                            >
-                                Go to Cart
-                            </Link>
                         </div>
                     </div>
                 )}
             </div>
         </section>
     );
-};
-
-export default Catalog;
+}
