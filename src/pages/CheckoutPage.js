@@ -11,7 +11,7 @@ const CheckoutPage = () => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('');
-    const [paymentProof, setPaymentProof] = useState(null);
+    const [, setPaymentProof] = useState(null);
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [totalAmountEUR, setTotalAmountEUR] = useState(0);
     const [totalAmountIDR, setTotalAmountIDR] = useState(0);
