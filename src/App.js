@@ -15,17 +15,23 @@ const App = () => {
     return (
         <Router>
             <ScrollToTop />
-            <Header />
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/shipment" element={<ShipmentPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/terms" element={<TermsConditionsPage />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-            </Routes>
-            <Footer />
+            <div className="min-h-screen flex flex-col">
+                <Header />
+
+                <main className="flex-1">
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/shipment" element={<ShipmentPage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/terms" element={<TermsConditionsPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                    </Routes>
+                </main>
+
+                <Footer />
+            </div>
         </Router>
     );
 };
