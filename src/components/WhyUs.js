@@ -7,7 +7,7 @@ const WhyUs = () => {
         <section id="why-us" className="py-24 px-8 bg-white flex items-center">
             <div className="w-1/2">
                 <img
-                    src="/girl-dion-transport.png"
+                    src="/girl-indo-eropa.png"
                     alt="Why Us"
                     className="w-full h-full object-cover rounded-lg shadow-lg"
                 />

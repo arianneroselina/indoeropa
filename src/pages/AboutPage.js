@@ -7,10 +7,10 @@ const AboutUsPage = () => {
             <div className="max-w-screen-xl mx-auto px-4">
                 <div className="text-center mb-12 animate__animated animate__fadeIn animate__delay-1s">
                     <h2 className="text-4xl font-bold text-gray-800">
-                        About <span className="text-red-800">Dion Transport</span>
+                        About <span className="text-red-800">INDO EROPA</span>
                     </h2>
                     <p className="subtext mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-                        Dion Transport – The largest hand-carry luggage delivery service provider in Europe, based in Germany and Indonesia. We ensure that your goods are delivered safely, quickly, and professionally.
+                        INDO EROPA is the largest hand-carry luggage delivery service provider in Europe, based in Germany and Indonesia. We ensure that your goods are delivered safely, quickly, and professionally.
                     </p>
                 </div>
 
@@ -71,10 +71,10 @@ const AboutUsPage = () => {
                     </div>
                 </div>
 
-                <div className="bg-red-800 text-white py-16 px-4 mb-16 rounded-lg shadow-xl">
+                <div className="bg-secondary text-white py-16 px-4 mb-16 rounded-lg shadow-xl">
                     <h3 className="text-3xl font-semibold text-center">Our Mission</h3>
                     <p className="mt-6 text-lg text-center max-w-2xl mx-auto">
-                        Dion Transport is committed to providing the most reliable, secure, and efficient luggage shipping solutions. We are here to give you peace of mind while shipping your precious items across the world. ✈️📦
+                        INDO EROPA is committed to providing the most reliable, secure, and efficient luggage shipping solutions. We are here to give you peace of mind while shipping your precious items across the world. ✈️📦
                     </p>
                 </div>
 

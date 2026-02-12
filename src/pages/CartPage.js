@@ -103,7 +103,7 @@ const CartPage = () => {
                         </div>
 
                         <div className="mt-6 flex justify-end gap-4">
-                            <Link to="/shipment" className="button-text bg-gray-800">
+                            <Link to="/shipment" className="button-text bg-primary">
                                 Continue Shopping
                             </Link>
                             {cartItems.length > 0 && (

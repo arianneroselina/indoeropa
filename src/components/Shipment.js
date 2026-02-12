@@ -11,7 +11,7 @@ import DimensionsBlock from "../components/shipping/DimensionsBlock";
 import DocumentsBlock from "../components/shipping/DocumentsBlock";
 import ShoesCustomsBlock from "../components/shipping/ShoesCustomsBlock";
 
-export default function Shipment() {
+export default function Shipment({ variant = "default" }) {
     const [fromCountry, setFromCountry] = useState("ID");
     const [toCountry, setToCountry] = useState("");
 
@@ -253,13 +253,30 @@ export default function Shipment() {
     const toLabel = COUNTRIES.find((c) => c.id === toCountry)?.name ?? toCountry;
 
     return (
-        <section id="catalog" className="py-24 bg-white">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <section
+            id="catalog"
+            className={["py-24",
+                variant === "home" ? "bg-primary" : "bg-white",
+            ].join(" ")}
+        >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
                 <div className="text-center mb-10">
-                    <h2 className="text-4xl font-semibold">Shipping</h2>
-                    <p className="mt-2 subtext text-lg text-gray-600">
+                    <h2
+                        className={["text-4xl font-semibold",
+                            variant === "home" ? "text-white" : "text-gray-900",
+                        ].join(" ")}
+                    >
+                        Shipping
+                    </h2>
+
+                    <p
+                        className={["mt-2 subtext text-lg",
+                            variant === "home" ? "text-gray-200" : "text-gray-600",
+                        ].join(" ")}
+                    >
                         Choose destination, then describe your shipment.
                     </p>
+
                 </div>
 
                 {/* Route card */}
@@ -302,7 +319,7 @@ export default function Shipment() {
                                         "flex items-center justify-center transition",
                                         toCountry
                                             ? "hover:scale-[1.03] hover:bg-gray-50 text-gray-900"
-                                            : "text-gray-400 cursor-not-allowed bg-gray-100 shadow-sm",
+                                            : "text-gray-500 cursor-not-allowed bg-gray-100 shadow-sm",
                                     ].join(" ")}
                                     title="Swap From/To"
                                 >
@@ -340,7 +357,7 @@ export default function Shipment() {
                 {/* Shipment card */}
                 {canShowShipment && (
                     <div ref={shipmentRef} className="mt-10">
-                        <div className="rounded-2xl border bg-gradient-to-b bg-red-800 shadow-lg overflow-hidden">
+                        <div className="rounded-2xl border bg-gradient-to-b bg-secondary shadow-lg overflow-hidden">
                             {/* Header */}
                             <div className="p-5 sm:p-6 flex items-start justify-between gap-6">
                                 <div>
@@ -460,7 +477,7 @@ export default function Shipment() {
                                                     disabled={!canAddToCart}
                                                     className={[
                                                         "button-text font-semibold inline-flex items-center justify-center",
-                                                        canAddToCart ? "bg-red-800 hover:bg-red-900 text-white" : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                                                        canAddToCart ? "bg-secondary hover:bg-secondary-900 text-white" : "bg-gray-200 text-gray-500 cursor-not-allowed",
                                                     ].join(" ")}
                                                 >
                                                     Add to cart

@@ -13,7 +13,7 @@ const HomePage = () => {
             <Hero />
             <Reviews />
             <About />
-            <Shipment />
+            <Shipment variant="home" />
             <WhyUs />
             <Closing />
             <Contact />

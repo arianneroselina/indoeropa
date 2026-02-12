@@ -18,7 +18,7 @@ const Contact = () => {
                     We’re here to help! If you have any questions, need further information, or just want to discuss your shipping needs, feel free to reach out to us.
                 </p>
                 <p className="subtext text-lg text-white mb-8 max-w-3xl mx-auto">
-                    At Dion Transport, we're committed to providing you with the best and most reliable luggage shipping services. Our team is always ready to assist you with any inquiries.
+                    At INDO EROPA, we're committed to providing you with the best and most reliable luggage shipping services. Our team is always ready to assist you with any inquiries.
                 </p>
                 <Link
                     to="/contact"

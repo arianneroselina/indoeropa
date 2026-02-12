@@ -2,7 +2,7 @@ import React from 'react';
 
 const Closing = () => {
     return (
-        <section className="bg-red-800 py-12 px-8">
+        <section className="bg-secondary py-12 px-8">
             <div className="max-w-screen-lg text-left text-white">
                 <p className="text-2xl font-bold italic">WE SHIP YOUR GOODS</p>
                 <p className="text-2xl font-bold italic">WITHIN 24 HOURS.</p>

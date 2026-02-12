@@ -5,7 +5,7 @@ import React from "react";
 const ShipmentPage = () => {
     return (
         <div>
-            <Shipment/>
+            <Shipment variant="default" />
             <Closing />
         </div>
 );};

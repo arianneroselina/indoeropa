@@ -7,13 +7,13 @@ const About = () => {
         <section className="bg-gray-100 py-24">
             <div className="max-w-screen-xl mx-auto px-4">
                 <h2 className="text-4xl font-semibold text-gray-800 mb-12 text-center">
-                    About <span className="text-red-800">Dion Transport</span>
+                    About <span className="text-red-800">INDO EROPA</span>
                 </h2>
 
                 <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-8">
                     <div className="w-full md:w-1/2 text-center md:text-left">
                         <p className="text-lg text-gray-600 mb-6">
-                            <strong className="text-red-800">Dion Transport</strong> is the largest hand-carry luggage delivery service provider in Europe,
+                            <strong className="text-red-800">INDO EROPA</strong> is the largest hand-carry luggage delivery service provider in Europe,
                             based in <strong>Germany</strong> and <strong>Indonesia</strong>. We ensure that your goods are delivered safely, quickly, and professionally.
                         </p>
 
@@ -38,7 +38,7 @@ const About = () => {
                     <div className="w-full md:w-1/2">
                         <img
                             src="/shipping.jpg"
-                            alt="Dion Transport Service"
+                            alt="INDO EROPA Service"
                             className="w-full rounded-lg shadow-lg"
                         />
                     </div>
