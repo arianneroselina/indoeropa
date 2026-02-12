@@ -79,3 +79,26 @@ export const SIZE_PRESETS = [
     { id: "shoebox", label: "Shoe box", dims: { l: 35, w: 20, h: 15 } },
     { id: "moving", label: "Moving box", dims: { l: 75, w: 35, h: 35 } },
 ];
+
+export const DHL_TIERS = [
+    { "id": "dhl2", "label": "DHL Paket 2kg", "maxKg": 2, "price": 7.19 },
+    { "id": "dhl5", "label": "DHL Paket 5kg", "maxKg": 5, "price": 8.69 },
+    { "id": "dhl10", "label": "DHL Paket 10kg", "maxKg": 10, "price": 11.49 },
+    { "id": "dhl20", "label": "DHL Paket 20kg", "maxKg": 20, "price": 19.99 }
+]
+
+export const AVAILABLE_DATES = {
+    ID_DE: [
+        "2025-12-20",
+        "2025-12-21",
+        "2025-12-23",
+        "2025-12-25",
+        "2026-01-02"
+    ],
+    DE_ID: [
+        "2025-12-25",
+        "2025-12-26",
+        "2025-12-27",
+        "2026-01-01"
+    ]
+}

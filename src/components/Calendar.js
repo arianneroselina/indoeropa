@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { DatePicker } from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import Options from '../data/options.json';
-import {formatDateToISO} from "../utils/formatDate";
+import { formatDateToISO } from "../utils/formatDate";
+import { AVAILABLE_DATES } from "../data/shippingData";
 
 const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {
     const [availableDates, setAvailableDates] = useState([]);
 
     useEffect(() => {
-        setAvailableDates(Options.availableDates[routeKey] || []);
+        setAvailableDates(AVAILABLE_DATES[routeKey] || []);
     }, [routeKey]);
 
     const handleDateChange = (date) => {

@@ -30,7 +30,7 @@ const Hero = () => {
                     <div className="flex justify-center sm:justify-start">
                         <a
                             href="/src/components/Shipment"
-                            className="button-text"
+                            className="button-primary"
                         >
                             Shop All
                             <FaArrowRight className="ml-2 text-sm" />

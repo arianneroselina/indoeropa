@@ -7,7 +7,7 @@ const AboutUsPage = () => {
             <div className="max-w-screen-xl mx-auto px-4">
                 <div className="text-center mb-12 animate__animated animate__fadeIn animate__delay-1s">
                     <h2 className="text-4xl font-bold text-gray-800">
-                        About <span className="text-red-800">INDO EROPA</span>
+                        About <span className="text-secondary">INDO EROPA</span>
                     </h2>
                     <p className="subtext mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
                         INDO EROPA is the largest hand-carry luggage delivery service provider in Europe, based in Germany and Indonesia. We ensure that your goods are delivered safely, quickly, and professionally.
@@ -22,7 +22,7 @@ const AboutUsPage = () => {
                         </p>
                         <a
                             href="/shipment"
-                            className="button-text mt-6 font-semibold"
+                            className="button-primary mt-6 font-semibold"
                         >
                             Explore Our Catalog
                             <FaArrowRight className="ml-2 text-sm" />
@@ -46,7 +46,7 @@ const AboutUsPage = () => {
                     <h3 className="text-3xl font-semibold text-gray-800 mb-6">Why Choose Us?</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         <div className="bg-white p-8 rounded-lg shadow-lg hover:scale-105 transform transition-all duration-300">
-                            <FaCheckCircle className="text-red-800 text-3xl mb-4" />
+                            <FaCheckCircle className="text-secondary text-3xl mb-4" />
                             <h4 className="text-xl font-semibold text-gray-800 mb-3">Professional & Experienced</h4>
                             <p className="text-gray-600">
                                 We handle more than 50 flights every year, ensuring that every item is shipped safely and efficiently with clear SOPs.
@@ -54,7 +54,7 @@ const AboutUsPage = () => {
                         </div>
 
                         <div className="bg-white p-8 rounded-lg shadow-lg hover:scale-105 transform transition-all duration-300">
-                            <FaCheckCircle className="text-red-800 text-3xl mb-4" />
+                            <FaCheckCircle className="text-secondary text-3xl mb-4" />
                             <h4 className="text-xl font-semibold text-gray-800 mb-3">Safe & Secure Packing</h4>
                             <p className="text-gray-600">
                                 Your items are packed with care using our secure packing SOPs to ensure they are safely delivered without any issues.
@@ -62,7 +62,7 @@ const AboutUsPage = () => {
                         </div>
 
                         <div className="bg-white p-8 rounded-lg shadow-lg hover:scale-105 transform transition-all duration-300">
-                            <FaCheckCircle className="text-red-800 text-3xl mb-4" />
+                            <FaCheckCircle className="text-secondary text-3xl mb-4" />
                             <h4 className="text-xl font-semibold text-gray-800 mb-3">Trusted Flight Crew</h4>
                             <p className="text-gray-600">
                                 Our trusted flight crew, consisting of students and Ausbildung participants, transports your luggage directly.
@@ -83,7 +83,7 @@ const AboutUsPage = () => {
                     <p className="subtext text-lg text-gray-600 mb-6">Trust us with your belongings and enjoy a seamless shipping experience.</p>
                     <a
                         href="/shipment"
-                        className="button-text font-semibold text-lg"
+                        className="button-primary font-semibold text-lg"
                     >
                         Get Started
                     </a>

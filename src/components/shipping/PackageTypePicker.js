@@ -77,7 +77,7 @@ export default function PackageTypePicker({
                                         <div
                                             className={[
                                                 "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                                                active ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-700",
+                                                active ? "bg-red-100 text-secondary" : "bg-gray-100 text-gray-700",
                                             ].join(" ")}
                                         >
                                             <Icon className="text-sm" />

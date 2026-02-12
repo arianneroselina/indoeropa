@@ -15,9 +15,9 @@ export default function DocumentsBlock({ documentPages, setDocumentPages }) {
                     className="mt-1 w-full p-3 border border-gray-300 rounded-xl bg-white"
                 />
                 <div className="subtext text-xs text-gray-600 mt-2">
-                    1–10 pages → 10€<br />
-                    11–50 pages → 20€<br />
-                    50–100 pages → 50€
+                    1-10 pages → 10€<br />
+                    11-50 pages → 20€<br />
+                    50-100 pages → 50€
                 </div>
             </div>
         </div>

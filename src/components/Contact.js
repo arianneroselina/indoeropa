@@ -22,7 +22,7 @@ const Contact = () => {
                 </p>
                 <Link
                     to="/contact"
-                    className="button-text font-semibold"
+                    className="button-primary font-semibold"
                 >
                     Contact Us
                 </Link>

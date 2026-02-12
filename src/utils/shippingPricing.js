@@ -41,9 +41,9 @@ export function calcPrice({ selectedPackageType, billedWeight, documentPages }) 
         const pages = Number(documentPages);
         if (!pages) return { total: 0, breakdown: "" };
 
-        if (pages <= 10) return { total: 10, breakdown: "1–10 pages" };
-        if (pages <= 50) return { total: 20, breakdown: "11–50 pages" };
-        if (pages <= 100) return { total: 50, breakdown: "50–100 pages" };
+        if (pages <= 10) return { total: 10, breakdown: "1-10 pages" };
+        if (pages <= 50) return { total: 20, breakdown: "11-50 pages" };
+        if (pages <= 100) return { total: 50, breakdown: "50-100 pages" };
         return { total: 50, breakdown: "Max tier (100 pages)" };
     }
 

@@ -101,7 +101,7 @@ const ContactPage = () => {
                             <div className="text-center">
                                 <button
                                     type="submit"
-                                    className="button-text font-semibold"
+                                    className="button-primary font-semibold"
                                 >
                                     Send Message
                                 </button>

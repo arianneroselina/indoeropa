@@ -21,7 +21,7 @@ const WhyUs = () => {
                 <div className="flex justify-center sm:justify-start">
                     <Link
                         to="/shipment"
-                        className="button-text"
+                        className="button-primary"
                     >
                         Ship Now
                         <FaArrowRight className="ml-2 text-l" />

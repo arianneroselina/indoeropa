@@ -13,7 +13,12 @@
         @apply font-default font-light text-sm;
     }
 
-    .button-text {
+    .button-primary {
         @apply font-default font-light inline-flex items-center bg-secondary hover:bg-secondary-900 text-white text-sm py-2 px-5 rounded-full shadow-lg transform transition-all duration-300 hover:scale-105;
     }
+
+    .button-secondary {
+        @apply font-default font-light inline-flex items-center bg-primary hover:bg-primary-800 text-white text-sm py-2 px-5 rounded-full shadow-lg transform transition-all duration-300 hover:scale-105;
+    }
+
 }

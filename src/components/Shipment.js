@@ -5,11 +5,12 @@ import { CART_KEY } from "../utils/shipmentHelper";
 import { COUNTRIES, PACKAGE_TYPES, SIZE_PRESETS } from "../data/shippingData";
 import { snapToHalf, getBilledWeight, calcPrice } from "../utils/shippingPricing";
 
+import Calendar from "../components/Calendar";
 import PackageTypePicker from "../components/shipping/PackageTypePicker";
 import WeightBlock from "../components/shipping/WeightBlock";
 import DimensionsBlock from "../components/shipping/DimensionsBlock";
 import DocumentsBlock from "../components/shipping/DocumentsBlock";
-import ShoesCustomsBlock from "../components/shipping/ShoesCustomsBlock";
+import {Link} from "react-router-dom";
 
 export default function Shipment({ variant = "default" }) {
     const [fromCountry, setFromCountry] = useState("ID");
@@ -23,9 +24,9 @@ export default function Shipment({ variant = "default" }) {
     const [heightCm, setHeightCm] = useState("");
 
     const [documentPages, setDocumentPages] = useState("");
-    const [originalPrice, setOriginalPrice] = useState("");
+    const [shipmentDate, setShipmentDate] = useState("");
 
-    // 0: package, 1: weight/pages, 2: dimensions, 3: shoes customs
+    // 0: package, 1: weight/pages, 2: dimensions, 3: pickup date
     const [progressStep, setProgressStep] = useState(0);
 
     const [cartItems, setCartItems] = useState([]);
@@ -48,12 +49,17 @@ export default function Shipment({ variant = "default" }) {
         return !!fromCountry && !!toCountry && fromCountry !== toCountry;
     }, [fromCountry, toCountry]);
 
+    // "ID_DE" or "DE_ID"
+    const routeKey = useMemo(() => {
+        if (!canShowShipment) return "";
+        return `${fromCountry}_${toCountry}`;
+    }, [canShowShipment, fromCountry, toCountry]);
+
     const selectedPackageType = useMemo(() => {
         return PACKAGE_TYPES.find((p) => p.id === selectedPackageTypeId) ?? null;
     }, [selectedPackageTypeId]);
 
     const isDocument = selectedPackageType?.pricing.type === "document";
-    const isShoes = selectedPackageType?.id === "shoes";
 
     const isVolumeLike =
         selectedPackageType?.pricing.type === "volume" ||
@@ -126,11 +132,11 @@ export default function Shipment({ variant = "default" }) {
         }
 
         if (roundedWeight <= 0) return false;
-
-        if (isShoes) {
-            const price = Number(originalPrice);
-            return price > 0;
-        }
+        if (lengthCm <= 0 &&
+            widthCm <= 0 &&
+            heightCm <= 0
+        ) return false;
+        if (!shipmentDate) return false;
 
         return true;
     }, [
@@ -139,8 +145,10 @@ export default function Shipment({ variant = "default" }) {
         isDocument,
         documentPages,
         roundedWeight,
-        isShoes,
-        originalPrice,
+        lengthCm,
+        widthCm,
+        heightCm,
+        shipmentDate,
     ]);
 
     const handleSwap = () => {
@@ -180,7 +188,7 @@ export default function Shipment({ variant = "default" }) {
         return `${Number(weight).toFixed(1)} kg → billed as ${roundedWeight.toFixed(1)} kg`;
     }, [weight, roundedWeight]);
 
-    const priceLabel = priceResult.total ? `€${priceResult.total.toFixed(2)}` : "—";
+    const priceLabel = priceResult.total ? `€${priceResult.total.toFixed(2)}` : "-";
 
     const handleAddToCart = () => {
         if (!canAddToCart) return;
@@ -189,6 +197,7 @@ export default function Shipment({ variant = "default" }) {
             type: "shipping",
             fromCountry,
             toCountry,
+            shipmentDate,
             weightKg: weightNum,
             billedWeightKg: roundedWeight,
             dimensionsCm: { ...dims },
@@ -197,21 +206,20 @@ export default function Shipment({ variant = "default" }) {
             priceEur: priceResult.total,
             priceBreakdown: priceResult.breakdown,
             quantity: 1,
-            createdAt: new Date().toISOString(),
             documentPages: isDocument ? Number(documentPages) : undefined,
-            originalPrice: isShoes ? Number(originalPrice) : undefined,
+            createdAt: new Date().toISOString(),
         };
 
         const signature = [
             item.fromCountry,
             item.toCountry,
+            item.shipmentDate || "",
             item.weightKg.toFixed(1),
             item.packageTypeId,
             item.dimensionsCm.l,
             item.dimensionsCm.w,
             item.dimensionsCm.h,
             isDocument ? `pages:${documentPages || ""}` : "",
-            isShoes ? `price:${originalPrice || ""}` : "",
         ].join("|");
 
         const existingIndex = cartItems.findIndex((x) => x.signature === signature);
@@ -232,21 +240,29 @@ export default function Shipment({ variant = "default" }) {
         setFeedbackItem({
             fromLabel,
             toLabel,
+            shipmentDate: shipmentDate ?? "-",
             billed: isDocument
-                ? `${documentPages || "—"} pages`
-                : `${roundedWeight ? roundedWeight.toFixed(1) : "—"} kg`,
-            packageLabel: selectedPackageType?.label ?? "—",
-            priceLabel: priceResult.total ? `€${priceResult.total.toFixed(2)}` : "—",
+                ? `${documentPages || "-"} pages`
+                : `${roundedWeight ? roundedWeight.toFixed(1) : "-"} kg`,
+            packageLabel: selectedPackageType?.label ?? "-",
+            priceLabel: priceResult.total ? `€${priceResult.total.toFixed(2)}` : "-",
         });
 
         setFeedbackVisible(true);
         setTimeout(() => {
             setFeedbackVisible(false);
             setFeedbackItem(null);
-        }, 4000);
+        }, 8000);
 
         // reset
+        setSelectedPackageTypeId("");
         setWeight("");
+        setLengthCm("");
+        setWidthCm("");
+        setHeightCm("");
+        setDocumentPages("")
+        setShipmentDate("")
+        setProgressStep(0)
     };
 
     const fromLabel = COUNTRIES.find((c) => c.id === fromCountry)?.name ?? fromCountry;
@@ -254,7 +270,7 @@ export default function Shipment({ variant = "default" }) {
 
     return (
         <section
-            id="catalog"
+            id="shipment"
             className={["py-24",
                 variant === "home" ? "bg-primary" : "bg-white",
             ].join(" ")}
@@ -345,7 +361,7 @@ export default function Shipment({ variant = "default" }) {
                                 </select>
 
                                 {fromCountry && toCountry && fromCountry === toCountry && (
-                                    <div className="mt-2 text-sm text-red-800">
+                                    <div className="mt-2 text-sm text-secondary">
                                         From and To can’t be the same country.
                                     </div>
                                 )}
@@ -414,10 +430,11 @@ export default function Shipment({ variant = "default" }) {
 
                                     {/* RIGHT */}
                                     <div className="space-y-4">
-                                        {progressStep >= 3 && isShoes && (
-                                            <ShoesCustomsBlock
-                                                originalPrice={originalPrice}
-                                                setOriginalPrice={setOriginalPrice}
+                                        {progressStep >= 3 && (
+                                            <Calendar
+                                                routeKey={routeKey}
+                                                shipmentDate={shipmentDate}
+                                                setShipmentDate={setShipmentDate}
                                             />
                                         )}
 
@@ -445,7 +462,7 @@ export default function Shipment({ variant = "default" }) {
                                                         >
                                                             <div className="text-xs font-semibold text-gray-900">Price calculation</div>
                                                             {!isDocument && willBeRounded && (
-                                                                <div className="subtext text-xs text-gray-600 mt-1">{roundedText}</div>
+                                                                <div className="subtext text-xs text-gray-600 mt-1">{roundedText} kg</div>
                                                             )}
                                                             <div className="subtext text-xs text-gray-700 mt-2">{priceResult.breakdown}</div>
                                                         </div>
@@ -461,23 +478,29 @@ export default function Shipment({ variant = "default" }) {
 
                                                 <div className="text-gray-500">Package</div>
                                                 <div className="font-semibold text-gray-900 text-right">
-                                                    {selectedPackageType?.label ?? "—"}
+                                                    {selectedPackageType?.label ?? "-"}
                                                 </div>
 
                                                 <div className="text-gray-500">Billed</div>
                                                 <div className="font-semibold text-gray-900 text-right">
-                                                    {isDocument ? `${documentPages || "—"} pages` : (roundedWeight ? `${roundedWeight.toFixed(1)} kg` : "—")}
+                                                    {isDocument ? `${documentPages || "-"} pages` : (roundedWeight ? `${roundedWeight.toFixed(1)} kg` : "-")}
                                                 </div>
                                             </div>
 
-                                            <div className="mt-4 flex justify-end">
+                                            <div className="mt-4 flex justify-end gap-3">
+                                                <Link to="/cart" className="button-secondary">
+                                                    Go to cart
+                                                </Link>
+
                                                 <button
                                                     type="button"
                                                     onClick={handleAddToCart}
                                                     disabled={!canAddToCart}
                                                     className={[
-                                                        "button-text font-semibold inline-flex items-center justify-center",
-                                                        canAddToCart ? "bg-secondary hover:bg-secondary-900 text-white" : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                                                        "button-primary font-semibold",
+                                                        canAddToCart
+                                                            ? "bg-secondary hover:bg-secondary-900 text-white"
+                                                            : "bg-gray-200 text-gray-500 cursor-not-allowed",
                                                     ].join(" ")}
                                                 >
                                                     Add to cart
@@ -487,11 +510,23 @@ export default function Shipment({ variant = "default" }) {
                                         </div>
 
                                         {feedbackVisible && feedbackItem && (
-                                            <div className="rounded-2xl border bg-green-50 p-3">
-                                                <div className="text-sm font-semibold text-green-800">Added to cart</div>
-                                                <div className="text-xs text-green-800/80 mt-1">
-                                                    {feedbackItem.fromLabel} → {feedbackItem.toLabel} • {feedbackItem.billed} •{" "}
-                                                    {feedbackItem.packageLabel} • {feedbackItem.priceLabel}
+                                            <div className="rounded-xl border bg-green-50 px-4 py-3">
+                                                <div className="text-sm font-semibold text-green-800">
+                                                    ✓ Added to cart
+                                                </div>
+
+                                                <div className="mt-1 text-xs text-green-900/80 leading-relaxed">
+                                                    <span className="font-medium">
+                                                        {feedbackItem.fromLabel} → {feedbackItem.toLabel}
+                                                    </span>
+                                                    {" • "}
+                                                    {feedbackItem.shipmentDate}
+                                                    {" • "}
+                                                    {feedbackItem.billed}
+                                                    {" • "}
+                                                    {feedbackItem.packageLabel}
+                                                    {" • "}
+                                                    <span className="font-semibold">{feedbackItem.priceLabel}</span>
                                                 </div>
                                             </div>
                                         )}
