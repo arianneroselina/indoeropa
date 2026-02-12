@@ -11,7 +11,7 @@ export default function WeightBlock({
             <h4 className="font-semibold text-gray-900">Weight</h4>
 
             <div className="mt-2">
-                <label className="block text-xs font-semibold text-gray-700 mb-2">Package weight (kg)</label>
+                <label className="subtext text-xs text-gray-500">Package weight (kg)</label>
 
                 <input
                     type="number"
@@ -22,7 +22,7 @@ export default function WeightBlock({
                     value={weight}
                     onChange={handleWeightChange}
                     placeholder="e.g. 2.3"
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                    className="mt-1 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
                 />
 
                 {willBeRounded && (

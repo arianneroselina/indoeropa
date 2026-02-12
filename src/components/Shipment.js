@@ -5,12 +5,14 @@ import { CART_KEY } from "../utils/shipmentHelper";
 import { COUNTRIES, PACKAGE_TYPES, SIZE_PRESETS } from "../data/shippingData";
 import { snapToHalf, getBilledWeight, calcPrice } from "../utils/shippingPricing";
 
-import Calendar from "../components/Calendar";
+import Calendar from "../components/shipping/Calendar";
 import PackageTypePicker from "../components/shipping/PackageTypePicker";
 import WeightBlock from "../components/shipping/WeightBlock";
 import DimensionsBlock from "../components/shipping/DimensionsBlock";
 import DocumentsBlock from "../components/shipping/DocumentsBlock";
+import HatsBlock from "../components/shipping/HatsBlock";
 import {Link} from "react-router-dom";
+import {formatDateToDDMMYYYY} from "../utils/formatDate";
 
 export default function Shipment({ variant = "default" }) {
     const [fromCountry, setFromCountry] = useState("ID");
@@ -24,6 +26,7 @@ export default function Shipment({ variant = "default" }) {
     const [heightCm, setHeightCm] = useState("");
 
     const [documentPages, setDocumentPages] = useState("");
+    const [hatQuantity, setHatQuantity] = useState("");
     const [shipmentDate, setShipmentDate] = useState("");
 
     // 0: package, 1: weight/pages, 2: dimensions, 3: pickup date
@@ -59,11 +62,9 @@ export default function Shipment({ variant = "default" }) {
         return PACKAGE_TYPES.find((p) => p.id === selectedPackageTypeId) ?? null;
     }, [selectedPackageTypeId]);
 
+    const isVolume = selectedPackageType?.pricing.type === "perKg";
     const isDocument = selectedPackageType?.pricing.type === "document";
-
-    const isVolumeLike =
-        selectedPackageType?.pricing.type === "volume" ||
-        selectedPackageType?.pricing.type === "super_volume";
+    const isHat = selectedPackageType?.pricing.type === "perPiece";
 
     // stored weight for cart (your old behavior)
     const weightNum = useMemo(() => {
@@ -73,8 +74,8 @@ export default function Shipment({ variant = "default" }) {
 
     // billed weight for pricing + summary display (volume-like rounds to full kg)
     const billedWeight = useMemo(() => {
-        return getBilledWeight(weight, isVolumeLike);
-    }, [weight, isVolumeLike]);
+        return getBilledWeight(weight, isVolume);
+    }, [weight, isVolume]);
 
     const roundedWeight = billedWeight;
     const willBeRounded = weight && Number(weight) !== roundedWeight;
@@ -100,17 +101,18 @@ export default function Shipment({ variant = "default" }) {
     useEffect(() => {
         if (progressStep < 1) return;
 
-        const okWeight = !isDocument && roundedWeight > 0;
+        const okWeight = !isDocument && !isHat && roundedWeight > 0;
         const okPages = isDocument && Number(documentPages) > 0;
+        const okHatQty = isHat && Number(hatQuantity) > 0;
 
-        if ((okWeight || okPages) && progressStep < 2) {
+        if ((okWeight || okPages || okHatQty) && progressStep < 2) {
             setProgressStep(2);
         }
-    }, [progressStep, isDocument, roundedWeight, documentPages]);
+    }, [progressStep, isDocument, isHat, roundedWeight, documentPages, hatQuantity]);
 
     useEffect(() => {
         if (progressStep < 2) return;
-        if (isDocument) return;
+        if (isDocument || isHat) return;
 
         const hasDims =
             Number(lengthCm) > 0 &&
@@ -120,30 +122,36 @@ export default function Shipment({ variant = "default" }) {
         if (hasDims && progressStep < 3) {
             setProgressStep(3);
         }
-    }, [progressStep, isDocument, lengthCm, widthCm, heightCm]);
+    }, [progressStep, isDocument, isHat, lengthCm, widthCm, heightCm]);
 
     const canAddToCart = useMemo(() => {
         if (!canShowShipment) return false;
         if (!selectedPackageType) return false;
+        if (!shipmentDate) return false;
 
         if (isDocument) {
             const pages = Number(documentPages);
             return pages > 0 && pages <= 100;
         }
+        if (isHat) {
+            const qty = Number(hatQuantity);
+            return qty > 0;
+        }
 
         if (roundedWeight <= 0) return false;
-        if (lengthCm <= 0 &&
-            widthCm <= 0 &&
-            heightCm <= 0
-        ) return false;
-        if (!shipmentDate) return false;
+
+        if (Number(lengthCm) <= 0 || Number(widthCm) <= 0 || Number(heightCm) <= 0) {
+            return false;
+        }
 
         return true;
     }, [
         canShowShipment,
         selectedPackageType,
         isDocument,
+        isHat,
         documentPages,
+        hatQuantity,
         roundedWeight,
         lengthCm,
         widthCm,
@@ -180,8 +188,8 @@ export default function Shipment({ variant = "default" }) {
             selectedPackageType,
             billedWeight: roundedWeight,
             documentPages,
-        });
-    }, [selectedPackageType, roundedWeight, documentPages]);
+            hatQuantity,
+        });}, [selectedPackageType, roundedWeight, documentPages, hatQuantity]);
 
     const roundedText = useMemo(() => {
         if (!weight) return "";
@@ -207,6 +215,7 @@ export default function Shipment({ variant = "default" }) {
             priceBreakdown: priceResult.breakdown,
             quantity: 1,
             documentPages: isDocument ? Number(documentPages) : undefined,
+            hatQuantity: isHat ? Number(hatQuantity) : undefined,
             createdAt: new Date().toISOString(),
         };
 
@@ -220,6 +229,7 @@ export default function Shipment({ variant = "default" }) {
             item.dimensionsCm.w,
             item.dimensionsCm.h,
             isDocument ? `pages:${documentPages || ""}` : "",
+            isHat ? `pcs:${hatQuantity || ""}` : "",
         ].join("|");
 
         const existingIndex = cartItems.findIndex((x) => x.signature === signature);
@@ -241,10 +251,12 @@ export default function Shipment({ variant = "default" }) {
             fromLabel,
             toLabel,
             shipmentDate: shipmentDate ?? "-",
-            billed: isDocument
-                ? `${documentPages || "-"} pages`
-                : `${roundedWeight ? roundedWeight.toFixed(1) : "-"} kg`,
             packageLabel: selectedPackageType?.label ?? "-",
+            billed: isDocument ?
+                `${documentPages || "-"} pages`
+                : isHat ?
+                    `${hatQuantity || "-"} pcs`
+                    : `${roundedWeight ? roundedWeight.toFixed(1) : "-"} kg`,
             priceLabel: priceResult.total ? `€${priceResult.total.toFixed(2)}` : "-",
         });
 
@@ -261,6 +273,7 @@ export default function Shipment({ variant = "default" }) {
         setWidthCm("");
         setHeightCm("");
         setDocumentPages("")
+        setHatQuantity("")
         setShipmentDate("")
         setProgressStep(0)
     };
@@ -398,16 +411,16 @@ export default function Shipment({ variant = "default" }) {
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                                     {/* LEFT */}
                                     <div className="space-y-4">
-                                        {progressStep >= 1 && !isDocument && (
+                                        {progressStep >= 1 && !isDocument && !isHat && (
                                             <WeightBlock
                                                 weight={weight}
                                                 handleWeightChange={handleWeightChange}
                                                 willBeRounded={willBeRounded}
-                                                isVolumeLike={isVolumeLike}
+                                                isVolume={isVolume}
                                             />
                                         )}
 
-                                        {progressStep >= 2 && !isDocument && (
+                                        {progressStep >= 2 && !isDocument && !isHat && (
                                             <DimensionsBlock
                                                 lengthCm={lengthCm}
                                                 setLengthCm={setLengthCm}
@@ -426,11 +439,18 @@ export default function Shipment({ variant = "default" }) {
                                                 setDocumentPages={setDocumentPages}
                                             />
                                         )}
+
+                                        {progressStep >= 1 && isHat && (
+                                            <HatsBlock
+                                                hatQuantity={hatQuantity}
+                                                setHatQuantity={setHatQuantity}
+                                            />
+                                        )}
                                     </div>
 
                                     {/* RIGHT */}
                                     <div className="space-y-4">
-                                        {progressStep >= 3 && (
+                                        {progressStep >= (isDocument || isHat ? 2 : 3) && (
                                             <Calendar
                                                 routeKey={routeKey}
                                                 shipmentDate={shipmentDate}
@@ -461,8 +481,8 @@ export default function Shipment({ variant = "default" }) {
                                                             role="tooltip"
                                                         >
                                                             <div className="text-xs font-semibold text-gray-900">Price calculation</div>
-                                                            {!isDocument && willBeRounded && (
-                                                                <div className="subtext text-xs text-gray-600 mt-1">{roundedText} kg</div>
+                                                            {!isDocument && !isHat && willBeRounded && (
+                                                                <div className="subtext text-xs text-gray-600 mt-1">{roundedText}</div>
                                                             )}
                                                             <div className="subtext text-xs text-gray-700 mt-2">{priceResult.breakdown}</div>
                                                         </div>
@@ -483,7 +503,16 @@ export default function Shipment({ variant = "default" }) {
 
                                                 <div className="text-gray-500">Billed</div>
                                                 <div className="font-semibold text-gray-900 text-right">
-                                                    {isDocument ? `${documentPages || "-"} pages` : (roundedWeight ? `${roundedWeight.toFixed(1)} kg` : "-")}
+                                                    {isDocument ?
+                                                        `${documentPages || "-"} pages`
+                                                        : isHat ?
+                                                            `${hatQuantity || "-"} pcs`
+                                                            : (roundedWeight ? `${roundedWeight.toFixed(1)} kg` : "-")}
+                                                </div>
+
+                                                <div className="text-gray-500">Pickup date</div>
+                                                <div className="font-semibold text-gray-900 text-right">
+                                                    {formatDateToDDMMYYYY(shipmentDate)}
                                                 </div>
                                             </div>
 

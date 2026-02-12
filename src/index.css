@@ -21,4 +21,84 @@
         @apply font-default font-light inline-flex items-center bg-primary hover:bg-primary-800 text-white text-sm py-2 px-5 rounded-full shadow-lg transform transition-all duration-300 hover:scale-105;
     }
 
+    /* ---------- React DatePicker ---------- */
+
+    .calendar-wrap {
+        width: 100%;
+    }
+
+    .shipping-calendar.react-datepicker {
+        width: 100% !important;
+        border: 0 !important;
+        font-family: inherit !important;
+        background: transparent !important;
+    }
+
+    .shipping-calendar .react-datepicker__month-container {
+        width: 100% !important;
+        float: none !important;
+    }
+
+    .shipping-calendar .react-datepicker__header {
+        background: transparent !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        padding: 0.5rem 0.25rem !important;
+    }
+
+    .shipping-calendar .react-datepicker__day-names {
+        display: grid !important;
+        grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+        gap: 0.35rem !important;
+        margin: 0.5rem 0 0.35rem !important;
+        padding: 0 0.25rem !important;
+    }
+
+    .shipping-calendar .react-datepicker__week {
+        display: grid !important;
+        grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+        gap: 0.35rem !important;
+        padding: 0 0.25rem !important;
+    }
+
+    .shipping-calendar .react-datepicker__day-name {
+        width: 100% !important;
+        margin: 0 !important;
+        text-align: center !important;
+        font-size: 0.75rem !important;
+        opacity: 0.85;
+    }
+
+    .shipping-calendar .react-datepicker__day {
+        width: 100% !important;
+        height: 2.2rem !important;
+        margin: 0 !important;
+        display: grid !important;
+        place-items: center !important;
+        border-radius: 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    @supports not (aspect-ratio: 1 / 1) {
+        .shipping-calendar .react-datepicker__day {
+            height: 2.5rem !important;
+        }
+    }
+
+    .shipping-calendar .react-datepicker__day--selected,
+    .shipping-calendar .react-datepicker__day--keyboard-selected {
+        background: #20487a !important;
+        color: #fff !important;
+    }
+
+    .shipping-day-available {
+        font-weight: 700 !important;
+    }
+
+    .shipping-day-disabled {
+        opacity: 0.45 !important;
+    }
+
+    .shipping-calendar .react-datepicker__day--outside-month {
+        opacity: 0.25 !important;
+    }
 }

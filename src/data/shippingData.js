@@ -6,7 +6,7 @@ import {
     FaHatCowboy,
     FaShoePrints,
     FaFileAlt,
-    FaWallet,
+    FaTableTennis,
 } from "react-icons/fa";
 
 export const COUNTRIES = [
@@ -27,49 +27,56 @@ export const PACKAGE_TYPES = [
         label: "1 kg Volume",
         description: "Large items (e.g. computer monitor, small microwave).",
         icon: FaTv,
-        pricing: { type: "volume", perKg: 18 },
+        pricing: { type: "perKg", price: 18 },
     },
     {
         id: "pkg_1_super",
         label: "1 kg Super Volume",
         description: "Very large items requiring special handling (e.g. large furniture, baby stroller).",
         icon: FaCouch,
-        pricing: { type: "super_volume", perKg: 20 },
+        pricing: { type: "perKg", price: 20 },
     },
     {
         id: "bag",
         label: "Bag",
         description: "Handbags, backpacks, travel bags.",
         icon: FaShoppingBag,
-        pricing: { type: "perKgAddon", firstKg: 18 },
+        pricing: { type: "perKgAddon", price: 18 },
     },
     {
         id: "hat",
         label: "Hat",
         description: "Caps, structured hats.",
         icon: FaHatCowboy,
-        pricing: { type: "perKgAddon", firstKg: 4 },
+        pricing: { type: "perPiece", price: 4 },
     },
     {
         id: "shoes",
         label: "Shoes",
         description: "Sneakers, boots, sandals.",
         icon: FaShoePrints,
-        pricing: { type: "perKgAddon", firstKg: 18 },
+        pricing: { type: "perKgAddon", price: 18 },
     },
     {
-        id: "wallet",
-        label: "Wallet / Clutch",
-        description: "Small leather goods.",
-        icon: FaWallet,
-        pricing: { type: "perKgAddon", firstKg: 12 },
+        id: "racket",
+        label: "Racket",
+        description: "Tennis or badminton rackets.",
+        icon: FaTableTennis,
+        pricing: { type: "perKgAddon", price: 18 },
     },
     {
         id: "document",
         label: "Documents",
         description: "Printed documents only.",
         icon: FaFileAlt,
-        pricing: { type: "document" },
+        pricing: {
+            type: "document",
+            price: {
+                1_10: 10,
+                11_50: 20,
+                51_100: 50,
+            }
+        },
     },
 ];
 

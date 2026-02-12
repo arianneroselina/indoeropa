@@ -21,7 +21,10 @@ export function getBilledWeight(rawWeight, isVolumeLike) {
     return isVolumeLike ? roundUpToKg(rawWeight) : roundUpToHalf(rawWeight);
 }
 
-export function calcPrice({ selectedPackageType, billedWeight, documentPages }) {
+const perKg = 15;
+const halfKg = 10;
+
+export function calcPrice({ selectedPackageType, billedWeight, documentPages, hatQuantity }) {
     if (!selectedPackageType) return { total: 0, breakdown: "" };
 
     const type = selectedPackageType.pricing.type;
@@ -31,8 +34,8 @@ export function calcPrice({ selectedPackageType, billedWeight, documentPages }) 
         const fullKg = Math.floor(billedWeight);
         const hasHalf = billedWeight % 1 !== 0;
 
-        const total = fullKg * 15 + (hasHalf ? 10 : 0);
-        const breakdown = hasHalf ? `${fullKg} × 15€ + 1 × 10€` : `${fullKg} × 15€`;
+        const total = fullKg * perKg + (hasHalf ? halfKg : 0);
+        const breakdown = hasHalf ? `${fullKg} × ${perKg}€ + 1 × ${halfKg}€` : `${fullKg} × ${perKg}€`;
         return { total, breakdown };
     }
 
@@ -41,48 +44,52 @@ export function calcPrice({ selectedPackageType, billedWeight, documentPages }) 
         const pages = Number(documentPages);
         if (!pages) return { total: 0, breakdown: "" };
 
-        if (pages <= 10) return { total: 10, breakdown: "1-10 pages" };
-        if (pages <= 50) return { total: 20, breakdown: "11-50 pages" };
-        if (pages <= 100) return { total: 50, breakdown: "50-100 pages" };
-        return { total: 50, breakdown: "Max tier (100 pages)" };
+        const pricing = selectedPackageType.pricing.price;
+        if (pages <= 10) return { total: pricing[1_10], breakdown: "1-10 pages" };
+        if (pages <= 50) return { total: pricing[11_50], breakdown: "11-50 pages" };
+        if (pages <= 100) return { total: pricing[51_100], breakdown: "50-100 pages" };
+        return { total: 0, breakdown: "Max 100 pages" };
+    }
+
+    // PER PIECE
+    if (type === "perPiece") {
+        const quantity = Number(hatQuantity || 1);
+        if (!quantity) return { total: 0, breakdown: "" };
+
+        const pricePerPiece = selectedPackageType.pricing.price;
+        const total = quantity * pricePerPiece;
+        return {
+            total,
+            breakdown: `${quantity} × ${pricePerPiece}€`,
+        };
     }
 
     if (!billedWeight) return { total: 0, breakdown: "" };
 
     // VOLUME / SUPER VOLUME (per full kg)
-    if (type === "volume" || type === "super_volume") {
-        const perKg = selectedPackageType.pricing.perKg;
+    if (type === "perKg") {
+        const perKg = selectedPackageType.pricing.price;
         const total = billedWeight * perKg;
         return { total, breakdown: `${billedWeight.toFixed(1)} kg × ${perKg}€` };
     }
 
     // PER KG ADDON
     if (type === "perKgAddon") {
-        const firstKgPrice = selectedPackageType.pricing.firstKg;
+        const perKg = selectedPackageType.pricing.price;
 
         const fullKg = Math.floor(billedWeight);
-        //const hasHalf = billedWeight % 1 !== 0;
+        const hasHalf = billedWeight % 1 !== 0;
 
-        let total = 0;
+        let total = fullKg * perKg;
         let breakdown = "";
 
-        if (fullKg >= 1) {
-            total += firstKgPrice;
-            breakdown += `1 kg × ${firstKgPrice}€`;
+        if (fullKg > 0) {
+            breakdown += `${fullKg} × ${perKg}€`;
+        }
 
-            const remaining = billedWeight - 1;
-            if (remaining > 0) {
-                const extraFull = Math.floor(remaining);
-                const extraHalf = remaining % 1 !== 0;
-
-                total += extraFull * 15 + (extraHalf ? 10 : 0);
-
-                if (extraFull > 0) breakdown += ` + ${extraFull} × 15€`;
-                if (extraHalf) breakdown += ` + 1 × 10€`;
-            }
-        } else {
-            total = firstKgPrice;
-            breakdown = `Up to 1 kg × ${firstKgPrice}€`;
+        if (hasHalf) {
+            total += 10;
+            breakdown += fullKg > 0 ? ` + 1 × ${halfKg}€` : `1 ×  ${halfKg}€`;
         }
 
         return { total, breakdown };
