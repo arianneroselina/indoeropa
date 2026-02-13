@@ -1,4 +1,4 @@
-APP_NAME := dion-transport
+APP_NAME := indoeropa
 
 .PHONY: help install run build preview start clean lint format
 
