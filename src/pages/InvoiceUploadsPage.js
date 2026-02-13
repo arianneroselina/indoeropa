@@ -11,7 +11,7 @@ const InvoiceUploadsPage = () => {
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
 
-    // { [itemKey]: { over125: boolean, proofDataUrl?: string, proofName?: string } }
+    // { [itemKey]: { over125: string, proofDataUrl?: string, proofName?: string } }
     const [invoiceByItem, setInvoiceByItem] = useState({});
 
     useEffect(() => {
@@ -39,8 +39,8 @@ const InvoiceUploadsPage = () => {
                 ...prev,
                 [key]: {
                     over125,
-                    proofDataUrl: over125 ? (prev[key]?.proofDataUrl ?? "") : "",
-                    proofName: over125 ? (prev[key]?.proofName ?? "") : "",
+                    proofDataUrl: over125 === "yes" ? (prev[key]?.proofDataUrl ?? "") : "",
+                    proofName: over125 === "yes" ? (prev[key]?.proofName ?? "") : "",
                 },
             };
             localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
@@ -65,7 +65,7 @@ const InvoiceUploadsPage = () => {
             const next = {
                 ...prev,
                 [key]: {
-                    ...(prev[key] ?? { over125: false }),
+                    ...(prev[key] ?? { over125: "" }),
                     proofDataUrl: dataUrl,
                     proofName: file?.name ?? "",
                 },
@@ -81,7 +81,7 @@ const InvoiceUploadsPage = () => {
         // must  have a selection
         if (!entry) return false;
         // if over125 → proof must exist
-        if (entry.over125 && !entry.proofDataUrl) return false;
+        if (entry.over125 === "yes" && !entry.proofDataUrl) return false;
 
         return true;
     });
@@ -91,7 +91,7 @@ const InvoiceUploadsPage = () => {
 
         for (const { key } of relevant) {
             const entry = invoiceByItem[key];
-            if (entry?.over125 && !entry?.proofDataUrl) {
+            if (entry?.over125 === "yes" && !entry?.proofDataUrl) {
                 alert("Please upload an invoice/receipt for every shipment marked as over €125.");
                 return;
             }
@@ -120,7 +120,7 @@ const InvoiceUploadsPage = () => {
                     <form onSubmit={handleContinue} className="space-y-6">
                         <div className="space-y-4">
                             {relevant.map(({ item, idx, key }) => {
-                                const entry = invoiceByItem[key] ?? { over125: false, proofDataUrl: "", proofName: "" };
+                                const entry = invoiceByItem[key] ?? { over125: "", proofDataUrl: "", proofName: "" };
 
                                 return (
                                     <div key={key} className="rounded-2xl border bg-gray-50/60 p-5">
@@ -144,23 +144,24 @@ const InvoiceUploadsPage = () => {
                                                 </label>
                                                 <select
                                                     className="subtext w-full p-3 border border-gray-300 rounded-xl"
-                                                    value={entry.over125 ? "yes" : "no"}
-                                                    onChange={(e) => setOver125(key, e.target.value === "yes")}
+                                                    value={entry.over125 }
+                                                    onChange={(e) => setOver125(key, e.target.value)}
                                                 >
+                                                    <option value="">Select option</option>
                                                     <option value="no">No</option>
                                                     <option value="yes">Yes</option>
                                                 </select>
                                             </div>
 
-                                            <div className={entry.over125 ? "" : "opacity-50 pointer-events-none"}>
+                                            <div className={entry.over125 === "yes" ? "" : "opacity-50 pointer-events-none"}>
                                                 <label className="block text-sm font-semibold text-gray-800">
-                                                    Upload invoice/receipt {entry.over125 && <span className="text-red-500">*</span>}
+                                                    Upload invoice/receipt {entry.over125 === "yes" && <span className="text-red-500">*</span>}
                                                 </label>
                                                 <input
                                                     type="file"
                                                     className="subtext w-full p-3 border border-gray-300 rounded-xl"
                                                     onChange={(e) => setProofFile(key, e.target.files?.[0] ?? null)}
-                                                    required={entry.over125}
+                                                    required={entry.over125 === "yes"}
                                                 />
                                                 {entry.proofName ? (
                                                     <p className="subtext text-xs text-gray-500 mt-1">
