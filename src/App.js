@@ -10,6 +10,7 @@ import ContactPage from "./pages/ContactPage";
 import TermsConditionsPage from "./pages/TermsConditionsPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import InvoiceUploadsPage from "./pages/InvoiceUploadsPage";
 
 const App = () => {
     return (
@@ -26,6 +27,7 @@ const App = () => {
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/terms" element={<TermsConditionsPage />} />
                         <Route path="/cart" element={<CartPage />} />
+                        <Route path="/invoices" element={<InvoiceUploadsPage />} />
                         <Route path="/checkout" element={<CheckoutPage />} />
                     </Routes>
                 </main>

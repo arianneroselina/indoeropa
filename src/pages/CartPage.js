@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaTrash } from "react-icons/fa";
 import { CART_KEY } from "../utils/shipmentHelper";
-import { formatDateToDDMMYYYY } from "../utils/formatDate";
-
+import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
+import { hasDutyStep } from "../utils/dutyHelper";
 
 const CartPage = () => {
+    const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
 
     useEffect(() => {
@@ -39,6 +40,10 @@ const CartPage = () => {
         localStorage.setItem(CART_KEY, JSON.stringify(updatedCart)); // Save to localStorage
     };
 
+    const goNext = () => {
+        navigate(hasDutyStep(cartItems) ? "/invoices" : "/checkout");
+    };
+
     return (
         <section className="py-24 bg-white">
             <div className="max-w-screen-xl mx-auto px-4">
@@ -61,34 +66,12 @@ const CartPage = () => {
                                     className="rounded-2xl border bg-white shadow-sm p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
                                 >
                                     {/* LEFT: Main info */}
-                                    <div className="min-w-0">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <div className="text-lg font-semibold text-gray-900">
-                                                {item.fromCountry} → {item.toCountry}
-                                            </div>
-
-                                           <span className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-gray-700">
-                                               Pickup: {formatDateToDDMMYYYY(item.shipmentDate)}
-                                           </span>
-                                        </div>
-
-                                        <div className="mt-1 subtext text-sm text-gray-600">
-                                            {item.packageTypeLabel}
-                                        </div>
-
-                                        {/* Detail chips */}
-                                        <div className="mt-2">
-                                            {item.documentPages ? (
-                                                <span className="rounded-full border bg-white px-3 py-1 text-sm font-semibold text-gray-700">
-                                                    {item.documentPages} pages
-                                                </span>
-                                            ) : item.billedWeightKg ? (
-                                                <span className="rounded-full border bg-white px-3 py-1 text-sm font-semibold text-gray-700">
-                                                    {Number(item.billedWeightKg).toFixed(1)} kg
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                    </div>
+                                    <ShipmentMeta
+                                        item={item}
+                                        showPickupChip={true}
+                                        showDetailChip={true}
+                                        compact={false}
+                                    />
 
                                     {/* RIGHT: Quantity + Price + Actions */}
                                     <div className="flex items-center justify-between md:justify-end gap-4">
@@ -129,12 +112,10 @@ const CartPage = () => {
                             <Link to="/shipment" className="button-secondary">
                                 Continue Shopping
                             </Link>
-                            {cartItems.length > 0 && (
-                                <Link to="/checkout" className="button-primary font-semibold">
-                                    Proceed to Checkout
-                                    <FaArrowRight className="ml-2 text-sm" />
-                                </Link>
-                            )}
+                            <button type="button" onClick={goNext} className="button-primary font-semibold">
+                                Proceed to Checkout
+                                <FaArrowRight className="ml-2 text-sm" />
+                            </button>
                         </div>
                     </div>
                 )}

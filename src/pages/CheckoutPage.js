@@ -1,18 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
 import {CART_KEY} from "../utils/shipmentHelper";
-import {formatDateToDDMMYYYY} from "../utils/formatDate";
+import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
+import { hasDutyStep } from "../utils/dutyHelper";
 
 const CheckoutPage = () => {
     const [cartItems, setCartItems] = useState([]);
+
     const [fullName, setFullName] = useState('');
     const [address, setAddress] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
+
     const [paymentMethod, setPaymentMethod] = useState('');
     const [, setPaymentProof] = useState(null);
+
     const [termsAccepted, setTermsAccepted] = useState(false);
+
     const [totalAmountEUR, setTotalAmountEUR] = useState(0);
     const [totalAmountIDR, setTotalAmountIDR] = useState(0);
 
@@ -23,6 +28,9 @@ const CheckoutPage = () => {
         }
 
     }, []);
+
+    const backTo = hasDutyStep(cartItems) ? "/invoices" : "/cart";
+    const backLabel = hasDutyStep(cartItems) ? "Back to Invoices" : "Back to Cart";
 
     // Recalculate the total amounts whenever cartItems change
     useEffect(() => {
@@ -53,9 +61,9 @@ const CheckoutPage = () => {
             <div className="max-w-screen-xl mx-auto px-4">
                 {/* Back to Cart button */}
                 <div className="flex justify-between items-center mb-6">
-                    <Link to="/cart" className="text-primary flex items-center gap-2">
+                    <Link to={backTo} className="text-primary flex items-center gap-2">
                         <FaArrowRight className="transform rotate-180" />
-                        <span>Back to Cart</span>
+                        <span>{backLabel}</span>
                     </Link>
                     <h2 className="text-4xl font-semibold text-center">Checkout</h2>
                 </div>
@@ -212,23 +220,12 @@ const CheckoutPage = () => {
                                                 return (
                                                     <div key={item.signature ?? idx} className="rounded-xl border bg-gray-50/60 p-3">
                                                         <div className="flex items-start justify-between gap-3">
-                                                            <div className="min-w-0">
-                                                                <div className="text-sm font-semibold text-gray-900 truncate">
-                                                                    {item.fromCountry} → {item.toCountry}
-                                                                </div>
-                                                                <div className="subtext text-xs text-gray-600 mt-0.5 truncate">
-                                                                    {item.packageTypeLabel}
-                                                                </div>
-
-                                                                <div className="subtext text-xs text-gray-500 mt-1">
-                                                                    {item.documentPages
-                                                                        ? `${item.documentPages} pages`
-                                                                        : item.billedWeightKg
-                                                                            ? `${Number(item.billedWeightKg).toFixed(1)} kg`
-                                                                            : "—"}
-                                                                    {item.shipmentDate ? ` • ${formatDateToDDMMYYYY(item.shipmentDate)}` : ""}
-                                                                </div>
-                                                            </div>
+                                                            <ShipmentMeta
+                                                                item={item}
+                                                                showPickupChip={false}
+                                                                showDetailChip={false}
+                                                                compact={true}
+                                                            />
 
                                                             <div className="text-right shrink-0">
                                                                 <div className="text-sm font-semibold text-gray-900">

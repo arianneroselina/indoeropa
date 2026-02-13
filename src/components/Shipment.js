@@ -21,6 +21,7 @@ export default function Shipment({ variant = "default" }) {
     const [selectedPackageTypeId, setSelectedPackageTypeId] = useState("");
 
     const [weight, setWeight] = useState("");
+
     const [lengthCm, setLengthCm] = useState("");
     const [widthCm, setWidthCm] = useState("");
     const [heightCm, setHeightCm] = useState("");
@@ -348,7 +349,7 @@ export default function Shipment({ variant = "default" }) {
                                         "flex items-center justify-center transition",
                                         toCountry
                                             ? "hover:scale-[1.03] hover:bg-gray-50 text-gray-900"
-                                            : "text-gray-500 cursor-not-allowed bg-gray-100 shadow-sm",
+                                            : "bg-gray-100 text-gray-500 hover:bg-gray-200 cursor-not-allowed",
                                     ].join(" ")}
                                     title="Swap From/To"
                                 >
@@ -529,7 +530,7 @@ export default function Shipment({ variant = "default" }) {
                                                         "button-primary font-semibold",
                                                         canAddToCart
                                                             ? "bg-secondary hover:bg-secondary-900 text-white"
-                                                            : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                                                            : "bg-gray-200 text-gray-500 hover:bg-gray-200 cursor-not-allowed",
                                                     ].join(" ")}
                                                 >
                                                     Add to cart
@@ -549,7 +550,7 @@ export default function Shipment({ variant = "default" }) {
                                                         {feedbackItem.fromLabel} → {feedbackItem.toLabel}
                                                     </span>
                                                     {" • "}
-                                                    {feedbackItem.shipmentDate}
+                                                    {formatDateToDDMMYYYY(feedbackItem.shipmentDate)}
                                                     {" • "}
                                                     {feedbackItem.billed}
                                                     {" • "}
