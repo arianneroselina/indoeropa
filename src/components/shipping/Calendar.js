@@ -9,6 +9,7 @@ const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {
         return (AVAILABLE_DATES?.[routeKey] || [])
             .map((d) => new Date(`${d}T00:00:00`)); // safe local parsing
     }, [routeKey]);
+    const hasAvailableDates = availableDates.length > 0;
 
     const selectedDateObj = useMemo(() => {
         if (!shipmentDate) return null;
@@ -52,13 +53,25 @@ const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {
                 )}
             </div>
 
-            <div className="mt-3 rounded-2xl border bg-gray-50/70 p-3">
-                <div className="calendar-wrap">
+            <div className="mt-3 rounded-2xl border bg-gray-50/70 p-3 relative">
+                {!hasAvailableDates && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/60 backdrop-blur-sm">
+                        <div className="rounded-2xl border bg-gray-100 px-5 py-4 shadow-sm text-center max-w-sm">
+                            <div className="text-sm font-semibold text-gray-900">No pickup dates available</div>
+                            <div className="subtext text-xs text-gray-600 mt-1">
+                                Please choose another route or check back later.
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className={`calendar-wrap ${!hasAvailableDates ? "pointer-events-none opacity-40" : ""}`}>
                     <DatePicker
                         selected={selectedDateObj}
                         onChange={handleDateChange}
                         inline
                         includeDates={availableDates}
+                        disabled={!hasAvailableDates}
                         calendarClassName="shipping-calendar"
                         dayClassName={(date) => {
                             const iso = formatDateToISO(date);
