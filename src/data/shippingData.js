@@ -12,6 +12,11 @@ import {
 export const COUNTRIES = [
     { id: "ID", name: "Indonesia" },
     { id: "DE", name: "Germany" },
+    { id: "NL", name: "Netherland" },
+    { id: "ES", name: "Spain" },
+    { id: "AT", name: "Austria" },
+    { id: "PL", name: "Poland" },
+    { id: "SE", name: "Sweden" },
 ];
 
 export const PACKAGE_TYPES = [
@@ -107,5 +112,22 @@ export const AVAILABLE_DATES = {
         "2025-12-26",
         "2025-12-27",
         "2026-01-01"
+    ],
+    ES_ID: [
+        "2025-12-20",
+        "2025-12-21",
+        "2025-12-23",
+        "2025-12-25",
+        "2026-01-02",
+        "2026-02-15",
+        "2026-02-22"
+    ],
+    ID_ES: [
+        "2025-12-25",
+        "2025-12-26",
+        "2025-12-27",
+        "2026-01-01",
+        "2026-02-15",
+        "2026-02-22"
     ]
 }

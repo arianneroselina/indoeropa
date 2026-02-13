@@ -279,6 +279,9 @@ export default function Shipment({ variant = "default" }) {
         setProgressStep(0)
     };
 
+    const fromID = fromCountry === "ID";
+    const toID = toCountry === "ID";
+
     const fromLabel = COUNTRIES.find((c) => c.id === fromCountry)?.name ?? fromCountry;
     const toLabel = COUNTRIES.find((c) => c.id === toCountry)?.name ?? toCountry;
 
@@ -329,10 +332,32 @@ export default function Shipment({ variant = "default" }) {
                             {/* From */}
                             <div className="rounded-xl border p-4">
                                 <div className="text-xs text-gray-500">From</div>
-                                <div className="mt-4 flex items-center justify-between">
-                                    <div className="text-lg font-semibold text-gray-900">{fromLabel}</div>
-                                    <span className="text-xs text-gray-500">Billing country</span>
-                                </div>
+
+                                {toID ? (
+                                    <div className="mt-4 flex items-center justify-between gap-4">
+                                        <select
+                                            value={fromCountry}
+                                            onChange={(e) => setFromCountry(e.target.value)}
+                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        >
+                                            <option value="">Select country</option>
+                                            {COUNTRIES.filter((c) => c.id !== "ID").map((c) => (
+                                                <option key={c.id} value={c.id}>
+                                                    {c.name}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                                            Billing country
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="mt-4 flex items-center justify-between">
+                                        <div className="font-semibold text-gray-900">{fromLabel}</div>
+                                        <span className="text-xs text-gray-500">Billing country</span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Swap */}
@@ -361,22 +386,20 @@ export default function Shipment({ variant = "default" }) {
                             <div className="relative rounded-2xl border bg-white p-5 shadow-sm">
                                 <div className="text-xs font-semibold text-gray-500">To</div>
 
-                                <select
-                                    value={toCountry}
-                                    onChange={(e) => setToCountry(e.target.value)}
-                                    className="mt-2 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
-                                >
-                                    <option value="">Select destination</option>
-                                    {COUNTRIES.filter((c) => c.id !== fromCountry).map((c) => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.name}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                {fromCountry && toCountry && fromCountry === toCountry && (
-                                    <div className="mt-2 text-sm text-secondary">
-                                        From and To can’t be the same country.
+                                {fromID ? (
+                                    <select
+                                        value={toCountry}
+                                        onChange={(e) => setToCountry(e.target.value)}
+                                        className="mt-2 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                    >
+                                        <option value="">Select destination</option>
+                                        {COUNTRIES.filter((c) => c.id !== "ID").map((c) => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div className="mt-4 flex items-center justify-between">
+                                        <div className="font-semibold text-gray-900">{toLabel}</div>
                                     </div>
                                 )}
                             </div>
