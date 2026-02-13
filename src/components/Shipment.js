@@ -19,6 +19,7 @@ export default function Shipment({ variant = "default" }) {
     const [toCountry, setToCountry] = useState("");
 
     const [selectedPackageTypeId, setSelectedPackageTypeId] = useState("");
+    const [packageAutoAdjusted, setPackageAutoAdjusted] = useState(false);
 
     const [weight, setWeight] = useState("");
 
@@ -67,8 +68,8 @@ export default function Shipment({ variant = "default" }) {
     const isDocument = selectedPackageType?.pricing.type === "document";
     const isHat = selectedPackageType?.pricing.type === "perPiece";
 
-    // stored weight for cart (your old behavior)
-    const weightNum = useMemo(() => {
+    // stored weight for cart
+    const actualWeight = useMemo(() => {
         if (weight === "") return 0;
         return snapToHalf(weight);
     }, [weight]);
@@ -91,6 +92,57 @@ export default function Shipment({ variant = "default" }) {
             h: Number.isFinite(h) ? h : 0,
         };
     }, [lengthCm, widthCm, heightCm]);
+
+    // volumetric weight in kg (cm³ / 6000)
+    const volumetricWeight = useMemo(() => {
+        const l = Number(lengthCm);
+        const w = Number(widthCm);
+        const h = Number(heightCm);
+
+        if (![l, w, h].every((x) => Number.isFinite(x) && x > 0)) return 0;
+
+        return (l * w * h) / 6000;
+    }, [lengthCm, widthCm, heightCm]);
+
+    const needsVolumePackage = useMemo(() => {
+        return actualWeight > 0 && volumetricWeight > actualWeight;
+    }, [actualWeight, volumetricWeight]);
+
+    const recommendedPackageTypeId = useMemo(() => {
+        if (!needsVolumePackage) return "";
+        // TODO: adjust this
+        if (volumetricWeight <= 10) return "standard";
+        if (volumetricWeight <= 20) return "pkg_1_vol";
+        return "pkg_1_super";
+    }, [needsVolumePackage, volumetricWeight]);
+
+    const recommendedLabel = useMemo(() => {
+        if (!recommendedPackageTypeId) return "";
+        return PACKAGE_TYPES.find((p) => p.id === recommendedPackageTypeId)?.label ?? recommendedPackageTypeId;
+    }, [recommendedPackageTypeId]);
+
+    useEffect(() => {
+        if (isDocument || isHat) return;
+        if (!recommendedPackageTypeId) {
+            setPackageAutoAdjusted(false);
+            return;
+        }
+
+        if (selectedPackageTypeId && selectedPackageTypeId !== recommendedPackageTypeId) {
+            setSelectedPackageTypeId(recommendedPackageTypeId);
+            setPackageAutoAdjusted(true);
+        }
+        // If nothing selected yet, you may choose to set it too:
+        if (!selectedPackageTypeId) {
+            setSelectedPackageTypeId(recommendedPackageTypeId);
+            setPackageAutoAdjusted(true);
+        }
+    }, [
+        isDocument,
+        isHat,
+        recommendedPackageTypeId,
+        selectedPackageTypeId,
+    ]);
 
     // Progressive reveal (only increments)
     useEffect(() => {
@@ -207,7 +259,7 @@ export default function Shipment({ variant = "default" }) {
             fromCountry,
             toCountry,
             shipmentDate,
-            weightKg: weightNum,
+            weightKg: actualWeight,
             billedWeightKg: roundedWeight,
             dimensionsCm: { ...dims },
             packageTypeId: selectedPackageTypeId,
@@ -421,6 +473,41 @@ export default function Shipment({ variant = "default" }) {
                                         <span className="subtext text-sm text-white">{toLabel}</span>
                                     </div>
                                 </div>
+
+                                {needsVolumePackage && (
+                                    <div className="mb-4 rounded-xl border bg-amber-50 px-4 py-3">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div>
+                                                <div className="text-sm font-semibold text-secondary">
+                                                    Package type recommendation
+                                                </div>
+                                                <div className="subtext text-xs text-secondary/80 mt-1">
+                                                    Your dimensions are large for the entered weight. We recommend{" "}
+                                                    <span className="font-semibold">{recommendedLabel}</span>.
+                                                    {packageAutoAdjusted ? " We updated the package type automatically." : ""}
+                                                </div>
+                                                <div className="subtext text-[11px] text-secondary/70 mt-1">
+                                                    Dimensions: {Number(lengthCm) || 0} × {Number(widthCm) || 0} × {Number(heightCm) || 0} cm
+                                                    {" • "}
+                                                    Entered weight: {actualWeight || 0} kg
+                                                </div>
+                                            </div>
+
+                                            {!packageAutoAdjusted && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedPackageTypeId(recommendedPackageTypeId);
+                                                        setPackageAutoAdjusted(true);
+                                                    }}
+                                                    className="rounded-xl border bg-white px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition whitespace-nowrap"
+                                                >
+                                                    Apply
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="px-4 pb-5 sm:px-6 sm:pb-6">
