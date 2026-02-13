@@ -3,9 +3,8 @@ import { FaWhatsapp, FaEnvelope } from "react-icons/fa6";
 
 const Footer = () => {
     return (
-        <footer className="bg-primary text-white py-8">
-            <div className="max-w-screen-xl mx-auto text-center">
-                <div className="flex justify-center space-x-6 mt-4">
+        <footer className="bg-primary text-white py-6">
+                <div className="flex justify-end space-x-6 mr-8">
                     <a
                         href="https://wa.me/%2B491754513280/?text=Halo%20admin%20INDO%20EROPA%2C%20saya%20mau%20pesan%20bagasi"
                         target="_blank"
@@ -22,7 +21,6 @@ const Footer = () => {
                     >
                         <FaEnvelope className="text-2xl" />
                     </a>
-                </div>
             </div>
         </footer>
     );
