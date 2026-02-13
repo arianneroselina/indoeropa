@@ -1,17 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaArrowRight } from "react-icons/fa";
-import { CART_KEY } from "../utils/shipmentHelper";
+import { FaArrowRight, FaInfoCircle } from "react-icons/fa";
+import { CART_KEY, INVOICES_KEY } from "../utils/shipmentHelper";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { getRelevantDutyItems } from "../utils/dutyHelper";
-
-const INVOICES_KEY = "checkout_invoices_v1";
 
 const InvoiceUploadsPage = () => {
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
 
-    // { [itemKey]: { over125: string, proofDataUrl?: string, proofName?: string } }
+    // { [itemKey]: { over125: string, originalValueEur?: string, proofDataUrl?: string, proofName?: string } }
     const [invoiceByItem, setInvoiceByItem] = useState({});
 
     useEffect(() => {
@@ -39,8 +37,23 @@ const InvoiceUploadsPage = () => {
                 ...prev,
                 [key]: {
                     over125,
+                    originalValueEur: over125 === "yes" ? (prev[key]?.originalValueEur ?? "") : "",
                     proofDataUrl: over125 === "yes" ? (prev[key]?.proofDataUrl ?? "") : "",
                     proofName: over125 === "yes" ? (prev[key]?.proofName ?? "") : "",
+                },
+            };
+            localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
+            return next;
+        });
+    };
+
+    const setOriginalValue = (key, value) => {
+        setInvoiceByItem((prev) => {
+            const next = {
+                ...prev,
+                [key]: {
+                    ...(prev[key] ?? { over125: "" }),
+                    originalValueEur: value,
                 },
             };
             localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
@@ -78,10 +91,14 @@ const InvoiceUploadsPage = () => {
     const isInvoiceComplete = relevant.every(({ key }) => {
         const entry = invoiceByItem[key];
 
-        // must  have a selection
         if (!entry) return false;
-        // if over125 → proof must exist
-        if (entry.over125 === "yes" && !entry.proofDataUrl) return false;
+        if (!entry.over125) return false;
+
+        if (entry.over125 === "yes") {
+            const val = Number(entry.originalValueEur);
+            if (!Number.isFinite(val) || val <= 125) return false;
+            if (!entry.proofDataUrl) return false;
+        }
 
         return true;
     });
@@ -91,9 +108,20 @@ const InvoiceUploadsPage = () => {
 
         for (const { key } of relevant) {
             const entry = invoiceByItem[key];
-            if (entry?.over125 === "yes" && !entry?.proofDataUrl) {
-                alert("Please upload an invoice/receipt for every shipment marked as over €125.");
+            if (!entry?.over125) {
                 return;
+            }
+
+            if (entry.over125 === "yes") {
+                const val = Number(entry.originalValueEur);
+                if (!Number.isFinite(val) || val <= 125) {
+                    alert("Original item value must be bigger than €125 when selecting 'Yes'.");
+                    return;
+                }
+                if (!entry.proofDataUrl) {
+                    alert("Please upload an invoice/receipt for every shipment marked as over €125.");
+                    return;
+                }
             }
         }
 
@@ -112,15 +140,46 @@ const InvoiceUploadsPage = () => {
                 </div>
 
                 <div className="bg-white p-8 rounded-lg shadow-md">
-                    <p className="subtext text-sm text-gray-600 mb-6">
-                        For items below with an original value <span className="font-semibold">above €125</span>,
-                        please upload the invoice or receipt.
-                    </p>
+                    <div className="subtext mb-6 rounded-xl border bg-amber-50 px-4 py-3">
+                        <p className="text-sm text-gray-700">
+                            For the items listed below with an <span className="font-semibold">original value above €125</span>,
+                            an invoice or receipt is required.
+                            <br />
+                            <span className="inline-flex items-center gap-2 relative group">
+                                <span className="font-semibold">
+                                    A 2.5% customs handling fee will be added
+                                </span>
+                                <FaInfoCircle className="text-gray-400 hover:text-gray-600 transition cursor-help" />
+                                <span className="
+                                    pointer-events-none absolute left-0 top-full mt-2 w-72
+                                    rounded-lg border bg-white px-3 py-2 text-xs text-gray-700 shadow-lg
+                                    opacity-0 translate-y-1 transition
+                                    group-hover:opacity-100 group-hover:translate-y-0
+                                    z-20
+                                ">
+                                    This fee covers customs processing, declaration handling,
+                                    and administrative costs required for items valued above €125.
+                                </span>
+                            </span>
+                        </p>
+                    </div>
+
 
                     <form onSubmit={handleContinue} className="space-y-6">
                         <div className="space-y-4">
                             {relevant.map(({ item, idx, key }) => {
-                                const entry = invoiceByItem[key] ?? { over125: "", proofDataUrl: "", proofName: "" };
+                                const entry = invoiceByItem[key] ?? {
+                                    over125: "",
+                                    originalValueEur: "",
+                                    proofDataUrl: "",
+                                    proofName: ""
+                                };
+
+                                const originalValueNum = Number(entry.originalValueEur);
+                                const isValueInvalid =
+                                    entry.over125 === "yes" &&
+                                    entry.originalValueEur !== "" &&
+                                    (!Number.isFinite(originalValueNum) || originalValueNum <= 125);
 
                                 return (
                                     <div key={key} className="rounded-2xl border bg-gray-50/60 p-5">
@@ -137,20 +196,59 @@ const InvoiceUploadsPage = () => {
                                             </div>
                                         </div>
 
-                                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                                             <div>
                                                 <label className="block text-sm font-semibold text-gray-800">
                                                     Original item value over €125? <span className="text-red-500">*</span>
                                                 </label>
                                                 <select
                                                     className="subtext w-full p-3 border border-gray-300 rounded-xl"
-                                                    value={entry.over125 }
+                                                    value={entry.over125}
                                                     onChange={(e) => setOver125(key, e.target.value)}
                                                 >
                                                     <option value="">Select option</option>
                                                     <option value="no">No</option>
                                                     <option value="yes">Yes</option>
                                                 </select>
+                                            </div>
+
+                                            <div className={entry.over125 === "yes" ? "" : "opacity-50 pointer-events-none"}>
+                                                <label className="block text-sm font-semibold text-gray-800">
+                                                    Original item value (€)
+                                                </label>
+
+                                                <input
+                                                    type="number"
+                                                    inputMode="decimal"
+                                                    min="0"
+                                                    step="0.01"
+                                                    placeholder="e.g. 150.00"
+                                                    className={[
+                                                        "subtext w-full p-3 border rounded-xl transition",
+                                                        isValueInvalid
+                                                            ? "border-red-500 focus:ring-red-500"
+                                                            : "border-gray-300 focus:ring-blue-600"
+                                                    ].join(" ")}
+                                                    value={entry.originalValueEur}
+                                                    onChange={(e) => setOriginalValue(key, e.target.value)}
+                                                    required={entry.over125 === "yes"}
+                                                />
+
+                                                {isValueInvalid && (
+                                                        <p className="subtext text-xs text-red-600 mt-2">
+                                                            Value must be bigger than €125 when selecting 'Yes'.
+                                                        </p>
+                                                    )}
+
+                                                {!isValueInvalid && (
+                                                    <p className="subtext text-xs text-gray-600 mt-2">
+                                                        Customs handling fee:{" "}
+                                                        <span className="font-semibold text-gray-800">
+                                                            €{(Number(entry.originalValueEur) * 0.025).toFixed(2)}
+                                                        </span>
+                                                        {" "}will be added to the transport price.
+                                                    </p>
+                                                )}
                                             </div>
 
                                             <div className={entry.over125 === "yes" ? "" : "opacity-50 pointer-events-none"}>

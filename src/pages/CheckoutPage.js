@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
-import {CART_KEY} from "../utils/shipmentHelper";
+import { CART_KEY, INVOICES_KEY } from "../utils/shipmentHelper";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { hasDutyStep } from "../utils/dutyHelper";
 
@@ -18,16 +18,33 @@ const CheckoutPage = () => {
 
     const [termsAccepted, setTermsAccepted] = useState(false);
 
+    const [invoiceByItem, setInvoiceByItem] = useState({});
+    const [customsFeeEUR, setCustomsFeeEUR] = useState(0);
+
     const [totalAmountEUR, setTotalAmountEUR] = useState(0);
     const [totalAmountIDR, setTotalAmountIDR] = useState(0);
 
     useEffect(() => {
         const savedCartItems = localStorage.getItem(CART_KEY);
-        if (savedCartItems) {
-            setCartItems(JSON.parse(savedCartItems));
-        }
+        if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
+
+        const savedInvoices = localStorage.getItem(INVOICES_KEY);
+        if (savedInvoices) setInvoiceByItem(JSON.parse(savedInvoices));
 
     }, []);
+
+    useEffect(() => {
+        const fee = Object.values(invoiceByItem || {}).reduce((sum, entry) => {
+            if (entry?.over125 !== "yes") return sum;
+
+            const val = Number(entry.originalValueEur);
+            if (!Number.isFinite(val) || val <= 0) return sum;
+
+            return sum + val * 0.025;
+        }, 0);
+
+        setCustomsFeeEUR(fee);
+    }, [invoiceByItem]);
 
     const backTo = hasDutyStep(cartItems) ? "/invoices" : "/cart";
     const backLabel = hasDutyStep(cartItems) ? "Back to Invoices" : "Back to Cart";
@@ -42,12 +59,14 @@ const CheckoutPage = () => {
             }, 0);
         };
 
-        const totalEUR = calculateTotalPrice();
-        const totalIDR = totalEUR * 19600;
+        const transportEUR = calculateTotalPrice();
+        const grandTotalEUR = transportEUR + customsFeeEUR;
 
-        setTotalAmountEUR(totalEUR);
+        const totalIDR = grandTotalEUR * 19600;
+
+        setTotalAmountEUR(grandTotalEUR);
         setTotalAmountIDR(totalIDR);
-    }, [cartItems]);
+    }, [cartItems, customsFeeEUR]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -243,9 +262,20 @@ const CheckoutPage = () => {
                                             })}
                                         </div>
 
+                                        {customsFeeEUR > 0 && (
+                                            <div className="flex items-center justify-between mt-2">
+                                                <div className="subtext text-xs text-gray-500">
+                                                    Customs handling (2.5%)
+                                                </div>
+                                                <div className="subtext text-xs text-gray-700 font-semibold">
+                                                    €{customsFeeEUR.toFixed(2)}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="mt-5 border-t pt-4">
                                             <div className="flex items-center justify-between">
-                                                <div className="text-sm font-semibold text-gray-900">Total</div>
+                                                <div className="text-sm font-semibold text-gray-900">Total (incl. customs)</div>
                                                 <div className="text-lg font-bold text-gray-900">
                                                     €{totalAmountEUR.toFixed(2)}
                                                 </div>
