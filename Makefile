@@ -32,7 +32,7 @@ help:
 	@echo ""
 	@echo "Available commands:"
 	@echo "  make install   - Install dependencies"
-	@echo "  make dev       - Run development server"
+	@echo "  make run       - Run development server"
 	@echo "  make build     - Build for production"
 	@echo "  make preview   - Preview production build (Vite)"
 	@echo "  make start     - Start production build (CRA)"

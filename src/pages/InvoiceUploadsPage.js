@@ -9,15 +9,34 @@ const InvoiceUploadsPage = () => {
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
 
-    // { [itemKey]: { over125: string, originalValueEur?: string, proofDataUrl?: string, proofName?: string } }
+    // { [itemKey]: { over125: string, originalValueEur?: string } }
     const [invoiceByItem, setInvoiceByItem] = useState({});
+
+    // session-only upload state (NOT persisted)
+    const [proofUploaded, setProofUploaded] = useState({}); // { [itemKey]: boolean }
 
     useEffect(() => {
         const savedCartItems = localStorage.getItem(CART_KEY);
         if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
 
         const savedInvoices = localStorage.getItem(INVOICES_KEY);
-        if (savedInvoices) setInvoiceByItem(JSON.parse(savedInvoices));
+        if (savedInvoices) {
+            const parsed = JSON.parse(savedInvoices);
+
+            // remove any previously persisted proof fields
+            const cleaned = Object.fromEntries(
+                Object.entries(parsed).map(([k, v]) => [
+                    k,
+                    {
+                        over125: v?.over125 ?? "",
+                        originalValueEur: v?.originalValueEur ?? "",
+                    },
+                ])
+            );
+
+            setInvoiceByItem(cleaned);
+            localStorage.setItem(INVOICES_KEY, JSON.stringify(cleaned));
+        }
     }, []);
 
     const relevant = useMemo(() => {
@@ -32,14 +51,17 @@ const InvoiceUploadsPage = () => {
     }, [cartItems.length, relevant.length, navigate]);
 
     const setOver125 = (key, over125) => {
+        setProofUploaded((prev) => ({
+            ...prev,
+            [key]: over125 === "yes" ? !!prev[key] : false,
+        }));
+
         setInvoiceByItem((prev) => {
             const next = {
                 ...prev,
                 [key]: {
                     over125,
                     originalValueEur: over125 === "yes" ? (prev[key]?.originalValueEur ?? "") : "",
-                    proofDataUrl: over125 === "yes" ? (prev[key]?.proofDataUrl ?? "") : "",
-                    proofName: over125 === "yes" ? (prev[key]?.proofName ?? "") : "",
                 },
             };
             localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
@@ -61,31 +83,8 @@ const InvoiceUploadsPage = () => {
         });
     };
 
-    const setProofFile = async (key, file) => {
-        // TODO: Store as DataURL for now (works, but keep files small).
-        // For production, upload to your backend or storage instead.
-        const toDataUrl = (f) =>
-            new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(String(reader.result || ""));
-                reader.onerror = reject;
-                reader.readAsDataURL(f);
-            });
-
-        const dataUrl = file ? await toDataUrl(file) : "";
-
-        setInvoiceByItem((prev) => {
-            const next = {
-                ...prev,
-                [key]: {
-                    ...(prev[key] ?? { over125: "" }),
-                    proofDataUrl: dataUrl,
-                    proofName: file?.name ?? "",
-                },
-            };
-            localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
-            return next;
-        });
+    const setProofFile = (key, file) => {
+        setProofUploaded((prev) => ({ ...prev, [key]: !!file }));
     };
 
     const isInvoiceComplete = relevant.every(({ key }) => {
@@ -97,7 +96,7 @@ const InvoiceUploadsPage = () => {
         if (entry.over125 === "yes") {
             const val = Number(entry.originalValueEur);
             if (!Number.isFinite(val) || val <= 125) return false;
-            if (!entry.proofDataUrl) return false;
+            if (!proofUploaded[key]) return false;
         }
 
         return true;
@@ -108,9 +107,7 @@ const InvoiceUploadsPage = () => {
 
         for (const { key } of relevant) {
             const entry = invoiceByItem[key];
-            if (!entry?.over125) {
-                return;
-            }
+            if (!entry?.over125) return;
 
             if (entry.over125 === "yes") {
                 const val = Number(entry.originalValueEur);
@@ -118,7 +115,7 @@ const InvoiceUploadsPage = () => {
                     alert("Original item value must be bigger than €125 when selecting 'Yes'.");
                     return;
                 }
-                if (!entry.proofDataUrl) {
+                if (!proofUploaded[key]) {
                     alert("Please upload an invoice/receipt for every shipment marked as over €125.");
                     return;
                 }
@@ -142,28 +139,27 @@ const InvoiceUploadsPage = () => {
                 <div className="bg-white p-8 rounded-lg shadow-md">
                     <div className="subtext mb-6 rounded-xl border bg-amber-50 px-4 py-3">
                         <p className="text-sm text-gray-700">
-                            For the items listed below with an <span className="font-semibold">original value above €125</span>,
-                            an invoice or receipt is required.
+                            For the items listed below with an{" "}
+                            <span className="font-semibold">original value above €125</span>, an invoice or receipt is required.
                             <br />
                             <span className="inline-flex items-center gap-2 relative group">
-                                <span className="font-semibold">
-                                    A 2.5% customs handling fee will be added
-                                </span>
-                                <FaInfoCircle className="text-gray-400 hover:text-gray-600 transition cursor-help" />
-                                <span className="
-                                    pointer-events-none absolute left-0 top-full mt-2 w-72
-                                    rounded-lg border bg-white px-3 py-2 text-xs text-gray-700 shadow-lg
-                                    opacity-0 translate-y-1 transition
-                                    group-hover:opacity-100 group-hover:translate-y-0
-                                    z-20
-                                ">
-                                    This fee covers customs processing, declaration handling,
-                                    and administrative costs required for items valued above €125.
-                                </span>
-                            </span>
+                <span className="font-semibold">A 2.5% customs handling fee will be added</span>
+                <FaInfoCircle className="text-gray-400 hover:text-gray-600 transition cursor-help" />
+                <span
+                    className="
+                    pointer-events-none absolute left-0 top-full mt-2 w-72
+                    rounded-lg border bg-white px-3 py-2 text-xs text-gray-700 shadow-lg
+                    opacity-0 translate-y-1 transition
+                    group-hover:opacity-100 group-hover:translate-y-0
+                    z-20
+                  "
+                >
+                  This fee covers customs processing, declaration handling, and administrative costs required for items
+                  valued above €125.
+                </span>
+              </span>
                         </p>
                     </div>
-
 
                     <form onSubmit={handleContinue} className="space-y-6">
                         <div className="space-y-4">
@@ -171,8 +167,6 @@ const InvoiceUploadsPage = () => {
                                 const entry = invoiceByItem[key] ?? {
                                     over125: "",
                                     originalValueEur: "",
-                                    proofDataUrl: "",
-                                    proofName: ""
                                 };
 
                                 const originalValueNum = Number(entry.originalValueEur);
@@ -180,6 +174,11 @@ const InvoiceUploadsPage = () => {
                                     entry.over125 === "yes" &&
                                     entry.originalValueEur !== "" &&
                                     (!Number.isFinite(originalValueNum) || originalValueNum <= 125);
+
+                                const fee =
+                                    entry.over125 === "yes" && Number.isFinite(Number(entry.originalValueEur))
+                                        ? (Number(entry.originalValueEur) * 0.025).toFixed(2)
+                                        : "0.00";
 
                                 return (
                                     <div key={key} className="rounded-2xl border bg-gray-50/60 p-5">
@@ -235,18 +234,16 @@ const InvoiceUploadsPage = () => {
                                                 />
 
                                                 {isValueInvalid && (
-                                                        <p className="subtext text-xs text-red-600 mt-2">
-                                                            Value must be bigger than €125 when selecting 'Yes'.
-                                                        </p>
-                                                    )}
+                                                    <p className="subtext text-xs text-red-600 mt-2">
+                                                        Value must be bigger than €125 when selecting 'Yes'.
+                                                    </p>
+                                                )}
 
-                                                {!isValueInvalid && (
+                                                {!isValueInvalid && entry.over125 === "yes" && (
                                                     <p className="subtext text-xs text-gray-600 mt-2">
                                                         Customs handling fee:{" "}
-                                                        <span className="font-semibold text-gray-800">
-                                                            €{(Number(entry.originalValueEur) * 0.025).toFixed(2)}
-                                                        </span>
-                                                        {" "}will be added to the transport price.
+                                                        <span className="font-semibold text-gray-800">€{fee}</span>{" "}
+                                                        will be added to the transport price.
                                                     </p>
                                                 )}
                                             </div>
@@ -255,17 +252,13 @@ const InvoiceUploadsPage = () => {
                                                 <label className="block text-sm font-semibold text-gray-800">
                                                     Upload invoice/receipt {entry.over125 === "yes" && <span className="text-red-500">*</span>}
                                                 </label>
+
                                                 <input
                                                     type="file"
                                                     className="subtext w-full p-3 border border-gray-300 rounded-xl"
                                                     onChange={(e) => setProofFile(key, e.target.files?.[0] ?? null)}
                                                     required={entry.over125 === "yes"}
                                                 />
-                                                {entry.proofName ? (
-                                                    <p className="subtext text-xs text-gray-500 mt-1">
-                                                        Selected: <span className="font-semibold text-gray-700">{entry.proofName}</span>
-                                                    </p>
-                                                ) : null}
                                             </div>
                                         </div>
                                     </div>

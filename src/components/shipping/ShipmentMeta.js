@@ -23,9 +23,11 @@ export const ShipmentMeta = ({
     const detail =
         item.documentPages
             ? `${item.documentPages} pages`
-            : item.billedWeightKg
-                ? `${Number(item.billedWeightKg).toFixed(1)} kg`
-                : null;
+            : item.hatQuantity
+                ? `${item.hatQuantity} pcs`
+                : item.billedWeightKg
+                    ? `${Number(item.billedWeightKg).toFixed(1)} kg`
+                    : null;
 
     return (
         <div className="min-w-0">
@@ -37,8 +39,8 @@ export const ShipmentMeta = ({
 
                 {showPickupChip && item.shipmentDate && (
                     <span className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-gray-700">
-            Pickup: {formatDateToDDMMYYYY(item.shipmentDate)}
-          </span>
+                        Pickup: {formatDateToDDMMYYYY(item.shipmentDate)}
+                    </span>
                 )}
             </div>
 
@@ -51,16 +53,16 @@ export const ShipmentMeta = ({
                 <div className={detailTextClass}>
                     {detail ? (
                         <span className="rounded-full border bg-white px-3 py-1 text-sm font-semibold text-gray-700">
-              {detail}
-            </span>
+                            {detail}
+                        </span>
                     ) : null}
                 </div>
             ) : (
                 <div className={detailTextClass}>
-          <span className="subtext text-xs text-gray-500">
-            {detail ?? "—"}
-              {!showPickupChip && item.shipmentDate ? ` • ${formatDateToDDMMYYYY(item.shipmentDate)}` : ""}
-          </span>
+                    <span className="subtext text-xs text-gray-500">
+                        {detail ?? "-"}
+                        {!showPickupChip && item.shipmentDate ? ` • ${formatDateToDDMMYYYY(item.shipmentDate)}` : ""}
+                    </span>
                 </div>
             )}
         </div>
