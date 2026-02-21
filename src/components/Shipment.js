@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import { FaArrowRight, FaExchangeAlt, FaInfoCircle } from "react-icons/fa";
+import { FaArrowRight, FaExchangeAlt, FaInfoCircle, FaExclamationTriangle } from "react-icons/fa";
 import { CART_KEY } from "../utils/shipmentHelper";
 
 import { COUNTRIES, PACKAGE_TYPES, SIZE_PRESETS } from "../data/shippingData";
@@ -11,21 +11,21 @@ import WeightBlock from "../components/shipping/WeightBlock";
 import DimensionsBlock from "../components/shipping/DimensionsBlock";
 import DocumentsBlock from "../components/shipping/DocumentsBlock";
 import HatsBlock from "../components/shipping/HatsBlock";
-import {Link} from "react-router-dom";
-import {formatDateToDDMMYYYY} from "../utils/formatDate";
+import { Link } from "react-router-dom";
+import { formatDateToDDMMYYYY } from "../utils/formatDate";
 
 export default function Shipment({ variant = "default" }) {
     const [fromCountry, setFromCountry] = useState("ID");
     const [toCountry, setToCountry] = useState("");
 
     const [selectedPackageTypeId, setSelectedPackageTypeId] = useState("");
-    const [packageAutoAdjusted, setPackageAutoAdjusted] = useState(false);
 
     const [weight, setWeight] = useState("");
 
     const [lengthCm, setLengthCm] = useState("");
     const [widthCm, setWidthCm] = useState("");
     const [heightCm, setHeightCm] = useState("");
+    const [dimensionAccepted, setDimensionAccepted] = useState(true);
 
     const [documentPages, setDocumentPages] = useState("");
     const [hatQuantity, setHatQuantity] = useState("");
@@ -39,6 +39,9 @@ export default function Shipment({ variant = "default" }) {
     const [feedbackVisible, setFeedbackVisible] = useState(false);
 
     const shipmentRef = useRef(null);
+    const dimsRef = useRef(null);
+
+    const [recModalOpen, setRecModalOpen] = useState(false);
 
     // Load cart from localStorage once
     useEffect(() => {
@@ -122,26 +125,48 @@ export default function Shipment({ variant = "default" }) {
     }, [recommendedPackageTypeId]);
 
     useEffect(() => {
-        if (isDocument || isHat) return;
-        if (!recommendedPackageTypeId) {
-            setPackageAutoAdjusted(false);
+        if (isDocument || isHat) {
+            setDimensionAccepted(true);
             return;
         }
 
-        if (selectedPackageTypeId && selectedPackageTypeId !== recommendedPackageTypeId) {
-            setSelectedPackageTypeId(recommendedPackageTypeId);
-            setPackageAutoAdjusted(true);
+        if (!needsVolumePackage) {
+            setDimensionAccepted(true);
+            return;
         }
-        // If nothing selected yet, you may choose to set it too:
-        if (!selectedPackageTypeId) {
-            setSelectedPackageTypeId(recommendedPackageTypeId);
-            setPackageAutoAdjusted(true);
+
+        setDimensionAccepted(selectedPackageTypeId === recommendedPackageTypeId);
+    }, [
+        isDocument,
+        isHat,
+        needsVolumePackage,
+        selectedPackageTypeId,
+        recommendedPackageTypeId,
+    ]);
+
+    useEffect(() => {
+        if (isDocument || isHat) return;
+        if (!recommendedPackageTypeId) return;
+
+        // show modal only when user has entered dims + weight
+        const hasDims = Number(lengthCm) > 0 && Number(widthCm) > 0 && Number(heightCm) > 0;
+        const hasWeight = actualWeight > 0;
+
+        if (!hasDims || !hasWeight) return;
+
+        // show modal only if current selection differs OR nothing selected yet
+        if (!selectedPackageTypeId || selectedPackageTypeId !== recommendedPackageTypeId) {
+            setRecModalOpen(true);
         }
     }, [
         isDocument,
         isHat,
         recommendedPackageTypeId,
         selectedPackageTypeId,
+        lengthCm,
+        widthCm,
+        heightCm,
+        actualWeight,
     ]);
 
     // Progressive reveal (only increments)
@@ -167,11 +192,7 @@ export default function Shipment({ variant = "default" }) {
         if (progressStep < 2) return;
         if (isDocument || isHat) return;
 
-        const hasDims =
-            Number(lengthCm) > 0 &&
-            Number(widthCm) > 0 &&
-            Number(heightCm) > 0;
-
+        const hasDims = Number(lengthCm) > 0 && Number(widthCm) > 0 && Number(heightCm) > 0;
         if (hasDims && progressStep < 3) {
             setProgressStep(3);
         }
@@ -196,6 +217,7 @@ export default function Shipment({ variant = "default" }) {
         if (Number(lengthCm) <= 0 || Number(widthCm) <= 0 || Number(heightCm) <= 0) {
             return false;
         }
+        if (!dimensionAccepted) return false;
 
         return true;
     }, [
@@ -210,6 +232,7 @@ export default function Shipment({ variant = "default" }) {
         widthCm,
         heightCm,
         shipmentDate,
+        dimensionAccepted,
     ]);
 
     const handleSwap = () => {
@@ -242,7 +265,8 @@ export default function Shipment({ variant = "default" }) {
             billedWeight: roundedWeight,
             documentPages,
             hatQuantity,
-        });}, [selectedPackageType, roundedWeight, documentPages, hatQuantity]);
+        });
+    }, [selectedPackageType, roundedWeight, documentPages, hatQuantity]);
 
     const roundedText = useMemo(() => {
         if (!weight) return "";
@@ -252,7 +276,7 @@ export default function Shipment({ variant = "default" }) {
     const priceLabel = priceResult.total ? `€${priceResult.total.toFixed(2)}` : "-";
 
     const handleAddToCart = () => {
-        if (!canAddToCart) return;
+        if (!canAddToCart || !dimensionAccepted) return;
 
         const item = {
             type: "shipping",
@@ -305,10 +329,10 @@ export default function Shipment({ variant = "default" }) {
             toLabel,
             shipmentDate: shipmentDate ?? "-",
             packageLabel: selectedPackageType?.label ?? "-",
-            billed: isDocument ?
-                `${documentPages || "-"} pages`
-                : isHat ?
-                    `${hatQuantity || "-"} pcs`
+            billed: isDocument
+                ? `${documentPages || "-"} pages`
+                : isHat
+                    ? `${hatQuantity || "-"} pcs`
                     : `${roundedWeight ? roundedWeight.toFixed(1) : "-"} kg`,
             priceLabel: priceResult.total ? `€${priceResult.total.toFixed(2)}` : "-",
         });
@@ -325,10 +349,11 @@ export default function Shipment({ variant = "default" }) {
         setLengthCm("");
         setWidthCm("");
         setHeightCm("");
-        setDocumentPages("")
-        setHatQuantity("")
-        setShipmentDate("")
-        setProgressStep(0)
+        setDocumentPages("");
+        setHatQuantity("");
+        setShipmentDate("");
+        setProgressStep(0);
+        setRecModalOpen(false);
     };
 
     const fromID = fromCountry === "ID";
@@ -337,31 +362,37 @@ export default function Shipment({ variant = "default" }) {
     const fromLabel = COUNTRIES.find((c) => c.id === fromCountry)?.name ?? fromCountry;
     const toLabel = COUNTRIES.find((c) => c.id === toCountry)?.name ?? toCountry;
 
+    const scrollToDims = () => {
+        requestAnimationFrame(() => {
+            dimsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+    };
+
+    const handleApplyRecommendation = () => {
+        setSelectedPackageTypeId(recommendedPackageTypeId);
+        setDimensionAccepted(true);
+        setRecModalOpen(false);
+    };
+
+    const handleAdjustDimensions = () => {
+        setRecModalOpen(false);
+        scrollToDims();
+    };
+
     return (
         <section
             id="shipment"
-            className={["py-24",
-                variant === "home" ? "bg-primary" : "bg-white",
-            ].join(" ")}
+            className={["py-24", variant === "home" ? "bg-primary" : "bg-white"].join(" ")}
         >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6">
                 <div className="text-center mb-10">
-                    <h2
-                        className={["text-4xl font-semibold",
-                            variant === "home" ? "text-white" : "text-gray-900",
-                        ].join(" ")}
-                    >
+                    <h2 className={["text-4xl font-semibold", variant === "home" ? "text-white" : "text-gray-900"].join(" ")}>
                         Shipping
                     </h2>
 
-                    <p
-                        className={["mt-2 subtext text-lg",
-                            variant === "home" ? "text-gray-200" : "text-gray-600",
-                        ].join(" ")}
-                    >
+                    <p className={["mt-2 subtext text-lg", variant === "home" ? "text-gray-200" : "text-gray-600"].join(" ")}>
                         Choose destination, then describe your shipment.
                     </p>
-
                 </div>
 
                 {/* Route card */}
@@ -370,12 +401,8 @@ export default function Shipment({ variant = "default" }) {
 
                     <div className="p-6 border-b flex items-start justify-between gap-6">
                         <div>
-                            <h3 className="mt-3 text-xl font-semibold text-gray-900">
-                                Where are we shipping?
-                            </h3>
-                            <p className="text-xs subtext text-gray-600 mt-1">
-                                Currently available: Indonesia ↔ Germany
-                            </p>
+                            <h3 className="mt-3 text-xl font-semibold text-gray-900">Where are we shipping?</h3>
+                            <p className="text-xs subtext text-gray-600 mt-1">Currently available: Indonesia ↔ Germany</p>
                         </div>
                     </div>
 
@@ -400,9 +427,7 @@ export default function Shipment({ variant = "default" }) {
                                             ))}
                                         </select>
 
-                                        <span className="text-xs text-gray-500 whitespace-nowrap">
-                                            Billing country
-                                        </span>
+                                        <span className="text-xs text-gray-500 whitespace-nowrap">Billing country</span>
                                     </div>
                                 ) : (
                                     <div className="mt-4 flex items-center justify-between">
@@ -446,7 +471,9 @@ export default function Shipment({ variant = "default" }) {
                                     >
                                         <option value="">Select destination</option>
                                         {COUNTRIES.filter((c) => c.id !== "ID").map((c) => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                            <option key={c.id} value={c.id}>
+                                                {c.name}
+                                            </option>
                                         ))}
                                     </select>
                                 ) : (
@@ -474,44 +501,19 @@ export default function Shipment({ variant = "default" }) {
                                     </div>
                                 </div>
 
+                                {/* Keep subtle inline note (still useful) */}
                                 {needsVolumePackage && (
-                                    <div className="mb-4 rounded-xl border bg-amber-50 px-4 py-3">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div>
-                                                <div className="text-sm font-semibold text-secondary">
-                                                    Package type recommendation
-                                                </div>
-                                                <div className="subtext text-xs text-secondary/80 mt-1">
-                                                    Your dimensions are large for the entered weight. We recommend{" "}
-                                                    <span className="font-semibold">{recommendedLabel}</span>.
-                                                    {packageAutoAdjusted ? " We updated the package type automatically." : ""}
-                                                </div>
-                                                <div className="subtext text-[11px] text-secondary/70 mt-1">
-                                                    Dimensions: {Number(lengthCm) || 0} × {Number(widthCm) || 0} × {Number(heightCm) || 0} cm
-                                                    {" • "}
-                                                    Entered weight: {actualWeight || 0} kg
-                                                </div>
-                                            </div>
-
-                                            {!packageAutoAdjusted && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSelectedPackageTypeId(recommendedPackageTypeId);
-                                                        setPackageAutoAdjusted(true);
-                                                    }}
-                                                    className="rounded-xl border bg-white px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition whitespace-nowrap"
-                                                >
-                                                    Apply
-                                                </button>
-                                            )}
+                                    <div className="hidden sm:block mb-4 rounded-xl border bg-amber-50 px-4 py-3">
+                                        <div className="text-sm font-semibold text-secondary">Recommendation available</div>
+                                        <div className="subtext text-xs text-secondary/80 mt-1">
+                                            Your dimensions are large for the entered weight. Recommended:{" "}
+                                            <span className="font-semibold">{recommendedLabel}</span>.
                                         </div>
                                     </div>
                                 )}
                             </div>
 
                             <div className="px-4 pb-5 sm:px-6 sm:pb-6">
-                                {/* Package picker (always visible in shipment) */}
                                 <PackageTypePicker
                                     PACKAGE_TYPES={PACKAGE_TYPES}
                                     selectedPackageType={selectedPackageType}
@@ -532,41 +534,50 @@ export default function Shipment({ variant = "default" }) {
                                         )}
 
                                         {progressStep >= 2 && !isDocument && !isHat && (
-                                            <DimensionsBlock
-                                                lengthCm={lengthCm}
-                                                setLengthCm={setLengthCm}
-                                                widthCm={widthCm}
-                                                setWidthCm={setWidthCm}
-                                                heightCm={heightCm}
-                                                setHeightCm={setHeightCm}
-                                                SIZE_PRESETS={SIZE_PRESETS}
-                                                applyPreset={applyPreset}
-                                            />
+                                            <div
+                                                ref={dimsRef}
+                                                className={[
+                                                    "rounded-2xl transition-all duration-200",
+                                                    !dimensionAccepted
+                                                        ? "border-4 border-amber-500 bg-amber-50 ring-4 ring-amber-300/50 shadow-lg"
+                                                        : "border border-transparent",
+                                                ].join(" ")}
+                                            >
+                                                {!dimensionAccepted && (
+                                                    <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-amber-200 bg-amber-100/70 rounded-t-2xl">
+                                                        <FaExclamationTriangle className="text-amber-700 text-lg shrink-0" />
+                                                        <div className="text-sm font-semibold text-amber-900">
+                                                            Change dimensions or apply recommended package
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className={!dimensionAccepted ? "animate-pulse" : ""}>
+                                                    <DimensionsBlock
+                                                        lengthCm={lengthCm}
+                                                        setLengthCm={setLengthCm}
+                                                        widthCm={widthCm}
+                                                        setWidthCm={setWidthCm}
+                                                        heightCm={heightCm}
+                                                        setHeightCm={setHeightCm}
+                                                        SIZE_PRESETS={SIZE_PRESETS}
+                                                        applyPreset={applyPreset}
+                                                    />
+                                                </div>
+                                            </div>
                                         )}
 
                                         {progressStep >= 1 && isDocument && (
-                                            <DocumentsBlock
-                                                documentPages={documentPages}
-                                                setDocumentPages={setDocumentPages}
-                                            />
+                                            <DocumentsBlock documentPages={documentPages} setDocumentPages={setDocumentPages} />
                                         )}
 
-                                        {progressStep >= 1 && isHat && (
-                                            <HatsBlock
-                                                hatQuantity={hatQuantity}
-                                                setHatQuantity={setHatQuantity}
-                                            />
-                                        )}
+                                        {progressStep >= 1 && isHat && <HatsBlock hatQuantity={hatQuantity} setHatQuantity={setHatQuantity} />}
                                     </div>
 
                                     {/* RIGHT */}
                                     <div className="space-y-4">
                                         {progressStep >= (isDocument || isHat ? 2 : 3) && (
-                                            <Calendar
-                                                routeKey={routeKey}
-                                                shipmentDate={shipmentDate}
-                                                setShipmentDate={setShipmentDate}
-                                            />
+                                            <Calendar routeKey={routeKey} shipmentDate={shipmentDate} setShipmentDate={setShipmentDate} />
                                         )}
 
                                         <div className="rounded-2xl border bg-white p-4">
@@ -608,17 +619,17 @@ export default function Shipment({ variant = "default" }) {
                                                 </div>
 
                                                 <div className="text-gray-500">Package</div>
-                                                <div className="font-semibold text-gray-900 text-right">
-                                                    {selectedPackageType?.label ?? "-"}
-                                                </div>
+                                                <div className="font-semibold text-gray-900 text-right">{selectedPackageType?.label ?? "-"}</div>
 
                                                 <div className="text-gray-500">Billed</div>
                                                 <div className="font-semibold text-gray-900 text-right">
-                                                    {isDocument ?
-                                                        `${documentPages || "-"} pages`
-                                                        : isHat ?
-                                                            `${hatQuantity || "-"} pcs`
-                                                            : (roundedWeight ? `${roundedWeight.toFixed(1)} kg` : "-")}
+                                                    {isDocument
+                                                        ? `${documentPages || "-"} pages`
+                                                        : isHat
+                                                            ? `${hatQuantity || "-"} pcs`
+                                                            : roundedWeight
+                                                                ? `${roundedWeight.toFixed(1)} kg`
+                                                                : "-"}
                                                 </div>
 
                                                 <div className="text-gray-500">Pickup date</div>
@@ -651,14 +662,12 @@ export default function Shipment({ variant = "default" }) {
 
                                         {feedbackVisible && feedbackItem && (
                                             <div className="rounded-xl border bg-green-50 px-4 py-3">
-                                                <div className="text-sm font-semibold text-green-800">
-                                                    ✓ Added to cart
-                                                </div>
+                                                <div className="text-sm font-semibold text-green-800">✓ Added to cart</div>
 
                                                 <div className="mt-1 text-xs text-green-900/80 leading-relaxed">
-                                                    <span className="font-medium">
-                                                        {feedbackItem.fromLabel} → {feedbackItem.toLabel}
-                                                    </span>
+                          <span className="font-medium">
+                            {feedbackItem.fromLabel} → {feedbackItem.toLabel}
+                          </span>
                                                     {" • "}
                                                     {formatDateToDDMMYYYY(feedbackItem.shipmentDate)}
                                                     {" • "}
@@ -673,6 +682,69 @@ export default function Shipment({ variant = "default" }) {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Recommendation Modal */}
+                            {recModalOpen && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+                                    <div
+                                        className="absolute inset-0 bg-black/50"
+                                        onClick={() => {
+                                            setRecModalOpen(false);
+                                        }}
+                                    />
+
+                                    <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl border p-5">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <div className="text-sm font-semibold text-gray-900">Package type recommendation</div>
+                                                <div className="subtext text-xs text-gray-600 mt-1">
+                                                    Your shipment looks light compared to its dimensions.
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                className="text-gray-500 hover:text-gray-800"
+                                                onClick={() => {
+                                                    setRecModalOpen(false);
+                                                }}
+                                                aria-label="Close"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+
+                                        <div className="mt-4 rounded-xl border bg-amber-50 px-4 py-3">
+                                            <div className="text-sm font-semibold text-amber-900">
+                                                Recommended: {recommendedLabel}
+                                            </div>
+                                            <div className="subtext text-xs text-amber-900/80 mt-1">
+                                                Entered weight: <span className="font-semibold">{actualWeight.toFixed(1)} kg</span>
+                                                {" • "}
+                                                Volumetric weight: <span className="font-semibold">{volumetricWeight.toFixed(1)} kg</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                className="button-primary font-semibold text-center justify-center"
+                                                onClick={handleApplyRecommendation}
+                                            >
+                                                Apply
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                className="button-secondary text-center justify-center"
+                                                onClick={handleAdjustDimensions}
+                                            >
+                                                Edit dimensions
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
