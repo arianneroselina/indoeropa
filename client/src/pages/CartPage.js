@@ -82,7 +82,7 @@ const CartPage = () => {
                                                 value={item.quantity ?? 1}
                                                 onChange={(e) => handleQuantityChange(index, parseInt(e.target.value, 10))}
                                                 min="1"
-                                                className="w-20 p-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                                className="w-20 p-2 border border-gray-300 rounded-xl input-focus"
                                             />
                                         </div>
 

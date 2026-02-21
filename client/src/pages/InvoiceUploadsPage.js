@@ -201,7 +201,7 @@ const InvoiceUploadsPage = () => {
                                                     Original item value over €125? <span className="text-red-500">*</span>
                                                 </label>
                                                 <select
-                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl"
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     value={entry.over125}
                                                     onChange={(e) => setOver125(key, e.target.value)}
                                                 >
@@ -226,7 +226,7 @@ const InvoiceUploadsPage = () => {
                                                         "subtext w-full p-3 border rounded-xl transition",
                                                         isValueInvalid
                                                             ? "border-red-500 focus:ring-red-500"
-                                                            : "border-gray-300 focus:ring-blue-600"
+                                                            : "border-gray-300 input-focus"
                                                     ].join(" ")}
                                                     value={entry.originalValueEur}
                                                     onChange={(e) => setOriginalValue(key, e.target.value)}
@@ -255,7 +255,7 @@ const InvoiceUploadsPage = () => {
 
                                                 <input
                                                     type="file"
-                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl"
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     onChange={(e) => setProofFile(key, e.target.files?.[0] ?? null)}
                                                     required={entry.over125 === "yes"}
                                                 />

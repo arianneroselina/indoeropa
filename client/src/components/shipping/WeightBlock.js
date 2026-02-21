@@ -22,7 +22,7 @@ export default function WeightBlock({
                     value={weight}
                     onChange={handleWeightChange}
                     placeholder="e.g. 2.3"
-                    className="mt-1 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                    className="mt-1 w-full p-3 border border-gray-300 rounded-xl input-focus"
                 />
 
                 {willBeRounded && (

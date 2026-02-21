@@ -417,7 +417,7 @@ export default function Shipment({ variant = "default" }) {
                                         <select
                                             value={fromCountry}
                                             onChange={(e) => setFromCountry(e.target.value)}
-                                            className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                            className="w-full p-3 border border-gray-300 rounded-xl input-focus"
                                         >
                                             <option value="">Select country</option>
                                             {COUNTRIES.filter((c) => c.id !== "ID").map((c) => (
@@ -467,7 +467,7 @@ export default function Shipment({ variant = "default" }) {
                                     <select
                                         value={toCountry}
                                         onChange={(e) => setToCountry(e.target.value)}
-                                        className="mt-2 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                        className="mt-2 w-full p-3 border border-gray-300 rounded-xl input-focus"
                                     >
                                         <option value="">Select destination</option>
                                         {COUNTRIES.filter((c) => c.id !== "ID").map((c) => (

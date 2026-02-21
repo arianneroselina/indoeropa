@@ -19,7 +19,7 @@ export default function DimensionsBlock({
                             type="number"
                             value={lengthCm}
                             onChange={(e) => setLengthCm(e.target.value)}
-                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl input-focus"
                         />
                     </div>
 
@@ -29,7 +29,7 @@ export default function DimensionsBlock({
                             type="number"
                             value={widthCm}
                             onChange={(e) => setWidthCm(e.target.value)}
-                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl input-focus"
                         />
                     </div>
 
@@ -39,7 +39,7 @@ export default function DimensionsBlock({
                             type="number"
                             value={heightCm}
                             onChange={(e) => setHeightCm(e.target.value)}
-                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                            className="mt-1 w-full p-3 border border-gray-300 rounded-xl input-focus"
                         />
                     </div>
                 </div>

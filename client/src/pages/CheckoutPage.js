@@ -24,6 +24,8 @@ const CheckoutPage = () => {
     const [totalAmountEUR, setTotalAmountEUR] = useState(0);
     const [totalAmountIDR, setTotalAmountIDR] = useState(0);
 
+    const [notes, setNotes] = useState("")
+
     useEffect(() => {
         const savedCartItems = localStorage.getItem(CART_KEY);
         if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
@@ -68,11 +70,34 @@ const CheckoutPage = () => {
         setTotalAmountIDR(totalIDR);
     }, [cartItems, customsFeeEUR]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // TODO: Simulate sending data to Notion and sending an email (implement actual API calls here)
-        alert("Checkout successful! Email sent and data connected to Notion.");
+        const response = await fetch("http://localhost:3001/api/checkout", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                fullName,
+                address,
+                email,
+                phone,
+                paymentMethod,
+                cartItems,
+                totalEUR: totalAmountEUR,
+                totalIDR: totalAmountIDR,
+                customsFeeEUR,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Checkout successful! Order saved to Notion.");
+        } else {
+            alert("Something went wrong.");
+        }
     };
 
     return (
@@ -110,7 +135,7 @@ const CheckoutPage = () => {
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl"
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     value={fullName}
                                                     onChange={(e) => setFullName(e.target.value)}
                                                     required
@@ -123,7 +148,7 @@ const CheckoutPage = () => {
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl"
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     value={address}
                                                     onChange={(e) => setAddress(e.target.value)}
                                                     required
@@ -136,7 +161,7 @@ const CheckoutPage = () => {
                                                 </label>
                                                 <input
                                                     type="email"
-                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl"
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     value={email}
                                                     onChange={(e) => setEmail(e.target.value)}
                                                     required
@@ -149,7 +174,7 @@ const CheckoutPage = () => {
                                                 </label>
                                                 <input
                                                     type="tel"
-                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl"
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     value={phone}
                                                     onChange={(e) => setPhone(e.target.value)}
                                                     required
@@ -164,7 +189,7 @@ const CheckoutPage = () => {
                                                     Payment Method <span className="text-red-500">*</span>
                                                 </label>
                                                 <select
-                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl"
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     value={paymentMethod}
                                                     onChange={(e) => setPaymentMethod(e.target.value)}
                                                     required
@@ -182,10 +207,24 @@ const CheckoutPage = () => {
                                                 </label>
                                                 <input
                                                     type="file"
-                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl"
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     onChange={(e) => setPaymentProof(e.target.files[0])}
                                                     required
                                                 />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-semibold text-gray-800">
+                                                    Notes/Request (if any)
+                                                </label>
+                                                <textarea
+                                                    id="message"
+                                                    name="message"
+                                                    value={notes}
+                                                    onChange={(e) => setNotes(e.target.value)}
+                                                    rows="2"
+                                                    className="w-full p-3 border border-gray-300 rounded-lg input-focus"
+                                                ></textarea>
                                             </div>
                                         </div>
 
@@ -195,7 +234,7 @@ const CheckoutPage = () => {
                                                 type="checkbox"
                                                 checked={termsAccepted}
                                                 onChange={() => setTermsAccepted(!termsAccepted)}
-                                                className="mr-2"
+                                                className="mr-2 input-focus"
                                                 required
                                             />
                                             <span>I have read and accept the</span>

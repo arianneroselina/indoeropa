@@ -12,7 +12,7 @@ export default function DocumentsBlock({ documentPages, setDocumentPages }) {
                     type="number"
                     value={documentPages}
                     onChange={(e) => setDocumentPages(e.target.value)}
-                    className="mt-1 w-full p-3 border border-gray-300 rounded-xl bg-white"
+                    className="mt-1 w-full p-3 border border-gray-300 rounded-xl input-focus"
                 />
             </div>
         </div>

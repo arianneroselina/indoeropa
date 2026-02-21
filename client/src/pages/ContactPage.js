@@ -50,7 +50,7 @@ const ContactPage = () => {
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                    className="w-full p-3 border border-gray-300 rounded-lg input-focus"
                                 />
                             </div>
 
@@ -65,7 +65,7 @@ const ContactPage = () => {
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                    className="w-full p-3 border border-gray-300 rounded-lg input-focus"
                                 />
                             </div>
 
@@ -79,7 +79,7 @@ const ContactPage = () => {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                    className="w-full p-3 border border-gray-300 rounded-lg input-focus"
                                 />
                             </div>
 
@@ -94,7 +94,7 @@ const ContactPage = () => {
                                     onChange={handleChange}
                                     required
                                     rows="5"
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                    className="w-full p-3 border border-gray-300 rounded-lg input-focus"
                                 ></textarea>
                             </div>
 
