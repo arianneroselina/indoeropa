@@ -1,27 +1,29 @@
 APP_NAME := indoeropa
+CLIENT_DIR := client
+SERVER_DIR := server
 
 .PHONY: help install run build preview start clean lint format
 
 install:
-	npm install
+	cd $(CLIENT_DIR) && npm install
 
 run:
-	npm run start
+	cd $(CLIENT_DIR) && npm run start
 
 build:
-	npm run build
+	cd $(CLIENT_DIR) && npm run build
 
 preview:
-	npm run preview
+	cd $(CLIENT_DIR) && npm run preview
 
 start:
-	npm start
+	cd $(CLIENT_DIR) && npm start
 
 lint:
-	npm run lint || true
+	cd $(CLIENT_DIR) && npm run lint || true
 
 format:
-	npx prettier --write .
+	cd $(CLIENT_DIR) && npx prettier --write .
 
 clean:
 	rm -rf node_modules
