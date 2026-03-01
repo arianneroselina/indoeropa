@@ -20,7 +20,7 @@ start:
 	cd $(CLIENT_DIR) && npm start
 
 server:
-	cd $(SERVER_DIR) && node server.js
+	cd $(SERVER_DIR) && npx nodemon server.js
 
 lint:
 	cd $(CLIENT_DIR) && npm run lint || true

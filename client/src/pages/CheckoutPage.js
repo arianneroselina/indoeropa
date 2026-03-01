@@ -4,6 +4,7 @@ import { FaArrowRight } from 'react-icons/fa';
 import { CART_KEY, INVOICES_KEY } from "../utils/shipmentHelper";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { hasDutyStep } from "../utils/dutyHelper";
+import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 
 const CheckoutPage = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -73,31 +74,73 @@ const CheckoutPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const response = await fetch("http://localhost:3001/api/checkout", {
+        const today = new Date().toISOString().slice(0, 10);
+        const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
+
+        // Pengiriman Lokal
+        const resPL = await fetch("http://localhost:3001/api/notion/pengiriman-lokal", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 fullName,
                 address,
-                email,
-                phone,
-                paymentMethod,
-                cartItems,
-                totalEUR: totalAmountEUR,
-                totalIDR: totalAmountIDR,
-                customsFeeEUR,
             }),
         });
 
-        const data = await response.json();
-
-        if (data.success) {
-            alert("Checkout successful! Order saved to Notion.");
-        } else {
-            alert("Something went wrong.");
+        const dataPL = await resPL.json().catch(() => ({}));
+        console.log("Pengiriman Lokal response:", resPL.status, dataPL);
+        if (!resPL.ok) {
+            alert(dataPL?.message || dataPL?.error || "Failed to save Pengiriman Lokal.");
+            return;
         }
+
+        for (const item of cartItems) {
+            const packageType = item.packageTypeLabel ?? "-";
+            const qty = Number(item.quantity) || 1;
+            const unitPriceEur = Number(item.priceEur) || 0;
+
+            // Penerimaan Barang
+            const resPB = await fetch("http://localhost:3001/api/notion/penerimaan-barang", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fullName,
+                    packageType,
+                    qtyPerUnit: qty,
+                    request: notes,
+                }),
+            });
+
+            const dataPB = await resPB.json().catch(() => ({}));
+            console.log("Penerimaan Barang response:", resPB.status, dataPB);
+            if (!resPB.ok) {
+                alert(dataPB?.message || dataPB?.error || "Failed to save Penerimaan Barang.");
+                return;
+            }
+
+            // Pembayaran
+            const resPembayaran = await fetch("http://localhost:3001/api/notion/pembayaran", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fullName,
+                    packageType,
+                    pricePerUnitEur: unitPriceEur,
+                    qtyPerUnit: qty,
+                    paymentStatus,
+                    paymentDate: today,
+                }),
+            });
+
+            const dataPembayaran = await resPembayaran.json().catch(() => ({}));
+            console.log("Pembayaran response:", resPembayaran.status, dataPembayaran);
+            if (!resPembayaran.ok) {
+                alert(dataPembayaran?.message || dataPembayaran?.error || "Failed to save Pembayaran.");
+                return;
+            }
+        }
+
+        alert("Successfully saved all items to Notion.");
     };
 
     return (
@@ -197,7 +240,10 @@ const CheckoutPage = () => {
                                                     <option value="">Select Payment Method</option>
                                                     <option value="paypal">PayPal</option>
                                                     <option value="iban">IBAN</option>
-                                                    <option value="indonesian_bank">Indonesian Bank Account</option>
+                                                    <option value="n26">N26</option>
+                                                    <option value="bca">Bank BCA</option>
+                                                    <option value="revolut">Bank Revolut</option>
+                                                    <option value="jenius">Bank Jenius</option>
                                                 </select>
                                             </div>
 
@@ -223,7 +269,8 @@ const CheckoutPage = () => {
                                                     value={notes}
                                                     onChange={(e) => setNotes(e.target.value)}
                                                     rows="2"
-                                                    className="w-full p-3 border border-gray-300 rounded-lg input-focus"
+                                                    placeholder="e.g. call before pickup, fragile, etc."
+                                                    className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                 ></textarea>
                                             </div>
                                         </div>
