@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
 import { CART_KEY, INVOICES_KEY } from "../utils/shipmentHelper";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
@@ -7,6 +7,7 @@ import { hasDutyStep } from "../utils/dutyHelper";
 import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 
 const CheckoutPage = () => {
+    const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
 
     const [fullName, setFullName] = useState('');
@@ -26,6 +27,8 @@ const CheckoutPage = () => {
     const [totalAmountIDR, setTotalAmountIDR] = useState(0);
 
     const [notes, setNotes] = useState("")
+
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         const savedCartItems = localStorage.getItem(CART_KEY);
@@ -74,73 +77,96 @@ const CheckoutPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const today = new Date().toISOString().slice(0, 10);
-        const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
+        if (submitting) return;
+        setSubmitting(true);
 
-        // Pengiriman Lokal
-        const resPL = await fetch("http://localhost:3001/api/notion/pengiriman-lokal", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                fullName,
-                address,
-            }),
-        });
+        try {
+            const today = new Date().toISOString().slice(0, 10);
+            const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
 
-        const dataPL = await resPL.json().catch(() => ({}));
-        console.log("Pengiriman Lokal response:", resPL.status, dataPL);
-        if (!resPL.ok) {
-            alert(dataPL?.message || dataPL?.error || "Failed to save Pengiriman Lokal.");
-            return;
-        }
-
-        for (const item of cartItems) {
-            const packageType = item.packageTypeLabel ?? "-";
-            const qty = Number(item.quantity) || 1;
-            const unitPriceEur = Number(item.priceEur) || 0;
-
-            // Penerimaan Barang
-            const resPB = await fetch("http://localhost:3001/api/notion/penerimaan-barang", {
+            // Pengiriman Lokal
+            const resPL = await fetch("http://localhost:3001/api/notion/pengiriman-lokal", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     fullName,
-                    packageType,
-                    qtyPerUnit: qty,
-                    request: notes,
+                    address,
                 }),
             });
 
-            const dataPB = await resPB.json().catch(() => ({}));
-            console.log("Penerimaan Barang response:", resPB.status, dataPB);
-            if (!resPB.ok) {
-                alert(dataPB?.message || dataPB?.error || "Failed to save Penerimaan Barang.");
+            const dataPL = await resPL.json().catch(() => ({}));
+            console.log("Pengiriman Lokal response:", resPL.status, dataPL);
+            if (!resPL.ok) {
+                alert(dataPL?.message || dataPL?.error || "Failed to save Pengiriman Lokal.");
                 return;
             }
 
-            // Pembayaran
-            const resPembayaran = await fetch("http://localhost:3001/api/notion/pembayaran", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+            for (const item of cartItems) {
+                const packageType = item.packageTypeLabel ?? "-";
+                const qty = Number(item.quantity) || 1;
+                const unitPriceEur = Number(item.priceEur) || 0;
+
+                // Penerimaan Barang
+                const resPB = await fetch("http://localhost:3001/api/notion/penerimaan-barang", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        fullName,
+                        packageType,
+                        qtyPerUnit: qty,
+                        request: notes,
+                    }),
+                });
+
+                const dataPB = await resPB.json().catch(() => ({}));
+                console.log("Penerimaan Barang response:", resPB.status, dataPB);
+                if (!resPB.ok) {
+                    alert(dataPB?.message || dataPB?.error || "Failed to save Penerimaan Barang.");
+                    return;
+                }
+
+                // Pembayaran
+                const resPembayaran = await fetch("http://localhost:3001/api/notion/pembayaran", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        fullName,
+                        packageType,
+                        pricePerUnitEur: unitPriceEur,
+                        qtyPerUnit: qty,
+                        paymentStatus,
+                        paymentDate: today,
+                    }),
+                });
+
+                const dataPembayaran = await resPembayaran.json().catch(() => ({}));
+                console.log("Pembayaran response:", resPembayaran.status, dataPembayaran);
+                if (!resPembayaran.ok) {
+                    alert(dataPembayaran?.message || dataPembayaran?.error || "Failed to save Pembayaran.");
+                    return;
+                }
+            }
+
+            localStorage.removeItem(CART_KEY);
+            localStorage.removeItem(INVOICES_KEY);
+            setCartItems([]);
+            setInvoiceByItem({});
+
+            navigate("/checkout/success", {
+                state: {
                     fullName,
-                    packageType,
-                    pricePerUnitEur: unitPriceEur,
-                    qtyPerUnit: qty,
-                    paymentStatus,
-                    paymentDate: today,
-                }),
+                    totalAmountEUR,
+                    totalAmountIDR,
+                    itemsCount: cartItems.length,
+                    paidViaLabel: paymentMethod?.toUpperCase() || "",
+                },
             });
-
-            const dataPembayaran = await resPembayaran.json().catch(() => ({}));
-            console.log("Pembayaran response:", resPembayaran.status, dataPembayaran);
-            if (!resPembayaran.ok) {
-                alert(dataPembayaran?.message || dataPembayaran?.error || "Failed to save Pembayaran.");
-                return;
-            }
+        } catch (e) {
+            console.error(e);
+            alert("Checkout failed.");
+        } finally {
+            setSubmitting(false);
         }
-
-        alert("Successfully saved all items to Notion.");
     };
 
     return (
@@ -294,9 +320,10 @@ const CheckoutPage = () => {
                                         {/* Checkout Button */}
                                         <button
                                             type="submit"
-                                            className="button-primary font-semibold text-lg inline-flex items-center justify-center w-full mt-6 py-3"
+                                            disabled={submitting}
+                                            className="button-primary font-semibold text-lg inline-flex items-center justify-center w-full mt-6 py-3 disabled:opacity-60"
                                         >
-                                            Checkout <FaArrowRight className="ml-2 text-lg" />
+                                            {submitting ? "Processing..." : "Checkout"}
                                         </button>
                                     </form>
                                 </div>

@@ -11,6 +11,7 @@ import TermsConditionsPage from "./pages/TermsConditionsPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import InvoiceUploadsPage from "./pages/InvoiceUploadsPage";
+import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
 
 const App = () => {
     return (
@@ -29,6 +30,7 @@ const App = () => {
                         <Route path="/cart" element={<CartPage />} />
                         <Route path="/invoices" element={<InvoiceUploadsPage />} />
                         <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
                     </Routes>
                 </main>
 

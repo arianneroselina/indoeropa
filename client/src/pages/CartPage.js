@@ -110,7 +110,7 @@ const CartPage = () => {
 
                         <div className="mt-6 flex justify-end gap-4">
                             <Link to="/shipment" className="button-secondary">
-                                Continue Shopping
+                                Create another shipment
                             </Link>
                             <button type="button" onClick={goNext} className="button-primary font-semibold">
                                 Proceed to Checkout
