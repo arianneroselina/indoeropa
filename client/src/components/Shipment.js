@@ -35,8 +35,10 @@ export default function Shipment({ variant = "default" }) {
     const [progressStep, setProgressStep] = useState(0);
 
     const [cartItems, setCartItems] = useState([]);
+
     const [feedbackItem, setFeedbackItem] = useState(null);
     const [feedbackVisible, setFeedbackVisible] = useState(false);
+    const feedbackTimeoutRef = useRef(null);
 
     const shipmentRef = useRef(null);
     const dimsRef = useRef(null);
@@ -324,6 +326,12 @@ export default function Shipment({ variant = "default" }) {
         setCartItems(updated);
         localStorage.setItem(CART_KEY, JSON.stringify(updated));
 
+        // if feedback is already showing, cancel and replace immediately
+        if (feedbackTimeoutRef.current !== null) {
+            window.clearTimeout(feedbackTimeoutRef.current);
+            feedbackTimeoutRef.current = null;
+        }
+
         setFeedbackItem({
             fromLabel,
             toLabel,
@@ -338,9 +346,11 @@ export default function Shipment({ variant = "default" }) {
         });
 
         setFeedbackVisible(true);
-        setTimeout(() => {
+
+        feedbackTimeoutRef.current = window.setTimeout(() => {
             setFeedbackVisible(false);
             setFeedbackItem(null);
+            feedbackTimeoutRef.current = null;
         }, 8000);
 
         // reset
