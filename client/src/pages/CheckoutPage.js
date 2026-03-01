@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
 import { CART_KEY, INVOICES_KEY } from "../utils/shipmentHelper";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
-import { hasDutyStep } from "../utils/dutyHelper";
+import { hasDutyStep, getRelevantDutyItems } from "../utils/dutyHelper";
 import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 
 const CheckoutPage = () => {
@@ -21,7 +21,6 @@ const CheckoutPage = () => {
     const [termsAccepted, setTermsAccepted] = useState(false);
 
     const [invoiceByItem, setInvoiceByItem] = useState({});
-    const [customsFeeEUR, setCustomsFeeEUR] = useState(0);
 
     const [totalAmountEUR, setTotalAmountEUR] = useState(0);
     const [totalAmountIDR, setTotalAmountIDR] = useState(0);
@@ -39,35 +38,44 @@ const CheckoutPage = () => {
 
     }, []);
 
-    useEffect(() => {
-        const fee = Object.values(invoiceByItem || {}).reduce((sum, entry) => {
-            if (entry?.over125 !== "yes") return sum;
+    const relevantDutyItems = React.useMemo(() => getRelevantDutyItems(cartItems), [cartItems]);
 
-            const val = Number(entry.originalValueEur);
-            if (!Number.isFinite(val) || val <= 0) return sum;
+    // key -> customsFeePerUnitEUR
+    const customsFeeByKey = React.useMemo(() => {
+        const map = {};
+        for (const { key } of relevantDutyItems) {
+            const entry = invoiceByItem?.[key];
+            if (entry?.over125 !== "yes") {
+                map[key] = 0;
+                continue;
+            }
 
-            return sum + val * 0.025;
+            const original = Number(entry.originalValueEur);
+            map[key] = Number.isFinite(original) && original > 0 ? original * 0.025 : 0;
+        }
+        return map;
+    }, [relevantDutyItems, invoiceByItem]);
+
+    // Total customs fee
+    const customsFeeEUR = React.useMemo(() => {
+        return relevantDutyItems.reduce((sum, { key, item }) => {
+            const qty = Number(item.quantity) || 1;
+            return sum + (customsFeeByKey[key] || 0) * qty;
         }, 0);
-
-        setCustomsFeeEUR(fee);
-    }, [invoiceByItem]);
+    }, [relevantDutyItems, customsFeeByKey]);
 
     const backTo = hasDutyStep(cartItems) ? "/invoices" : "/cart";
     const backLabel = hasDutyStep(cartItems) ? "Back to Invoices" : "Back to Cart";
 
     // Recalculate the total amounts whenever cartItems change
     useEffect(() => {
-        const calculateTotalPrice = () => {
-            return cartItems.reduce((total, item) => {
-                const price = Number(item.priceEur) || 0;
-                const qty = Number(item.quantity) || 1;
-                return total + price * qty;
-            }, 0);
-        };
+        const transportEUR = cartItems.reduce((total, item) => {
+            const price = Number(item.priceEur) || 0;
+            const qty = Number(item.quantity) || 1;
+            return total + price * qty;
+        }, 0);
 
-        const transportEUR = calculateTotalPrice();
         const grandTotalEUR = transportEUR + customsFeeEUR;
-
         const totalIDR = grandTotalEUR * 19600;
 
         setTotalAmountEUR(grandTotalEUR);
@@ -106,6 +114,12 @@ const CheckoutPage = () => {
                 const qty = Number(item.quantity) || 1;
                 const unitPriceEur = Number(item.priceEur) || 0;
 
+                const dutyInfo = relevantDutyItems.find((r) => r.item === item);
+                const key = dutyInfo?.key;
+
+                const unitCustomsFeeEur = key ? (customsFeeByKey[key] || 0) : 0;
+                const unitPriceWithCustomsEur = unitPriceEur + unitCustomsFeeEur;
+
                 // Penerimaan Barang
                 const resPB = await fetch("http://localhost:3001/api/notion/penerimaan-barang", {
                     method: "POST",
@@ -132,7 +146,7 @@ const CheckoutPage = () => {
                     body: JSON.stringify({
                         fullName,
                         packageType,
-                        pricePerUnitEur: unitPriceEur,
+                        pricePerUnitEur: unitPriceWithCustomsEur,
                         qtyPerUnit: qty,
                         paymentStatus,
                         paymentDate: today,
@@ -347,22 +361,33 @@ const CheckoutPage = () => {
                                         <div className="mt-4 space-y-3">
                                             {cartItems.map((item, idx) => {
                                                 const qty = Number(item.quantity) || 1;
-                                                const subtotal = (Number(item.priceEur) || 0) * qty;
+
+                                                const dutyInfo = relevantDutyItems.find((r) => r.item === item);
+                                                const key = dutyInfo?.key;
+                                                const unitCustoms = key ? (customsFeeByKey[key] || 0) : 0;
+
+                                                const unitTransport = Number(item.priceEur) || 0;
+                                                const unitTotal = unitTransport + unitCustoms;
+
+                                                const subtotal = unitTotal * qty;
+                                                const customsSubtotal = unitCustoms * qty;
 
                                                 return (
                                                     <div key={item.signature ?? idx} className="rounded-xl border bg-gray-50/60 p-3">
                                                         <div className="flex items-start justify-between gap-3">
-                                                            <ShipmentMeta
-                                                                item={item}
-                                                                showPickupChip={false}
-                                                                showDetailChip={false}
-                                                                compact={true}
-                                                            />
+                                                            <ShipmentMeta item={item} showPickupChip={false} showDetailChip={false} compact={true} />
 
                                                             <div className="text-right shrink-0">
                                                                 <div className="text-sm font-semibold text-gray-900">
                                                                     €{subtotal.toFixed(2)}
                                                                 </div>
+
+                                                                {customsSubtotal > 0 && (
+                                                                    <div className="subtext text-xs text-gray-500 mt-0.5">
+                                                                        incl. customs €{customsSubtotal.toFixed(2)}
+                                                                    </div>
+                                                                )}
+
                                                                 {qty > 1 && (
                                                                     <div className="subtext text-xs text-gray-500 mt-0.5">
                                                                         Qty {qty}
@@ -374,17 +399,6 @@ const CheckoutPage = () => {
                                                 );
                                             })}
                                         </div>
-
-                                        {customsFeeEUR > 0 && (
-                                            <div className="flex items-center justify-between mt-2">
-                                                <div className="subtext text-xs text-gray-500">
-                                                    Customs handling (2.5%)
-                                                </div>
-                                                <div className="subtext text-xs text-gray-700 font-semibold">
-                                                    €{customsFeeEUR.toFixed(2)}
-                                                </div>
-                                            </div>
-                                        )}
 
                                         <div className="mt-5 border-t pt-4">
                                             <div className="flex items-center justify-between">
