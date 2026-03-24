@@ -3,40 +3,93 @@
 A website built for INDO EROPA transport service.
 
 ## Live Demo
-- https://indoeropa.vercel.app
+- https://indo-eropa.vercel.app
 
 ## Tech Stack
+
+### Frontend
 - React
 - JavaScript
 - Tailwind CSS
+
+### Backend
+- Node.js
+- Express
+- Multer
+- Notion API
 
 ## Requirements
 - Node.js 18+ (recommended)
 - npm
 
+## Project Structure
+
+```bash
+indoeropa/
+├── client/   # React frontend
+└── server/   # Express backend
+```
+
 ## Getting Started
 
-### 1) Install dependencies
+### Frontend Setup
+
+#### 1) Go to the client folder
+```bash
+cd client
+```
+
+#### 2) Install dependencies
 ```bash
 npm install
 ```
 
-### 2) Run locally
+#### 3) Run locally
 ```bash
 npm start
 ```
+or just run this from the root folder:
+```bash
+make run
+```
 
-Open: `http://localhost:3000`
+Open: `http://localhost:3000`.
 
-### 3) Build for production
+#### 4) Build for production
 ```bash
 npm run build
 ```
 
-## Configuration (Environment Variables)
+### Backend Setup
 
-Create a .env file (do not commit it):
+#### 1) Go to the server folder
+```bash
+cd server
+```
+
+#### 2) Install dependencies
+```bash
+npm install
+```
+
+#### 3) Create environment variables
+
+Create a `.env` file in `server/` and do not commit it:
 
 ```dotenv
-NOTION_SECRET=
+NOTION_API_TOKEN=...
+NOTION_DB_PENERIMAAN_BARANG=...
+NOTION_DB_PEMBAYARAN=...
+NOTION_DB_PENGIRIMAN_LOKAL=...
 ```
+
+#### 4) Run locally
+```bash
+npm start
+```
+or just run this from the root folder:
+```bash
+make server
+```
+
+The backend runs on: `http://localhost:3001`.

@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 const notion = new Client({
-    auth: process.env.NOTION_TOKEN,
+    auth: process.env.NOTION_API_TOKEN,
     notionVersion: "2025-09-03",
 });
 
