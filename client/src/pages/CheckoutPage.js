@@ -16,7 +16,7 @@ const CheckoutPage = () => {
     const [phone, setPhone] = useState('');
 
     const [paymentMethod, setPaymentMethod] = useState('');
-    const [, setPaymentProof] = useState(null);
+    const [paymentProof, setPaymentProof] = useState(null);
 
     const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -140,17 +140,18 @@ const CheckoutPage = () => {
                 }
 
                 // Pembayaran
+                const pembayaranFormData = new FormData();
+                pembayaranFormData.append("fullName", fullName);
+                pembayaranFormData.append("packageType", packageType);
+                pembayaranFormData.append("pricePerUnitEur", unitPriceWithCustomsEur);
+                pembayaranFormData.append("qtyPerUnit", qty);
+                pembayaranFormData.append("paymentStatus", paymentStatus);
+                pembayaranFormData.append("paymentDate", today);
+                pembayaranFormData.append("paymentProof", paymentProof);
+
                 const resPembayaran = await fetch("http://localhost:3001/api/notion/pembayaran", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        fullName,
-                        packageType,
-                        pricePerUnitEur: unitPriceWithCustomsEur,
-                        qtyPerUnit: qty,
-                        paymentStatus,
-                        paymentDate: today,
-                    }),
+                    body: pembayaranFormData,
                 });
 
                 const dataPembayaran = await resPembayaran.json().catch(() => ({}));

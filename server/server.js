@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import multer from "multer";
 import { Client } from "@notionhq/client";
 
 dotenv.config();
@@ -12,6 +13,13 @@ app.use(express.json());
 const notion = new Client({
     auth: process.env.NOTION_TOKEN,
     notionVersion: "2025-09-03",
+});
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 20 * 1024 * 1024, // 20 MB
+    },
 });
 
 app.get("/", (req, res) => {
@@ -57,7 +65,7 @@ app.post("/api/notion/penerimaan-barang", async (req, res) => {
     }
 });
 
-app.post("/api/notion/pembayaran", async (req, res) => {
+app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, res) => {
     try {
         const {
             fullName,
@@ -68,7 +76,43 @@ app.post("/api/notion/pembayaran", async (req, res) => {
             paymentDate,
         } = req.body;
 
-        if (!fullName) return res.status(400).json({ error: "fullName is required" });
+        const paymentProof = req.file;
+
+        if (!fullName) {
+            return res.status(400).json({ error: "fullName is required" });
+        }
+
+        let buktiPembayaranFiles = [];
+
+        if (paymentProof) {
+            const fileUpload = await notion.fileUploads.create({
+                mode: "single_part",
+                filename: paymentProof.originalname,
+                content_type: paymentProof.mimetype,
+            });
+
+            const uploadedFile = await notion.fileUploads.send({
+                file_upload_id: fileUpload.id,
+                file: {
+                    filename: paymentProof.originalname,
+                    data: new Blob([paymentProof.buffer], {
+                        type: paymentProof.mimetype,
+                    }),
+                },
+            });
+
+            console.log("Uploaded file status:", uploadedFile.status);
+
+            buktiPembayaranFiles = [
+                {
+                    type: "file_upload",
+                    file_upload: {
+                        id: fileUpload.id,
+                    },
+                    name: paymentProof.originalname,
+                },
+            ];
+        }
 
         const created = await notion.pages.create({
             parent: {
@@ -95,6 +139,9 @@ app.post("/api/notion/pembayaran", async (req, res) => {
                 "Tanggal Pembayaran (WEB)": {
                     // date property expects YYYY-MM-DD
                     date: paymentDate ? { start: String(paymentDate) } : null,
+                },
+                "Bukti Pembayaran (WEB)": {
+                    files: buktiPembayaranFiles,
                 },
             },
         });
