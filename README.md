@@ -44,7 +44,15 @@ cd client
 npm install
 ```
 
-#### 3) Run locally
+#### 3) Create environment variables
+
+Create a `.env` file in `client/` and do not commit it:
+
+```dotenv
+REACT_APP_API_BASE_URL=http://localhost:3001
+```
+
+#### 4) Run locally
 ```bash
 npm start
 ```

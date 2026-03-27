@@ -6,6 +6,10 @@ import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { hasDutyStep, getRelevantDutyItems } from "../utils/dutyHelper";
 import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 
+const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+
+console.log("API_BASE:", process.env.REACT_APP_API_BASE_URL);
+
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
@@ -93,7 +97,7 @@ const CheckoutPage = () => {
             const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
 
             // Pengiriman Lokal
-            const resPL = await fetch("http://localhost:3001/api/notion/pengiriman-lokal", {
+            const resPL = await fetch(`${API_BASE}/api/notion/pengiriman-lokal`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -121,7 +125,7 @@ const CheckoutPage = () => {
                 const unitPriceWithCustomsEur = unitPriceEur + unitCustomsFeeEur;
 
                 // Penerimaan Barang
-                const resPB = await fetch("http://localhost:3001/api/notion/penerimaan-barang", {
+                const resPB = await fetch(`${API_BASE}/api/notion/penerimaan-barang`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -149,7 +153,7 @@ const CheckoutPage = () => {
                 pembayaranFormData.append("paymentDate", today);
                 pembayaranFormData.append("paymentProof", paymentProof);
 
-                const resPembayaran = await fetch("http://localhost:3001/api/notion/pembayaran", {
+                const resPembayaran = await fetch(`${API_BASE}/api/notion/pembayaran`, {
                     method: "POST",
                     body: pembayaranFormData,
                 });
