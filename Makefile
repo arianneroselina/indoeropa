@@ -25,7 +25,7 @@ server:
 lint:
 	cd $(CLIENT_DIR) && npm run lint || true
 
-format:
+fmt:
 	cd $(CLIENT_DIR) && npx prettier --write .
 
 clean:
