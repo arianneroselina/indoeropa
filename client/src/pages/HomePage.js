@@ -8,17 +8,17 @@ import Closing from "../components/Closing";
 import Contact from "../components/Contact";
 
 const HomePage = () => {
-    return (
-        <div>
-            <Hero />
-            <Reviews />
-            <About />
-            <Shipment variant="home" />
-            <WhyUs />
-            <Closing />
-            <Contact />
-        </div>
-    );
+  return (
+    <div>
+      <Hero />
+      <Reviews />
+      <About />
+      <Shipment variant="home" />
+      <WhyUs />
+      <Closing />
+      <Contact />
+    </div>
+  );
 };
 
 export default HomePage;
