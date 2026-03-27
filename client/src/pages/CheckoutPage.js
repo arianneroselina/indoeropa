@@ -298,6 +298,7 @@ const CheckoutPage = () => {
                                                 </label>
                                                 <input
                                                     type="file"
+                                                    accept="application/pdf,image/*"
                                                     className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
                                                     onChange={(e) => setPaymentProof(e.target.files[0])}
                                                     required
