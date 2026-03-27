@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaInfoCircle } from "react-icons/fa";
-import { CART_KEY, INVOICES_KEY } from "../utils/shipmentHelper";
+import { CART_KEY, INVOICES_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { getRelevantDutyItems } from "../utils/dutyHelper";
 

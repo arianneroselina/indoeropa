@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaTrash } from "react-icons/fa";
-import { CART_KEY } from "../utils/shipmentHelper";
+import { CART_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { hasDutyStep } from "../utils/dutyHelper";
 

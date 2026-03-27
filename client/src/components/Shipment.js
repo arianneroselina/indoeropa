@@ -5,14 +5,14 @@ import {
   FaInfoCircle,
   FaExclamationTriangle,
 } from "react-icons/fa";
-import { CART_KEY } from "../utils/shipmentHelper";
+import { CART_KEY } from "../utils/constants";
 
 import { COUNTRIES, PACKAGE_TYPES, SIZE_PRESETS } from "../data/shippingData";
 import {
   snapToHalf,
   getBilledWeight,
   calcPrice,
-} from "../utils/shippingPricing";
+} from "../utils/shipmentPricing";
 
 import Calendar from "../components/shipping/Calendar";
 import PackageTypePicker from "../components/shipping/PackageTypePicker";

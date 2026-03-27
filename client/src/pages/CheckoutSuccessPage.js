@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaCheckCircle, FaArrowRight } from "react-icons/fa";
-import { CART_KEY, INVOICES_KEY } from "../utils/shipmentHelper";
+import { CART_KEY, INVOICES_KEY } from "../utils/constants";
 
 const CheckoutSuccessPage = () => {
   const navigate = useNavigate();
