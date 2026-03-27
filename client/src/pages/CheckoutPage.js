@@ -6,7 +6,9 @@ import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { hasDutyStep, getRelevantDutyItems } from "../utils/dutyHelper";
 import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:3001";
+const API_BASE =
+    process.env.REACT_APP_API_BASE_URL ||
+    (process.env.NODE_ENV === "development" ? "http://localhost:3001" : "");
 
 console.log("API_BASE:", process.env.REACT_APP_API_BASE_URL);
 
