@@ -3,6 +3,14 @@ import cors from "cors";
 import dotenv from "dotenv";
 import multer from "multer";
 import { Client } from "@notionhq/client";
+import {
+    mapRouteDates,
+    mapCountries,
+    mapDhlTiers,
+    mapPackageTypes,
+    mapSettings,
+    mapSizePresets
+} from "./utils/notionMappers.js";
 
 dotenv.config();
 
@@ -12,7 +20,7 @@ app.use(express.json());
 
 const notion = new Client({
     auth: process.env.NOTION_API_TOKEN,
-    notionVersion: "2025-09-03",
+    notionVersion: "2026-03-11",
 });
 
 const upload = multer({
@@ -30,6 +38,13 @@ app.get("/api/health", (req, res) => {
     res.json({ ok: true });
 });
 
+app.listen("3001", () =>
+    console.log(`Server running on port 3001`)
+);
+
+/**
+ * Post data to Notion
+ */
 app.post("/api/notion/penerimaan-barang", async (req, res) => {
     try {
         const { fullName, packageType, qtyPerUnit, request } = req.body;
@@ -198,6 +213,69 @@ app.post("/api/notion/pengiriman-lokal", async (req, res) => {
     }
 });
 
-app.listen("3001", () =>
-    console.log(`Server running on port 3001`)
-);
+/**
+ * Get data from Notion
+ */
+
+async function queryAllDataSourceRows(dataSourceId) {
+    let results = [];
+    let hasMore = true;
+    let startCursor = undefined;
+
+    while (hasMore) {
+        const response = await notion.dataSources.query({
+            data_source_id: dataSourceId,
+            page_size: 100,
+            start_cursor: startCursor,
+        });
+
+        results.push(...response.results);
+        hasMore = response.has_more;
+        startCursor = response.next_cursor ?? undefined;
+    }
+
+    return results;
+}
+
+app.get("/api/notion/shipping-data", async (req, res) => {
+    try {
+        const [
+            countryRows,
+            packageTypeRows,
+            sizePresetRows,
+            dhlTierRows,
+            routeDateRows,
+            settingsRows,
+        ] = await Promise.all([
+            queryAllDataSourceRows(process.env.NOTION_DB_COUNTRIES),
+            queryAllDataSourceRows(process.env.NOTION_DB_PACKAGE_TYPES),
+            queryAllDataSourceRows(process.env.NOTION_DB_SIZE_PRESETS),
+            queryAllDataSourceRows(process.env.NOTION_DB_DHL_TIERS),
+            queryAllDataSourceRows(process.env.NOTION_DB_ROUTE_DATES),
+            queryAllDataSourceRows(process.env.NOTION_DB_SETTINGS),
+        ]);
+
+        const settings = mapSettings(settingsRows);
+
+        res.json({
+            COUNTRIES: mapCountries(countryRows),
+            PACKAGE_TYPES: mapPackageTypes(packageTypeRows),
+            SIZE_PRESETS: mapSizePresets(sizePresetRows),
+            DHL_TIERS: mapDhlTiers(dhlTierRows),
+            ROUTE_DATES: mapRouteDates(routeDateRows),
+            EUR_TO_IDR_RATE: settings.EUR_TO_IDR_RATE ?? null,
+        });
+    } catch (err) {
+        const code = err?.cause?.code || err?.code;
+        const message = err?.message || String(err);
+
+        console.error("Notion error (shipping-data):", { code, message });
+
+        res.status(500).json({
+            error: "Failed to read shipping data from Notion",
+            code,
+            message,
+        });
+    }
+});
+

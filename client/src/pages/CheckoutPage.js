@@ -6,200 +6,216 @@ import { hasDutyStep, getRelevantDutyItems } from "../utils/dutyHelper";
 import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 import CheckoutForm from "../components/checkout/CheckoutForm";
 import OrderSummary from "../components/checkout/OrderSummary";
-import {buildCustomsFeeByKey, getItemPricing, getTotalAmountEUR} from "../utils/checkoutPricing";
 import {
-  createPengirimanLokal,
-  createPenerimaanBarang,
-  createPembayaran,
-} from "../services/checkoutApi";
-import { EUR_TO_IDR_RATE } from "../data/shippingData";
+	buildCustomsFeeByKey,
+	getItemPricing,
+	getTotalAmountEUR,
+} from "../utils/checkoutPricing";
+import {
+	createPengirimanLokal,
+	createPenerimaanBarang,
+	createPembayaran,
+} from "../api/checkoutApi";
+import { useShippingData } from "../hooks/useShippingData";
 
 const CheckoutPage = () => {
-  const navigate = useNavigate();
+	const navigate = useNavigate();
 
-  /* =========================
-       Local state
-       ========================= */
-  const [cartItems, setCartItems] = useState([]);
-  const [invoiceByItem, setInvoiceByItem] = useState({});
+	// =========================
+	// Local state
+	// =========================
+	const [cartItems, setCartItems] = useState([]);
+	const [invoiceByItem, setInvoiceByItem] = useState({});
 
-  const [fullName, setFullName] = useState("");
-  const [address, setAddress] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+	const [fullName, setFullName] = useState("");
+	const [address, setAddress] = useState("");
+	const [email, setEmail] = useState("");
+	const [phone, setPhone] = useState("");
 
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [paymentProof, setPaymentProof] = useState(null);
-  const [notes, setNotes] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
+	const [paymentMethod, setPaymentMethod] = useState("");
+	const [paymentProof, setPaymentProof] = useState(null);
+	const [notes, setNotes] = useState("");
+	const [termsAccepted, setTermsAccepted] = useState(false);
 
-  const [submitting, setSubmitting] = useState(false);
+	const [submitting, setSubmitting] = useState(false);
 
-  /* =========================
-       Load persisted checkout data
-       ========================= */
-  useEffect(() => {
-    try {
-      const savedCartItems = localStorage.getItem(CART_KEY);
-      if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
+	const { data } = useShippingData();
+	const eurToIdrRate = data?.EUR_TO_IDR_RATE ?? 0;
 
-      const savedInvoices = localStorage.getItem(INVOICES_KEY);
-      if (savedInvoices) setInvoiceByItem(JSON.parse(savedInvoices));
-    } catch (err) {
-      console.error("Failed to parse local storage checkout data", err);
-      localStorage.removeItem(CART_KEY);
-      localStorage.removeItem(INVOICES_KEY);
-    }
-  }, []);
+	// =========================
+	// Load persisted checkout data
+	// =========================
+	useEffect(() => {
+		try {
+			const savedCartItems = localStorage.getItem(CART_KEY);
+			if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
 
-  /* =========================
-       Derived pricing
-       ========================= */
-  const relevantDutyItems = useMemo(() => {
-    return getRelevantDutyItems(cartItems);
-  }, [cartItems]);
+			const savedInvoices = localStorage.getItem(INVOICES_KEY);
+			if (savedInvoices) setInvoiceByItem(JSON.parse(savedInvoices));
+		} catch (err) {
+			console.error("Failed to parse local storage checkout data", err);
+			localStorage.removeItem(CART_KEY);
+			localStorage.removeItem(INVOICES_KEY);
+		}
+	}, []);
 
-  const customsFeeByKey = useMemo(() => {
-    return buildCustomsFeeByKey(relevantDutyItems, invoiceByItem);
-  }, [relevantDutyItems, invoiceByItem]);
+	// =========================
+	// Derived pricing
+	// =========================
+	const relevantDutyItems = useMemo(() => {
+		return getRelevantDutyItems(cartItems);
+	}, [cartItems]);
 
-    const totalAmountEUR = useMemo(() => {
-        return getTotalAmountEUR(cartItems, relevantDutyItems, customsFeeByKey);
-    }, [cartItems, relevantDutyItems, customsFeeByKey]);
+	const customsFeeByKey = useMemo(() => {
+		return buildCustomsFeeByKey(relevantDutyItems, invoiceByItem);
+	}, [relevantDutyItems, invoiceByItem]);
 
-  const totalAmountIDR = useMemo(() => {
-    return totalAmountEUR * EUR_TO_IDR_RATE;
-  }, [totalAmountEUR]);
+	const totalAmountEUR = useMemo(() => {
+		return getTotalAmountEUR(cartItems, relevantDutyItems, customsFeeByKey);
+	}, [cartItems, relevantDutyItems, customsFeeByKey]);
 
-  const backTo = hasDutyStep(cartItems) ? "/invoices" : "/cart";
-  const backLabel = hasDutyStep(cartItems)
-    ? "Back to Invoices"
-    : "Back to Cart";
+	const totalAmountIDR = useMemo(() => {
+		return totalAmountEUR * eurToIdrRate;
+	}, [totalAmountEUR, eurToIdrRate]);
 
-  /* =========================
-       Form submission
-       ========================= */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+	const backTo = hasDutyStep(cartItems) ? "/invoices" : "/cart";
+	const backLabel = hasDutyStep(cartItems)
+		? "Back to Invoices"
+		: "Back to Cart";
 
-    if (submitting) return;
-    setSubmitting(true);
+	// =========================
+	// Form submission
+	// =========================
+	const handleSubmit = async (e) => {
+		e.preventDefault();
 
-    try {
-      const today = new Date().toISOString().slice(0, 10);
-      const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
+		if (submitting) return;
+		setSubmitting(true);
 
-      await createPengirimanLokal({
-        fullName,
-        address,
-      });
+		try {
+			const today = new Date().toISOString().slice(0, 10);
+			const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
 
-      for (const item of cartItems) {
-        const packageType = item.packageTypeLabel ?? "-";
-        const { qty, unitTotal } = getItemPricing(
-          item,
-          relevantDutyItems,
-          customsFeeByKey,
-        );
+			await createPengirimanLokal({
+				fullName,
+				address,
+			});
 
-        await createPenerimaanBarang({
-          fullName,
-          packageType,
-          qtyPerUnit: qty,
-          request: notes,
-        });
+			for (const item of cartItems) {
+				const packageType = item.packageTypeLabel ?? "-";
+				const { qty, unitTotal } = getItemPricing(
+					item,
+					relevantDutyItems,
+					customsFeeByKey,
+				);
 
-        await createPembayaran({
-          fullName,
-          packageType,
-          pricePerUnitEur: unitTotal,
-          qtyPerUnit: qty,
-          paymentStatus,
-          paymentDate: today,
-          paymentProof,
-        });
-      }
+				await createPenerimaanBarang({
+					fullName,
+					packageType,
+					qtyPerUnit: qty,
+					request: notes,
+				});
 
-      localStorage.removeItem(CART_KEY);
-      localStorage.removeItem(INVOICES_KEY);
-      setCartItems([]);
-      setInvoiceByItem({});
+				await createPembayaran({
+					fullName,
+					packageType,
+					pricePerUnitEur: unitTotal,
+					qtyPerUnit: qty,
+					paymentStatus,
+					paymentDate: today,
+					paymentProof,
+				});
+			}
 
-      navigate("/checkout/success", {
-        state: {
-          fullName,
-          totalAmountEUR,
-          totalAmountIDR,
-          itemsCount: cartItems.length,
-          paidViaLabel: paymentMethod?.toUpperCase() || "",
-        },
-      });
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Checkout failed.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+			localStorage.removeItem(CART_KEY);
+			localStorage.removeItem(INVOICES_KEY);
+			setCartItems([]);
+			setInvoiceByItem({});
 
-  return (
-    <section className="py-24 bg-gray-100">
-      <div className="max-w-screen-xl mx-auto px-4">
-        <div className="mb-6 flex items-center justify-between">
-          <Link to={backTo} className="text-primary flex items-center gap-2">
-            <FaArrowRight className="transform rotate-180" />
-            <span>{backLabel}</span>
-          </Link>
+			navigate("/checkout/success", {
+				state: {
+					fullName,
+					totalAmountEUR,
+					totalAmountIDR,
+					itemsCount: cartItems.length,
+					paidViaLabel: paymentMethod?.toUpperCase() || "",
+				},
+			});
+		} catch (err) {
+			console.error(err);
+			alert(err.message || "Checkout failed.");
+		} finally {
+			setSubmitting(false);
+		}
+	};
 
-          <h2 className="text-center text-4xl font-semibold">Checkout</h2>
-        </div>
+	return (
+		<section className="py-24 bg-gray-100">
+			<div className="max-w-screen-xl mx-auto px-4">
+				<div className="mb-6 flex items-center justify-between">
+					<Link
+						to={backTo}
+						className="text-primary flex items-center gap-2"
+					>
+						<FaArrowRight className="transform rotate-180" />
+						<span>{backLabel}</span>
+					</Link>
 
-        <div className="rounded-lg bg-white p-8 shadow-md">
-          {cartItems.length === 0 ? (
-            <div className="text-center text-lg text-gray-600">
-              Your cart is empty.{" "}
-              <Link to="/shipment" className="font-semibold text-secondary">
-                Schedule a shipment
-              </Link>{" "}
-              to begin.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
-              <CheckoutForm
-                handleSubmit={handleSubmit}
-                fullName={fullName}
-                setFullName={setFullName}
-                address={address}
-                setAddress={setAddress}
-                email={email}
-                setEmail={setEmail}
-                phone={phone}
-                setPhone={setPhone}
-                paymentMethod={paymentMethod}
-                setPaymentMethod={setPaymentMethod}
-                setPaymentProof={setPaymentProof}
-                notes={notes}
-                setNotes={setNotes}
-                termsAccepted={termsAccepted}
-                setTermsAccepted={setTermsAccepted}
-                submitting={submitting}
-              />
+					<h2 className="text-center text-4xl font-semibold">
+						Checkout
+					</h2>
+				</div>
 
-              <aside className="h-fit lg:sticky lg:top-24">
-                <OrderSummary
-                  cartItems={cartItems}
-                  relevantDutyItems={relevantDutyItems}
-                  customsFeeByKey={customsFeeByKey}
-                  totalAmountEUR={totalAmountEUR}
-                  totalAmountIDR={totalAmountIDR}
-                />
-              </aside>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
+				<div className="rounded-lg bg-white p-8 shadow-md">
+					{cartItems.length === 0 ? (
+						<div className="text-center text-lg text-gray-600">
+							Your cart is empty.{" "}
+							<Link
+								to="/shipment"
+								className="font-semibold text-secondary"
+							>
+								Schedule a shipment
+							</Link>{" "}
+							to begin.
+						</div>
+					) : (
+						<div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
+							<CheckoutForm
+								handleSubmit={handleSubmit}
+								fullName={fullName}
+								setFullName={setFullName}
+								address={address}
+								setAddress={setAddress}
+								email={email}
+								setEmail={setEmail}
+								phone={phone}
+								setPhone={setPhone}
+								paymentMethod={paymentMethod}
+								setPaymentMethod={setPaymentMethod}
+								setPaymentProof={setPaymentProof}
+								notes={notes}
+								setNotes={setNotes}
+								termsAccepted={termsAccepted}
+								setTermsAccepted={setTermsAccepted}
+								submitting={submitting}
+							/>
+
+							<aside className="h-fit lg:sticky lg:top-24">
+								<OrderSummary
+									cartItems={cartItems}
+									relevantDutyItems={relevantDutyItems}
+									customsFeeByKey={customsFeeByKey}
+									totalAmountEUR={totalAmountEUR}
+									totalAmountIDR={totalAmountIDR}
+									eurToIdrRate={eurToIdrRate}
+								/>
+							</aside>
+						</div>
+					)}
+				</div>
+			</div>
+		</section>
+	);
 };
 
 export default CheckoutPage;
