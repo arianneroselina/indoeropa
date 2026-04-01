@@ -2,7 +2,7 @@ import React from "react";
 import TermsConditions from "../components/TermsConditions";
 
 const TermsConditionsPage = () => {
-  return <TermsConditions />;
+	return <TermsConditions />;
 };
 
 export default TermsConditionsPage;

@@ -14,30 +14,39 @@ import InvoiceUploadsPage from "./pages/InvoiceUploadsPage";
 import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
 
 const App = () => {
-  return (
-    <Router>
-      <ScrollToTop />
-      <div className="min-h-screen flex flex-col">
-        <Header />
+	return (
+		<Router>
+			<ScrollToTop />
+			<div className="min-h-screen flex flex-col">
+				<Header />
 
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/shipment" element={<ShipmentPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/terms" element={<TermsConditionsPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/invoices" element={<InvoiceUploadsPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
-          </Routes>
-        </main>
+				<main className="flex-1">
+					<Routes>
+						<Route path="/" element={<HomePage />} />
+						<Route path="/shipment" element={<ShipmentPage />} />
+						<Route path="/about" element={<AboutPage />} />
+						<Route path="/contact" element={<ContactPage />} />
+						<Route
+							path="/terms"
+							element={<TermsConditionsPage />}
+						/>
+						<Route path="/cart" element={<CartPage />} />
+						<Route
+							path="/invoices"
+							element={<InvoiceUploadsPage />}
+						/>
+						<Route path="/checkout" element={<CheckoutPage />} />
+						<Route
+							path="/checkout/success"
+							element={<CheckoutSuccessPage />}
+						/>
+					</Routes>
+				</main>
 
-        <Footer />
-      </div>
-    </Router>
-  );
+				<Footer />
+			</div>
+		</Router>
+	);
 };
 
 export default App;
