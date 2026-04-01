@@ -103,7 +103,7 @@ const CheckoutPage = () => {
 
 			for (const item of cartItems) {
 				const packageType = item.packageTypeLabel ?? "-";
-				const { qty, unitTotal } = getItemPricing(
+				const { total } = getItemPricing(
 					item,
 					relevantDutyItems,
 					customsFeeByKey,
@@ -112,15 +112,25 @@ const CheckoutPage = () => {
 				await createPenerimaanBarang({
 					fullName,
 					packageType,
-					qtyPerUnit: qty,
+                    qtyPerUnit:
+                        item.billedWeightKg > 0
+                            ? item.billedWeightKg
+                            : item.hatQuantity > 0
+                                ? item.hatQuantity
+                                : item.documentPages,
 					request: notes,
 				});
 
 				await createPembayaran({
 					fullName,
 					packageType,
-					pricePerUnitEur: unitTotal,
-					qtyPerUnit: qty,
+					pricePerUnitEur: total,
+                    qtyPerUnit:
+                        item.billedWeightKg > 0
+                            ? item.billedWeightKg
+                            : item.hatQuantity > 0
+                                ? item.hatQuantity
+                                : item.documentPages,
 					paymentStatus,
 					paymentDate: today,
 					paymentProof,

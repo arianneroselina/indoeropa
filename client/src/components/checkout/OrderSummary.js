@@ -44,7 +44,7 @@ const OrderSummary = ({
 
 			<div className="mt-4 space-y-3">
 				{cartItems.map((item, idx) => {
-					const { qty, subtotal, customsSubtotal } = getItemPricing(
+					const { customsSubtotal, total } = getItemPricing(
 						item,
 						relevantDutyItems,
 						customsFeeByKey,
@@ -65,19 +65,13 @@ const OrderSummary = ({
 
 								<div className="shrink-0 text-right">
 									<div className="text-sm font-semibold text-gray-900">
-										€{subtotal.toFixed(2)}
+										€{total.toFixed(2)}
 									</div>
 
 									{customsSubtotal > 0 && (
 										<div className="subtext mt-0.5 text-xs text-gray-500">
 											incl. customs €
 											{customsSubtotal.toFixed(2)}
-										</div>
-									)}
-
-									{qty > 1 && (
-										<div className="subtext mt-0.5 text-xs text-gray-500">
-											Qty {qty}
 										</div>
 									)}
 								</div>

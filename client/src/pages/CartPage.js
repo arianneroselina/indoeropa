@@ -21,8 +21,7 @@ const CartPage = () => {
 	// Calculate total price based on cart items and quantity
 	const calculateTotalPrice = () => {
 		return cartItems.reduce(
-			(total, item) =>
-				total + (Number(item.priceEur) || 0) * (item.quantity || 1),
+			(total, item) => total + (Number(item.priceEur) || 0),
 			0,
 		);
 	};
@@ -106,9 +105,7 @@ const CartPage = () => {
 											<div className="text-lg font-bold text-gray-900">
 												€
 												{(
-													(Number(item.priceEur) ||
-														0) *
-													(item.quantity || 1)
+													Number(item.priceEur) || 0
 												).toFixed(2)}
 											</div>
 										</div>

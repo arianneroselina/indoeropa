@@ -8,7 +8,7 @@ const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {
 	const { data } = useShippingData();
 	const routeDates = useMemo(() => data?.ROUTE_DATES ?? {}, [data]);
 
-	console.log("routeDates", routeDates);
+	//console.log("routeDates", routeDates);
 
 	const allowedISO = useMemo(() => {
 		const entries = routeDates?.[routeKey] || [];

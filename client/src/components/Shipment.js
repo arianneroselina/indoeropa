@@ -72,9 +72,9 @@ export default function Shipment({ variant = "default" }) {
 	const packageTypes = useMemo(() => data?.PACKAGE_TYPES ?? [], [data]);
 	const sizePresets = useMemo(() => data?.SIZE_PRESETS ?? [], [data]);
 
-	console.log("countries:", countries);
-	console.log("packageTypes:", packageTypes);
-	console.log("sizePresets:", sizePresets);
+	//console.log("countries:", countries);
+	//console.log("packageTypes:", packageTypes);
+	//console.log("sizePresets:", sizePresets);
 
 	// =========================================================
 	// Initial cart load
@@ -410,7 +410,6 @@ export default function Shipment({ variant = "default" }) {
 			packageTypeLabel: selectedPackageType?.label ?? "",
 			priceEur: priceResult.total,
 			priceBreakdown: priceResult.breakdown,
-			quantity: 1,
 			documentPages: isDocument ? Number(documentPages) : undefined,
 			hatQuantity: isHat ? Number(hatQuantity) : undefined,
 			createdAt: new Date().toISOString(),
@@ -429,19 +428,8 @@ export default function Shipment({ variant = "default" }) {
 			isHat ? `pcs:${hatQuantity || ""}` : "",
 		].join("|");
 
-		const existingIndex = cartItems.findIndex(
-			(x) => x.signature === signature,
-		);
 		const updated = [...cartItems];
-
-		if (existingIndex >= 0) {
-			updated[existingIndex] = {
-				...updated[existingIndex],
-				quantity: (updated[existingIndex].quantity ?? 1) + 1,
-			};
-		} else {
-			updated.push({ ...item, signature });
-		}
+		updated.push({ ...item, signature });
 
 		setCartItems(updated);
 		localStorage.setItem(CART_KEY, JSON.stringify(updated));
