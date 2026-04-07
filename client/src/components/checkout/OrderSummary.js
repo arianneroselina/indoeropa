@@ -45,11 +45,7 @@ const OrderSummary = ({
 			<div className="mt-4 space-y-3">
 				{cartItems.map((item, idx) => {
 					const { customsAmountEur, itemTotalEur } =
-						calculatePriceWithCustoms(
-							item,
-							relevantDutyItems,
-							customsFeeByKey,
-						);
+						calculatePriceWithCustoms(item, customsFeeByKey);
 
 					return (
 						<div

@@ -75,8 +75,8 @@ const CheckoutPage = () => {
 	}, [relevantDutyItems, invoiceByItem]);
 
 	const totalAmountEUR = useMemo(() => {
-		return getTotalAmountEUR(cartItems, relevantDutyItems, customsFeeByKey);
-	}, [cartItems, relevantDutyItems, customsFeeByKey]);
+		return getTotalAmountEUR(cartItems, customsFeeByKey);
+	}, [cartItems, customsFeeByKey]);
 
 	const totalAmountIDR = useMemo(() => {
 		return totalAmountEUR * eurToIdrRate;
@@ -122,11 +122,7 @@ const CheckoutPage = () => {
 			for (const item of cartItems) {
 				const packageType = item.packageTypeLabel ?? "-";
 				const { itemTotalEur, priceBreakdown } =
-					calculatePriceWithCustoms(
-						item,
-						relevantDutyItems,
-						customsFeeByKey,
-					);
+					calculatePriceWithCustoms(item, customsFeeByKey);
 
 				await createPenerimaanBarang({
 					orderId,

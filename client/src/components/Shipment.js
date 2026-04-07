@@ -25,6 +25,7 @@ import { useShippingData } from "../hooks/useShippingData";
 
 /**
  * @typedef {Object} ShippingCartItem
+ * @property {string} key
  * @property {"shipping"} type
  * @property {string} fromCountry
  * @property {string} toCountry
@@ -420,6 +421,7 @@ export default function Shipment({ variant = "default" }) {
 
 		/** @type {ShippingCartItem} */
 		const item = {
+			key: crypto.randomUUID(),
 			type: "shipping",
 			fromCountry,
 			toCountry,

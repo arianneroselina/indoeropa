@@ -6,9 +6,6 @@ export const DUTY_TYPES = new Set([
 	"pkg_1_super",
 ]);
 
-export const getItemKey = (item, idx) =>
-	String(item.signature ?? `${item.packageTypeId ?? "type"}-${idx}`);
-
 /**
  * Returns only shipments that require invoice logic.
  * Output format:
@@ -16,7 +13,7 @@ export const getItemKey = (item, idx) =>
  */
 export const getRelevantDutyItems = (cartItems = []) => {
 	return cartItems
-		.map((item, idx) => ({ item, idx, key: getItemKey(item, idx) }))
+		.map((item) => ({ item, key: item.key }))
 		.filter(({ item }) =>
 			DUTY_TYPES.has(String(item.packageTypeId ?? "").toLowerCase()),
 		);
