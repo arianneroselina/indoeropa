@@ -11,6 +11,7 @@ import {
     mapSettings,
     mapSizePresets
 } from "./utils/notionMappers.js";
+import { buildRouteName, findOrCreateChildPage, formatRouteDate } from "./helper.js";
 
 dotenv.config();
 
@@ -41,6 +42,57 @@ app.get("/api/health", (req, res) => {
 app.listen("3001", () =>
     console.log(`Server running on port 3001`)
 );
+
+/**
+ * Create a new route page
+ */
+app.post("/api/notion/order-route-page", async (req, res) => {
+    try {
+        const { fromCountry, toCountry, shipmentDate } = req.body;
+
+        if (!fromCountry || !toCountry || !shipmentDate) {
+            return res.status(400).json({
+                error: "fromCountry, toCountry, and shipmentDate are required",
+            });
+        }
+
+        const routeTitle = buildRouteName({ fromCountry, toCountry });
+        const dateTitle = formatRouteDate(shipmentDate);
+
+        const routeResult = await findOrCreateChildPage({
+            notion,
+            parentPageId: process.env.NOTION_PAGE_ORDERS,
+            title: routeTitle,
+        });
+
+        const dateResult = await findOrCreateChildPage({
+            notion,
+            parentPageId: routeResult.page.id,
+            title: dateTitle,
+        });
+
+        return res.json({
+            ok: true,
+            routePageId: routeResult.page.id,
+            routeTitle,
+            routeCreated: routeResult.created,
+            datePageId: dateResult.page.id,
+            dateTitle,
+            dateCreated: dateResult.created,
+        });
+    } catch (err) {
+        const code = err?.cause?.code || err?.code;
+        const message = err?.message || String(err);
+
+        console.error("Notion error (Order Route Tree):", { code, message });
+
+        return res.status(500).json({
+            error: "Failed to create/find nested route pages in Notion",
+            code,
+            message,
+        });
+    }
+});
 
 /**
  * Post data to Notion

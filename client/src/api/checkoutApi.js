@@ -1,5 +1,31 @@
 import { API_BASE } from "../utils/constants";
 
+export const createOrGetOrderRoutePage = async ({
+	fromCountry,
+	toCountry,
+	shipmentDate,
+}) => {
+	const res = await fetch(`${API_BASE}/api/notion/order-route-page`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			fromCountry,
+			toCountry,
+			shipmentDate,
+		}),
+	});
+
+	const data = await res.json().catch(() => ({}));
+
+	if (!res.ok) {
+		throw new Error(
+			data?.message || data?.error || "Failed to create/find route page.",
+		);
+	}
+
+	return data;
+};
+
 export const createPengirimanLokal = async ({
 	orderId,
 	fullName,

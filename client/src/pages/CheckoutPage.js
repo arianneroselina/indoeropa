@@ -13,6 +13,7 @@ import {
 	getTotalAmountEUR,
 } from "../utils/checkoutHelper";
 import {
+	createOrGetOrderRoutePage,
 	// createPengirimanLokal,
 	createPenerimaanBarang,
 	createPembayaran,
@@ -115,6 +116,28 @@ const CheckoutPage = () => {
 			const billingAddress = [street, postalCode, country]
 				.filter(Boolean)
 				.join(", ");
+
+			const firstItem = cartItems[0];
+			if (
+				!firstItem?.fromCountry ||
+				!firstItem?.toCountry ||
+				!firstItem?.shipmentDate
+			) {
+				throw new Error("Missing route information for checkout.");
+			}
+
+			// create a new route page if it doesn't exist yet
+			const routePage = await createOrGetOrderRoutePage({
+				fromCountry: firstItem.fromCountry,
+				toCountry: firstItem.toCountry,
+				shipmentDate: firstItem.shipmentDate,
+			});
+
+			console.log(
+				"Using route page:",
+				routePage.title,
+				routePage.notionPageId,
+			);
 
 			// TODO: this needs to be handled differently for each route
 			/*await createPengirimanLokal({
