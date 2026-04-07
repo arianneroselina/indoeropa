@@ -25,6 +25,7 @@ const InvoiceUploadsPage = () => {
     const [invoiceReqByItem, setInvoiceReqByItem] = useState({});
 
 	// session-only upload state (NOT persisted)
+    // TODO: upload to Notion
 	const [proofUploaded, setProofUploaded] = useState({}); // { [itemKey]: boolean }
 
 	useEffect(() => {
@@ -129,7 +130,7 @@ const InvoiceUploadsPage = () => {
 
 		for (const { key } of relevant) {
 			const entry = invoiceReqByItem[key];
-			if (!entry?.invoiceRequired) return;
+			if (!entry?.invoiceRequired === undefined) return;
 
 			if (entry.invoiceRequired) {
 				const val = Number(entry.originalValueEur);
