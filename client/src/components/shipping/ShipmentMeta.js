@@ -44,7 +44,7 @@ export const ShipmentMeta = ({
 
 				{showDateChip && item.shipmentDate && (
 					<span className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-gray-700">
-						Shipment Date: {formatDateToDDMMYYYY(item.shipmentDate)}
+						Shipment date: {formatDateToDDMMYYYY(item.shipmentDate)}
 					</span>
 				)}
 			</div>
