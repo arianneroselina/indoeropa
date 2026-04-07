@@ -106,7 +106,11 @@ const CheckoutPage = () => {
 			const today = new Date().toISOString().slice(0, 10);
 			const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
 
-			// Compose billing address string for the local delivery record
+            if (!paymentStatus) {
+                throw new Error("Invalid payment method.");
+            }
+
+            // Compose billing address string for the local delivery record
 			const billingAddress = [street, postalCode, country]
 				.filter(Boolean)
 				.join(", ");
