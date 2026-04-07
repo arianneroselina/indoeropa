@@ -28,6 +28,8 @@ const InvoiceUploadsPage = () => {
 	// TODO: upload to Notion
 	const [proofUploaded, setProofUploaded] = useState({}); // { [itemKey]: boolean }
 
+    const [errorMessage, setErrorMessage] = useState("");
+
 	useEffect(() => {
 		const savedCartItems = localStorage.getItem(CART_KEY);
 		if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
@@ -135,13 +137,13 @@ const InvoiceUploadsPage = () => {
 			if (entry.invoiceRequired) {
 				const val = Number(entry.originalValueEur);
 				if (!Number.isFinite(val) || val <= 125) {
-					alert(
-						"Original item value must be bigger than €125 when selecting 'Yes'.",
-					);
+                    setErrorMessage(
+                        "Original item value must be bigger than €125 when selecting 'Yes'."
+                    );
 					return;
 				}
 				if (!proofUploaded[key]) {
-					alert(
+                    setErrorMessage(
 						"Please upload an invoice/receipt for every shipment marked as over €125.",
 					);
 					return;
@@ -411,6 +413,12 @@ const InvoiceUploadsPage = () => {
 								<FaArrowRight className="ml-2 text-lg" />
 							</button>
 						</div>
+
+                        {errorMessage ? (
+                            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {errorMessage}
+                            </div>
+                        ) : null}
 					</form>
 				</div>
 			</div>

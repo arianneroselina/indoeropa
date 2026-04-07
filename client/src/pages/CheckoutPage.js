@@ -43,6 +43,7 @@ const CheckoutPage = () => {
 	const [termsAccepted, setTermsAccepted] = useState(false);
 
 	const [submitting, setSubmitting] = useState(false);
+	const [errorMessage, setErrorMessage] = useState("");
 
 	const { data } = useShippingData();
 	const eurToIdrRate = data?.EUR_TO_IDR_RATE ?? 0;
@@ -106,11 +107,11 @@ const CheckoutPage = () => {
 			const today = new Date().toISOString().slice(0, 10);
 			const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
 
-            if (!paymentStatus) {
-                throw new Error("Invalid payment method.");
-            }
+			if (!paymentStatus) {
+				throw new Error("Invalid payment method.");
+			}
 
-            // Compose billing address string for the local delivery record
+			// Compose billing address string for the local delivery record
 			const billingAddress = [street, postalCode, country]
 				.filter(Boolean)
 				.join(", ");
@@ -171,7 +172,7 @@ const CheckoutPage = () => {
 			});
 		} catch (err) {
 			console.error(err);
-			alert(err.message || "Checkout failed.");
+			setErrorMessage("Checkout failed: " + err.message);
 		} finally {
 			setSubmitting(false);
 		}
@@ -246,6 +247,12 @@ const CheckoutPage = () => {
 									eurToIdrRate={eurToIdrRate}
 								/>
 							</aside>
+
+							{errorMessage ? (
+								<div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+									{errorMessage}
+								</div>
+							) : null}
 						</div>
 					)}
 				</div>
