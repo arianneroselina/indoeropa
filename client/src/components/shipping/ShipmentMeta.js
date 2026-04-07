@@ -1,4 +1,5 @@
 import { formatDateToDDMMYYYY } from "../../utils/formatDate";
+import { getItemQuantityLabel } from "../../utils/checkoutHelper";
 
 export const ShipmentMeta = ({
 	item,
@@ -20,13 +21,7 @@ export const ShipmentMeta = ({
 		? "subtext text-xs text-gray-500 mt-1"
 		: "mt-2";
 
-	const detail = item.documentPages
-		? `${item.documentPages} pages`
-		: item.hatQuantity
-			? `${item.hatQuantity} pcs`
-			: item.billedWeightKg
-				? `${Number(item.billedWeightKg).toFixed(1)} kg`
-				: null;
+	const detail = getItemQuantityLabel(item);
 
 	return (
 		<div className="min-w-0">

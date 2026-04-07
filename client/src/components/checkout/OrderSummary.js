@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ShipmentMeta } from "../shipping/ShipmentMeta";
-import { calculatePriceWithCustoms } from "../../utils/checkoutPricing";
+import { calculatePriceWithCustoms } from "../../utils/checkoutHelper";
 
 /**
  * OrderSummary

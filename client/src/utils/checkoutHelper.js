@@ -24,15 +24,7 @@ export const calculatePriceWithCustoms = (item, customsFeeByKey) => {
 	const customsAmountEur = key ? customsFeeByKey[key] || 0 : 0;
 	const itemTotalEur = transportAmountEur + customsAmountEur;
 
-	const quantityLabel =
-		item.billedWeightKg > 0
-			? `${item.billedWeightKg} kg`
-			: item.hatQuantity > 0
-				? `${item.hatQuantity} pcs`
-				: item.documentPages > 0
-					? `${item.documentPages} pages`
-					: "1 item";
-
+	const quantityLabel = getItemQuantityLabel(item);
 	const baseBreakdown = `${quantityLabel} × ${transportAmountEur.toFixed(2)}€`;
 
 	const priceBreakdown =
@@ -55,4 +47,24 @@ export const getTotalAmountEUR = (cartItems, customsFeeByKey) => {
 			sum + calculatePriceWithCustoms(item, customsFeeByKey).itemTotalEur
 		);
 	}, 0);
+};
+
+export const getItemQuantity = (item) => {
+	if (Number(item.billedWeightKg) > 0) return Number(item.billedWeightKg);
+	if (Number(item.hatQuantity) > 0) return Number(item.hatQuantity);
+	if (Number(item.documentPages) > 0) return Number(item.documentPages);
+	return 0;
+};
+
+export const getItemQuantityLabel = (item) => {
+	if (Number(item.billedWeightKg) > 0) {
+		return `${Number(item.billedWeightKg)} kg`;
+	}
+	if (Number(item.hatQuantity) > 0) {
+		return `${Number(item.hatQuantity)} pcs`;
+	}
+	if (Number(item.documentPages) > 0) {
+		return `${Number(item.documentPages)} pages`;
+	}
+	return "1 item";
 };

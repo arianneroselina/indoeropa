@@ -9,8 +9,9 @@ import OrderSummary from "../components/checkout/OrderSummary";
 import {
 	buildCustomsFeeByKey,
 	calculatePriceWithCustoms,
+	getItemQuantity,
 	getTotalAmountEUR,
-} from "../utils/checkoutPricing";
+} from "../utils/checkoutHelper";
 import {
 	// createPengirimanLokal,
 	createPenerimaanBarang,
@@ -130,12 +131,7 @@ const CheckoutPage = () => {
 					phone,
 					email,
 					packageType,
-					quantity:
-						item.billedWeightKg > 0
-							? item.billedWeightKg
-							: item.hatQuantity > 0
-								? item.hatQuantity
-								: item.documentPages,
+					quantity: getItemQuantity(item),
 					request: notes,
 				});
 
@@ -148,12 +144,7 @@ const CheckoutPage = () => {
 					packageType,
 					totalEur: itemTotalEur,
 					priceBreakdown: priceBreakdown,
-					quantity:
-						item.billedWeightKg > 0
-							? item.billedWeightKg
-							: item.hatQuantity > 0
-								? item.hatQuantity
-								: item.documentPages,
+					quantity: getItemQuantity(item),
 					paymentStatus,
 					paymentDate: today,
 					paymentProof,
