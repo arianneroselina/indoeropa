@@ -60,9 +60,9 @@ const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {
 		<div className="rounded-2xl border bg-white p-4">
 			<div className="flex items-start justify-between gap-3">
 				<div>
-					<h4 className="font-semibold text-gray-900">Pickup date</h4>
+					<h4 className="font-semibold text-gray-900">Shipment date</h4>
 					<p className="subtext text-xs text-gray-600 mt-0.5">
-						Choose an available pickup date for this route.
+						Choose an available date for this route.
 					</p>
 				</div>
 
@@ -82,7 +82,7 @@ const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {
 					<div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-white/60 backdrop-blur-sm">
 						<div className="rounded-2xl border bg-gray-100 px-5 py-4 shadow-sm text-center max-w-sm">
 							<div className="text-sm font-semibold text-gray-900">
-								No pickup dates available
+								No shipment date for this route available
 							</div>
 							<div className="subtext text-xs text-gray-600 mt-1">
 								Please choose another route or check back later.

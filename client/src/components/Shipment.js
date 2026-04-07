@@ -45,7 +45,7 @@ export default function Shipment({ variant = "default" }) {
 	const [shipmentDate, setShipmentDate] = useState("");
 
 	// UI flow / feedback
-	// 0: package, 1: weight/pages, 2: dimensions, 3: pickup date
+	// 0: package, 1: weight/pages, 2: dimensions, 3: shipment date
 	const [progressStep, setProgressStep] = useState(0);
 	const [recModalOpen, setRecModalOpen] = useState(false);
 
@@ -860,7 +860,7 @@ export default function Shipment({ variant = "default" }) {
 												</div>
 
 												<div className="text-gray-500">
-													Pickup date
+													Shipment date
 												</div>
 												<div className="font-semibold text-gray-900 text-right">
 													{formatDateToDDMMYYYY(

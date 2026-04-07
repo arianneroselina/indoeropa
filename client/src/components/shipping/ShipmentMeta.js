@@ -4,7 +4,7 @@ export const ShipmentMeta = ({
 	item,
 	idx,
 	showIndex = false,
-	showPickupChip = true,
+	showDateChip = true,
 	showDetailChip = true,
 	compact = false,
 }) => {
@@ -42,9 +42,9 @@ export const ShipmentMeta = ({
 					{item.fromCountry} → {item.toCountry}
 				</div>
 
-				{showPickupChip && item.shipmentDate && (
+				{showDateChip && item.shipmentDate && (
 					<span className="inline-flex items-center rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-gray-700">
-						Pickup: {formatDateToDDMMYYYY(item.shipmentDate)}
+						Shipment Date: {formatDateToDDMMYYYY(item.shipmentDate)}
 					</span>
 				)}
 			</div>
@@ -66,7 +66,7 @@ export const ShipmentMeta = ({
 				<div className={detailTextClass}>
 					<span className="subtext text-xs text-gray-500">
 						{detail ?? "-"}
-						{!showPickupChip && item.shipmentDate
+						{!showDateChip && item.shipmentDate
 							? ` • ${formatDateToDDMMYYYY(item.shipmentDate)}`
 							: ""}
 					</span>

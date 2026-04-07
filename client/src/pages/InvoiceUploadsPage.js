@@ -218,7 +218,7 @@ const InvoiceUploadsPage = () => {
 													item={item}
 													idx={idx}
 													showIndex={true}
-													showPickupChip={false}
+													showDateChip={false}
 													showDetailChip={false}
 													compact={true}
 												/>
