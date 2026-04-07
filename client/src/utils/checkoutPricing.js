@@ -4,7 +4,7 @@ export const buildCustomsFeeByKey = (relevantDutyItems, invoiceByItem) => {
 	for (const { key } of relevantDutyItems) {
 		const entry = invoiceByItem?.[key];
 
-		if (entry?.over125 !== "yes") {
+		if (!entry?.invoiceRequired) {
 			map[key] = 0;
 			continue;
 		}
