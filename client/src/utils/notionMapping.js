@@ -4,5 +4,5 @@ export const PAYMENT_STATUS_MAP = {
 	bca: "Terbayar (Bank BCA)",
 	revolut: "Terbayar (Bank Revolut)",
 	jenius: "Terbayar (Bank Jenius)",
-	iban: "Terbayar (N26)",
+	iban: "Terbayar (IBAN)",
 };

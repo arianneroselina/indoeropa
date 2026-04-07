@@ -47,7 +47,7 @@ app.listen("3001", () =>
  */
 app.post("/api/notion/penerimaan-barang", async (req, res) => {
     try {
-        const { fullName, packageType, quantity, request } = req.body;
+        const { orderId, fullName, email, phone, packageType, quantity, request } = req.body;
         if (!fullName) return res.status(400).json({ error: "fullName is required" });
 
         const created = await notion.pages.create({
@@ -56,8 +56,17 @@ app.post("/api/notion/penerimaan-barang", async (req, res) => {
                 data_source_id: process.env.NOTION_DB_PENERIMAAN_BARANG,
             },
             properties: {
+                "Order ID (WEB)": {
+                    rich_text: [{ text: { content: String(orderId || "") } }],
+                },
                 "Nama Pembeli (WEB)": {
                     title: [{ text: { content: String(fullName) } }],
+                },
+                "Email (WEB)": {
+                    email: email ? String(email) : null,
+                },
+                "Telepon (WEB)": {
+                    phone_number: phone ? String(phone) : null,
                 },
                 "Jenis Item (WEB)": {
                     select: packageType ? { name: String(packageType) } : null,
@@ -75,7 +84,7 @@ app.post("/api/notion/penerimaan-barang", async (req, res) => {
     } catch (err) {
         const code = err?.cause?.code || err?.code;
         const message = err?.message || String(err);
-        console.error("Notion error:", { code, message });
+        console.error("Notion error (Penerimaan Barang):", { code, message });
         res.status(500).json({ error: "Failed to write to Notion", code, message });
     }
 });
@@ -83,7 +92,11 @@ app.post("/api/notion/penerimaan-barang", async (req, res) => {
 app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, res) => {
     try {
         const {
+            orderId,
             fullName,
+            email,
+            phone,
+            billingAddress,
             packageType,
             totalEur,
             priceBreakdown,
@@ -136,8 +149,20 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
                 data_source_id: process.env.NOTION_DB_PEMBAYARAN,
             },
             properties: {
+                "Order ID (WEB)": {
+                    rich_text: [{ text: { content: String(orderId || "") } }],
+                },
                 "Nama Pembeli (WEB)": {
                     title: [{ text: { content: String(fullName) } }],
+                },
+                "Email (WEB)": {
+                    email: email ? String(email) : null,
+                },
+                "Telepon (WEB)": {
+                    phone_number: phone ? String(phone) : null,
+                },
+                "Alamat Tagihan (WEB)": {
+                    rich_text: [{ text: { content: String(billingAddress || "") } }],
                 },
                 "Jenis Item (WEB)": {
                     select: packageType ? { name: String(packageType) } : null,
@@ -152,11 +177,9 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
                     number: Number(quantity) || 0,
                 },
                 "Status Pembayaran (WEB)": {
-                    // multi-select -> array of { name }
                     multi_select: paymentStatus ? [{ name: String(paymentStatus) }] : [],
                 },
                 "Tanggal Pembayaran (WEB)": {
-                    // date property expects YYYY-MM-DD
                     date: paymentDate ? { start: String(paymentDate) } : null,
                 },
                 "Bukti Pembayaran (WEB)": {
@@ -181,10 +204,7 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
 
 app.post("/api/notion/pengiriman-lokal", async (req, res) => {
     try {
-        const {
-            fullName,
-            address
-        } = req.body;
+        const { orderId, fullName, address } = req.body;
 
         if (!fullName) return res.status(400).json({ error: "fullName is required" });
 
@@ -194,6 +214,9 @@ app.post("/api/notion/pengiriman-lokal", async (req, res) => {
                 data_source_id: process.env.NOTION_DB_PENGIRIMAN_LOKAL,
             },
             properties: {
+                "Order ID (WEB)": {
+                    rich_text: [{ text: { content: String(orderId || "") } }],
+                },
                 "Nama Pembeli (WEB)": {
                     title: [{ text: { content: String(fullName) } }],
                 },
@@ -282,4 +305,3 @@ app.get("/api/notion/shipping-data", async (req, res) => {
         });
     }
 });
-

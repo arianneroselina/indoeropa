@@ -17,40 +17,44 @@ export const buildCustomsFeeByKey = (relevantDutyItems, invoiceByItem) => {
 	return map;
 };
 
-export const calculatePriceWithCustoms = (item, relevantDutyItems, customsFeeByKey) => {
-    const transportAmountEur = Number(item.priceEur) || 0;
+export const calculatePriceWithCustoms = (
+	item,
+	relevantDutyItems,
+	customsFeeByKey,
+) => {
+	const transportAmountEur = Number(item.priceEur) || 0;
 
-    const dutyInfo = relevantDutyItems.find((r) => r.item === item);
-    const key = dutyInfo?.key;
+	const dutyInfo = relevantDutyItems.find((r) => r.item === item);
+	const key = dutyInfo?.key;
 
-    const customsAmountEur = key ? customsFeeByKey[key] || 0 : 0;
-    const itemTotalEur = transportAmountEur + customsAmountEur;
+	const customsAmountEur = key ? customsFeeByKey[key] || 0 : 0;
+	const itemTotalEur = transportAmountEur + customsAmountEur;
 
-    const quantityLabel =
-        item.billedWeightKg > 0
-            ? `${item.billedWeightKg} kg`
-            : item.hatQuantity > 0
-                ? `${item.hatQuantity} pcs`
-                : item.documentPages > 0
-                    ? `${item.documentPages} pages`
-                    : "1 item";
+	const quantityLabel =
+		item.billedWeightKg > 0
+			? `${item.billedWeightKg} kg`
+			: item.hatQuantity > 0
+				? `${item.hatQuantity} pcs`
+				: item.documentPages > 0
+					? `${item.documentPages} pages`
+					: "1 item";
 
-    const baseBreakdown = `${quantityLabel} × ${transportAmountEur.toFixed(2)}€`;
+	const baseBreakdown = `${quantityLabel} × ${transportAmountEur.toFixed(2)}€`;
 
-    const priceBreakdown =
-        customsAmountEur > 0
-            ? `${baseBreakdown} + customs ${customsAmountEur.toFixed(2)}€ = ${itemTotalEur.toFixed(2)}€`
-            : baseBreakdown;
+	const priceBreakdown =
+		customsAmountEur > 0
+			? `${baseBreakdown} + customs ${customsAmountEur.toFixed(2)}€ = ${itemTotalEur.toFixed(2)}€`
+			: baseBreakdown;
 
-    item.priceBreakdown = priceBreakdown;
+	item.priceBreakdown = priceBreakdown;
 
-    return {
-        key,
-        transportAmountEur,
-        customsAmountEur,
-        itemTotalEur,
-        priceBreakdown,
-    };
+	return {
+		key,
+		transportAmountEur,
+		customsAmountEur,
+		itemTotalEur,
+		priceBreakdown,
+	};
 };
 
 export const getTotalAmountEUR = (
@@ -60,7 +64,9 @@ export const getTotalAmountEUR = (
 ) => {
 	return cartItems.reduce((sum, item) => {
 		return (
-			sum + calculatePriceWithCustoms(item, relevantDutyItems, customsFeeByKey).itemTotalEur
+			sum +
+			calculatePriceWithCustoms(item, relevantDutyItems, customsFeeByKey)
+				.itemTotalEur
 		);
 	}, 0);
 };

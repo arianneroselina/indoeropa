@@ -7,12 +7,12 @@ import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 import CheckoutForm from "../components/checkout/CheckoutForm";
 import OrderSummary from "../components/checkout/OrderSummary";
 import {
-    buildCustomsFeeByKey,
-    calculatePriceWithCustoms,
-    getTotalAmountEUR,
+	buildCustomsFeeByKey,
+	calculatePriceWithCustoms,
+	getTotalAmountEUR,
 } from "../utils/checkoutPricing";
 import {
-	createPengirimanLokal,
+	// createPengirimanLokal,
 	createPenerimaanBarang,
 	createPembayaran,
 } from "../api/checkoutApi";
@@ -93,6 +93,8 @@ const CheckoutPage = () => {
 	// =========================
 	// Form submission
 	// =========================
+	const orderId = `ORD-${Date.now()}`;
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
@@ -110,20 +112,27 @@ const CheckoutPage = () => {
 
 			// TODO: this needs to be handled differently for each route
 			/*await createPengirimanLokal({
+			    orderId,
 				fullName,
+                phone,
+                email,
 				address: billingAddress,
 			});*/
 
 			for (const item of cartItems) {
 				const packageType = item.packageTypeLabel ?? "-";
-				const { itemTotalEur, priceBreakdown } = calculatePriceWithCustoms(
-					item,
-					relevantDutyItems,
-					customsFeeByKey,
-				);
+				const { itemTotalEur, priceBreakdown } =
+					calculatePriceWithCustoms(
+						item,
+						relevantDutyItems,
+						customsFeeByKey,
+					);
 
 				await createPenerimaanBarang({
+					orderId,
 					fullName,
+					phone,
+					email,
 					packageType,
 					quantity:
 						item.billedWeightKg > 0
@@ -135,7 +144,11 @@ const CheckoutPage = () => {
 				});
 
 				await createPembayaran({
+					orderId,
 					fullName,
+					phone,
+					email,
+					billingAddress,
 					packageType,
 					totalEur: itemTotalEur,
 					priceBreakdown: priceBreakdown,

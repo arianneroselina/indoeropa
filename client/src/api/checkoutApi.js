@@ -1,10 +1,16 @@
 import { API_BASE } from "../utils/constants";
 
-export const createPengirimanLokal = async ({ fullName, address }) => {
+export const createPengirimanLokal = async ({
+	orderId,
+	fullName,
+	phone,
+	email,
+	address,
+}) => {
 	const res = await fetch(`${API_BASE}/api/notion/pengiriman-lokal`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ fullName, address }),
+		body: JSON.stringify({ orderId, fullName, phone, email, address }),
 	});
 
 	const data = await res.json().catch(() => ({}));
@@ -19,7 +25,10 @@ export const createPengirimanLokal = async ({ fullName, address }) => {
 };
 
 export const createPenerimaanBarang = async ({
+	orderId,
 	fullName,
+	phone,
+	email,
 	packageType,
 	quantity,
 	request,
@@ -27,7 +36,15 @@ export const createPenerimaanBarang = async ({
 	const res = await fetch(`${API_BASE}/api/notion/penerimaan-barang`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ fullName, packageType, quantity, request }),
+		body: JSON.stringify({
+			orderId,
+			fullName,
+			phone,
+			email,
+			packageType,
+			quantity,
+			request,
+		}),
 	});
 
 	const data = await res.json().catch(() => ({}));
@@ -42,7 +59,11 @@ export const createPenerimaanBarang = async ({
 };
 
 export const createPembayaran = async ({
+	orderId,
 	fullName,
+	phone,
+	email,
+	billingAddress,
 	packageType,
 	totalEur,
 	priceBreakdown,
@@ -52,7 +73,11 @@ export const createPembayaran = async ({
 	paymentProof,
 }) => {
 	const formData = new FormData();
+	formData.append("orderId", orderId);
 	formData.append("fullName", fullName);
+	formData.append("phone", phone);
+	formData.append("email", email);
+	formData.append("billingAddress", billingAddress);
 	formData.append("packageType", packageType);
 	formData.append("totalEur", totalEur);
 	formData.append("priceBreakdown", priceBreakdown);
