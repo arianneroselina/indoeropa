@@ -102,7 +102,7 @@ export const pengirimanLokalSchema = {
             options: pengirimanDiIndoOptions,
         },
     },
-    "Status Pengiriman (WEB)": { status: {} },
-    "Pembayaran Ongkir (WEB)": { checkbox: {} },
+    "Status Pengiriman (M)": { status: {} },
+    "Pembayaran Ongkir (M)": { checkbox: {} },
     "Total Ongkir (M)": { number: { format: "rupiah" } },
 };
