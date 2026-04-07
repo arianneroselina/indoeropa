@@ -112,7 +112,7 @@ const CheckoutPage = () => {
 				await createPenerimaanBarang({
 					fullName,
 					packageType,
-					qtyPerUnit:
+                    quantity:
 						item.billedWeightKg > 0
 							? item.billedWeightKg
 							: item.hatQuantity > 0
@@ -124,8 +124,9 @@ const CheckoutPage = () => {
 				await createPembayaran({
 					fullName,
 					packageType,
-					pricePerUnitEur: total,
-					qtyPerUnit:
+                    totalEur: total,
+                    priceBreakdown: item.priceBreakdown,
+                    quantity:
 						item.billedWeightKg > 0
 							? item.billedWeightKg
 							: item.hatQuantity > 0

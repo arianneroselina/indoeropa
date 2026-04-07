@@ -35,7 +35,7 @@ import { useShippingData } from "../hooks/useShippingData";
  * @property {string} packageTypeId
  * @property {string} packageTypeLabel
  * @property {number} priceEur
- * @property {unknown} priceBreakdown
+ * @property {string} priceBreakdown
  * @property {number | undefined} documentPages
  * @property {number | undefined} hatQuantity
  * @property {string} createdAt

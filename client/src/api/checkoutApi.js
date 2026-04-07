@@ -21,13 +21,13 @@ export const createPengirimanLokal = async ({ fullName, address }) => {
 export const createPenerimaanBarang = async ({
 	fullName,
 	packageType,
-	qtyPerUnit,
+	quantity,
 	request,
 }) => {
 	const res = await fetch(`${API_BASE}/api/notion/penerimaan-barang`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ fullName, packageType, qtyPerUnit, request }),
+		body: JSON.stringify({ fullName, packageType, quantity, request }),
 	});
 
 	const data = await res.json().catch(() => ({}));
@@ -44,8 +44,9 @@ export const createPenerimaanBarang = async ({
 export const createPembayaran = async ({
 	fullName,
 	packageType,
-	pricePerUnitEur,
-	qtyPerUnit,
+	totalEur,
+    priceBreakdown,
+    quantity,
 	paymentStatus,
 	paymentDate,
 	paymentProof,
@@ -53,8 +54,9 @@ export const createPembayaran = async ({
 	const formData = new FormData();
 	formData.append("fullName", fullName);
 	formData.append("packageType", packageType);
-	formData.append("pricePerUnitEur", pricePerUnitEur);
-	formData.append("qtyPerUnit", qtyPerUnit);
+	formData.append("totalEur", totalEur);
+    formData.append("priceBreakdown", priceBreakdown);
+	formData.append("quantity", quantity);
 	formData.append("paymentStatus", paymentStatus);
 	formData.append("paymentDate", paymentDate);
 

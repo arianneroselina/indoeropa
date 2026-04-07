@@ -47,7 +47,7 @@ app.listen("3001", () =>
  */
 app.post("/api/notion/penerimaan-barang", async (req, res) => {
     try {
-        const { fullName, packageType, qtyPerUnit, request } = req.body;
+        const { fullName, packageType, quantity, request } = req.body;
         if (!fullName) return res.status(400).json({ error: "fullName is required" });
 
         const created = await notion.pages.create({
@@ -63,7 +63,7 @@ app.post("/api/notion/penerimaan-barang", async (req, res) => {
                     select: packageType ? { name: String(packageType) } : null,
                 },
                 "Jumlah Pembelian per Unit (WEB)": {
-                    number: Number(qtyPerUnit) || 0,
+                    number: Number(quantity) || 0,
                 },
                 "Request Khusus (WEB)": {
                     rich_text: [{ text: { content: String(request || "") } }],
@@ -85,8 +85,9 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
         const {
             fullName,
             packageType,
-            pricePerUnitEur,
-            qtyPerUnit,
+            totalEur,
+            priceBreakdown,
+            quantity,
             paymentStatus,
             paymentDate,
         } = req.body;
@@ -141,11 +142,14 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
                 "Jenis Item (WEB)": {
                     select: packageType ? { name: String(packageType) } : null,
                 },
-                "Harga per Unit (WEB)": {
-                    number: Number(pricePerUnitEur) || 0,
+                "Total Harga (WEB)": {
+                    number: Number(totalEur) || 0,
+                },
+                "Price Breakdown (WEB)": {
+                    rich_text: [{ text: { content: String(priceBreakdown || "") } }],
                 },
                 "Jumlah Pembelian per Unit (WEB)": {
-                    number: Number(qtyPerUnit) || 0,
+                    number: Number(quantity) || 0,
                 },
                 "Status Pembayaran (WEB)": {
                     // multi-select -> array of { name }
