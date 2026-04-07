@@ -73,7 +73,7 @@ const CartPage = () => {
 									{/* LEFT: Main info */}
 									<ShipmentMeta
 										item={item}
-                                        showDateChip={true}
+										showDateChip={true}
 										showDetailChip={true}
 										compact={false}
 									/>

@@ -112,12 +112,12 @@ const CheckoutPage = () => {
 				await createPenerimaanBarang({
 					fullName,
 					packageType,
-                    qtyPerUnit:
-                        item.billedWeightKg > 0
-                            ? item.billedWeightKg
-                            : item.hatQuantity > 0
-                                ? item.hatQuantity
-                                : item.documentPages,
+					qtyPerUnit:
+						item.billedWeightKg > 0
+							? item.billedWeightKg
+							: item.hatQuantity > 0
+								? item.hatQuantity
+								: item.documentPages,
 					request: notes,
 				});
 
@@ -125,12 +125,12 @@ const CheckoutPage = () => {
 					fullName,
 					packageType,
 					pricePerUnitEur: total,
-                    qtyPerUnit:
-                        item.billedWeightKg > 0
-                            ? item.billedWeightKg
-                            : item.hatQuantity > 0
-                                ? item.hatQuantity
-                                : item.documentPages,
+					qtyPerUnit:
+						item.billedWeightKg > 0
+							? item.billedWeightKg
+							: item.hatQuantity > 0
+								? item.hatQuantity
+								: item.documentPages,
 					paymentStatus,
 					paymentDate: today,
 					paymentProof,

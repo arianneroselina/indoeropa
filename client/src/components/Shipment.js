@@ -23,6 +23,25 @@ import { Link } from "react-router-dom";
 import { formatDateToDDMMYYYY } from "../utils/formatDate";
 import { useShippingData } from "../hooks/useShippingData";
 
+/**
+ * @typedef {Object} ShippingCartItem
+ * @property {"shipping"} type
+ * @property {string} fromCountry
+ * @property {string} toCountry
+ * @property {string} shipmentDate
+ * @property {number} weightKg
+ * @property {number} billedWeightKg
+ * @property {{ l: number, w: number, h: number }} dimensionsCm
+ * @property {string} packageTypeId
+ * @property {string} packageTypeLabel
+ * @property {number} priceEur
+ * @property {unknown} priceBreakdown
+ * @property {number | undefined} documentPages
+ * @property {number | undefined} hatQuantity
+ * @property {string} createdAt
+ * @property {string} [signature]
+ */
+
 export default function Shipment({ variant = "default" }) {
 	// =========================
 	// Local state
@@ -330,6 +349,7 @@ export default function Shipment({ variant = "default" }) {
 		) {
 			return false;
 		}
+
 		if (!dimensionAccepted) return false;
 
 		return true;
@@ -396,8 +416,9 @@ export default function Shipment({ variant = "default" }) {
 	};
 
 	const handleAddToCart = () => {
-		if (!canAddToCart || !dimensionAccepted) return;
+		if (!canAddToCart) return;
 
+		/** @type {ShippingCartItem} */
 		const item = {
 			type: "shipping",
 			fromCountry,

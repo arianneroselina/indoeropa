@@ -5,12 +5,24 @@ import { CART_KEY, INVOICES_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { getRelevantDutyItems } from "../utils/dutyHelper";
 
+/**
+ * @typedef {Object} InvoiceRequirement
+ * @property {boolean | undefined} [invoiceRequired]
+ * @property {string | undefined} [originalValueEur]
+ */
+
+/** @typedef {Object.<string, InvoiceRequirement>} InvoiceReqByItem */
+
+/**
+ * @typedef {Object.<string, boolean>} ProofUploadedByItem
+ */
+
 const InvoiceUploadsPage = () => {
 	const navigate = useNavigate();
 	const [cartItems, setCartItems] = useState([]);
 
-	// { [itemKey]: { over125: string, originalValueEur?: string } }
-	const [invoiceByItem, setInvoiceByItem] = useState({});
+    /** @type {[InvoiceReqByItem, Function]} */
+    const [invoiceReqByItem, setInvoiceReqByItem] = useState({});
 
 	// session-only upload state (NOT persisted)
 	const [proofUploaded, setProofUploaded] = useState({}); // { [itemKey]: boolean }
@@ -28,13 +40,13 @@ const InvoiceUploadsPage = () => {
 				Object.entries(parsed).map(([k, v]) => [
 					k,
 					{
-						over125: v?.over125 ?? "",
-						originalValueEur: v?.originalValueEur ?? "",
+						invoiceRequired: v?.invoiceRequired,
+						originalValueEur: v?.originalValueEur,
 					},
 				]),
 			);
 
-			setInvoiceByItem(cleaned);
+			setInvoiceReqByItem(cleaned);
 			localStorage.setItem(INVOICES_KEY, JSON.stringify(cleaned));
 		}
 	}, []);
@@ -50,69 +62,76 @@ const InvoiceUploadsPage = () => {
 		}
 	}, [cartItems.length, relevant.length, navigate]);
 
-	const setOver125 = (key, over125) => {
-		setProofUploaded((prev) => ({
-			...prev,
-			[key]: over125 === "yes" ? !!prev[key] : false,
-		}));
+    /**
+     * @param {string} itemKey
+     * @param {boolean | undefined} invoiceRequired
+     */
+    const updateInvoiceRequirement = (itemKey, invoiceRequired) => {
+        setInvoiceReqByItem((prev) => {
+            const next = {
+                ...prev,
+                [itemKey]: {
+                    invoiceRequired,
+                    originalValueEur:
+                        invoiceRequired === true
+                            ? prev[itemKey]?.originalValueEur
+                            : undefined,
+                },
+            };
 
-		setInvoiceByItem((prev) => {
-			const next = {
-				...prev,
-				[key]: {
-					over125,
-					originalValueEur:
-						over125 === "yes"
-							? (prev[key]?.originalValueEur ?? "")
-							: "",
-				},
-			};
-			localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
-			return next;
-		});
-	};
+            localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
+            return next;
+        });
+    };
 
-	const setOriginalValue = (key, value) => {
-		setInvoiceByItem((prev) => {
-			const next = {
-				...prev,
-				[key]: {
-					...(prev[key] ?? { over125: "" }),
-					originalValueEur: value,
-				},
-			};
-			localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
-			return next;
-		});
-	};
+    /**
+     * @param {string} itemKey
+     * @param {string | undefined} originalValueEur
+     */
+    const updateOriginalValueEur = (itemKey, originalValueEur) => {
+        setInvoiceReqByItem((prev) => {
+            const next = {
+                ...prev,
+                [itemKey]: {
+                    ...prev[itemKey],
+                    originalValueEur,
+                },
+            };
+
+            localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
+            return next;
+        });
+    };
 
 	const setProofFile = (key, file) => {
 		setProofUploaded((prev) => ({ ...prev, [key]: !!file }));
 	};
 
-	const isInvoiceComplete = relevant.every(({ key }) => {
-		const entry = invoiceByItem[key];
+    const isInvoiceComplete = relevant.every(({ key }) => {
+        const entry = invoiceReqByItem[key];
 
-		if (!entry) return false;
-		if (!entry.over125) return false;
+        if (!entry) return false;
+        if (entry.invoiceRequired === undefined) return false;
 
-		if (entry.over125 === "yes") {
-			const val = Number(entry.originalValueEur);
-			if (!Number.isFinite(val) || val <= 125) return false;
-			if (!proofUploaded[key]) return false;
-		}
+        if (entry.invoiceRequired === false) {
+            return true;
+        }
 
-		return true;
-	});
+        const valueEur = Number(entry.originalValueEur);
+        if (!Number.isFinite(valueEur) || valueEur <= 125) return false;
+        if (!proofUploaded[key]) return false;
+
+        return true;
+    });
 
 	const handleContinue = (e) => {
 		e.preventDefault();
 
 		for (const { key } of relevant) {
-			const entry = invoiceByItem[key];
-			if (!entry?.over125) return;
+			const entry = invoiceReqByItem[key];
+			if (!entry?.invoiceRequired) return;
 
-			if (entry.over125 === "yes") {
+			if (entry.invoiceRequired) {
 				const val = Number(entry.originalValueEur);
 				if (!Number.isFinite(val) || val <= 125) {
 					alert(
@@ -182,8 +201,8 @@ const InvoiceUploadsPage = () => {
 					<form onSubmit={handleContinue} className="space-y-6">
 						<div className="space-y-4">
 							{relevant.map(({ item, idx, key }) => {
-								const entry = invoiceByItem[key] ?? {
-									over125: "",
+								const entry = invoiceReqByItem[key] ?? {
+									invoiceRequired: false,
 									originalValueEur: "",
 								};
 
@@ -191,13 +210,13 @@ const InvoiceUploadsPage = () => {
 									entry.originalValueEur,
 								);
 								const isValueInvalid =
-									entry.over125 === "yes" &&
+									entry.invoiceRequired &&
 									entry.originalValueEur !== "" &&
 									(!Number.isFinite(originalValueNum) ||
 										originalValueNum <= 125);
 
 								const fee =
-									entry.over125 === "yes" &&
+									entry.invoiceRequired &&
 									Number.isFinite(
 										Number(entry.originalValueEur),
 									)
@@ -236,21 +255,29 @@ const InvoiceUploadsPage = () => {
 												</label>
 												<select
 													className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
-													value={entry.over125}
-													onChange={(e) =>
-														setOver125(
-															key,
-															e.target.value,
-														)
-													}
+                                                    value={
+                                                        entry.invoiceRequired === true
+                                                            ? "true"
+                                                            : entry.invoiceRequired === false
+                                                                ? "false"
+                                                                : ""
+                                                    }
+                                                    onChange={(e) => {
+                                                        const value =
+                                                            e.target.value === ""
+                                                                ? undefined
+                                                                : e.target.value === "true";
+
+                                                        updateInvoiceRequirement(key, value);
+                                                    }}
 												>
 													<option value="">
 														Select option
 													</option>
-													<option value="no">
+													<option value="false">
 														No
 													</option>
-													<option value="yes">
+													<option value="true">
 														Yes
 													</option>
 												</select>
@@ -258,7 +285,7 @@ const InvoiceUploadsPage = () => {
 
 											<div
 												className={
-													entry.over125 === "yes"
+													entry.invoiceRequired
 														? ""
 														: "opacity-50 pointer-events-none"
 												}
@@ -282,14 +309,14 @@ const InvoiceUploadsPage = () => {
 													value={
 														entry.originalValueEur
 													}
-													onChange={(e) =>
-														setOriginalValue(
-															key,
-															e.target.value,
-														)
-													}
+                                                    onChange={(e) =>
+                                                        updateOriginalValueEur(
+                                                            key,
+                                                            e.target.value.trim() === "" ? undefined : e.target.value
+                                                        )
+                                                    }
 													required={
-														entry.over125 === "yes"
+														entry.invoiceRequired
 													}
 												/>
 
@@ -302,7 +329,7 @@ const InvoiceUploadsPage = () => {
 												)}
 
 												{!isValueInvalid &&
-													entry.over125 === "yes" && (
+													entry.invoiceRequired && (
 														<p className="subtext text-xs text-gray-600 mt-2">
 															Customs handling
 															fee:{" "}
@@ -317,15 +344,14 @@ const InvoiceUploadsPage = () => {
 
 											<div
 												className={
-													entry.over125 === "yes"
+													entry.invoiceRequired
 														? ""
 														: "opacity-50 pointer-events-none"
 												}
 											>
 												<label className="block text-sm font-semibold text-gray-800">
 													Upload invoice/receipt{" "}
-													{entry.over125 ===
-														"yes" && (
+													{entry.invoiceRequired && (
 														<span className="text-red-500">
 															*
 														</span>
@@ -344,7 +370,7 @@ const InvoiceUploadsPage = () => {
 														)
 													}
 													required={
-														entry.over125 === "yes"
+														entry.invoiceRequired
 													}
 												/>
 											</div>

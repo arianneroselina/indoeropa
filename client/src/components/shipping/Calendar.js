@@ -60,7 +60,9 @@ const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {
 		<div className="rounded-2xl border bg-white p-4">
 			<div className="flex items-start justify-between gap-3">
 				<div>
-					<h4 className="font-semibold text-gray-900">Shipment date</h4>
+					<h4 className="font-semibold text-gray-900">
+						Shipment date
+					</h4>
 					<p className="subtext text-xs text-gray-600 mt-0.5">
 						Choose an available date for this route.
 					</p>

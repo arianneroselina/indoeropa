@@ -102,8 +102,8 @@ const CheckoutSuccessPage = () => {
 
 						<div className="mt-4">
 							<p className="subtext text-xs text-gray-500">
-								Next step: We’ll confirm your shipment and follow
-								up if we need any extra details.
+								Next step: We’ll confirm your shipment and
+								follow up if we need any extra details.
 							</p>
 						</div>
 					</div>

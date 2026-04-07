@@ -58,7 +58,7 @@ const OrderSummary = ({
 							<div className="flex items-start justify-between gap-3">
 								<ShipmentMeta
 									item={item}
-                                    showDateChip={false}
+									showDateChip={false}
 									showDetailChip={false}
 									compact
 								/>
