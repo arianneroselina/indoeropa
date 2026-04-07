@@ -21,11 +21,11 @@ const InvoiceUploadsPage = () => {
 	const navigate = useNavigate();
 	const [cartItems, setCartItems] = useState([]);
 
-    /** @type {[InvoiceReqByItem, Function]} */
-    const [invoiceReqByItem, setInvoiceReqByItem] = useState({});
+	/** @type {[InvoiceReqByItem, Function]} */
+	const [invoiceReqByItem, setInvoiceReqByItem] = useState({});
 
 	// session-only upload state (NOT persisted)
-    // TODO: upload to Notion
+	// TODO: upload to Notion
 	const [proofUploaded, setProofUploaded] = useState({}); // { [itemKey]: boolean }
 
 	useEffect(() => {
@@ -63,67 +63,67 @@ const InvoiceUploadsPage = () => {
 		}
 	}, [cartItems.length, relevant.length, navigate]);
 
-    /**
-     * @param {string} itemKey
-     * @param {boolean | undefined} invoiceRequired
-     */
-    const updateInvoiceRequirement = (itemKey, invoiceRequired) => {
-        setInvoiceReqByItem((prev) => {
-            const next = {
-                ...prev,
-                [itemKey]: {
-                    invoiceRequired,
-                    originalValueEur:
-                        invoiceRequired === true
-                            ? prev[itemKey]?.originalValueEur
-                            : undefined,
-                },
-            };
+	/**
+	 * @param {string} itemKey
+	 * @param {boolean | undefined} invoiceRequired
+	 */
+	const updateInvoiceRequirement = (itemKey, invoiceRequired) => {
+		setInvoiceReqByItem((prev) => {
+			const next = {
+				...prev,
+				[itemKey]: {
+					invoiceRequired,
+					originalValueEur:
+						invoiceRequired === true
+							? prev[itemKey]?.originalValueEur
+							: undefined,
+				},
+			};
 
-            localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
-            return next;
-        });
-    };
+			localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
+			return next;
+		});
+	};
 
-    /**
-     * @param {string} itemKey
-     * @param {string | undefined} originalValueEur
-     */
-    const updateOriginalValueEur = (itemKey, originalValueEur) => {
-        setInvoiceReqByItem((prev) => {
-            const next = {
-                ...prev,
-                [itemKey]: {
-                    ...prev[itemKey],
-                    originalValueEur,
-                },
-            };
+	/**
+	 * @param {string} itemKey
+	 * @param {string | undefined} originalValueEur
+	 */
+	const updateOriginalValueEur = (itemKey, originalValueEur) => {
+		setInvoiceReqByItem((prev) => {
+			const next = {
+				...prev,
+				[itemKey]: {
+					...prev[itemKey],
+					originalValueEur,
+				},
+			};
 
-            localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
-            return next;
-        });
-    };
+			localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
+			return next;
+		});
+	};
 
 	const setProofFile = (key, file) => {
 		setProofUploaded((prev) => ({ ...prev, [key]: !!file }));
 	};
 
-    const isInvoiceComplete = relevant.every(({ key }) => {
-        const entry = invoiceReqByItem[key];
+	const isInvoiceComplete = relevant.every(({ key }) => {
+		const entry = invoiceReqByItem[key];
 
-        if (!entry) return false;
-        if (entry.invoiceRequired === undefined) return false;
+		if (!entry) return false;
+		if (entry.invoiceRequired === undefined) return false;
 
-        if (entry.invoiceRequired === false) {
-            return true;
-        }
+		if (entry.invoiceRequired === false) {
+			return true;
+		}
 
-        const valueEur = Number(entry.originalValueEur);
-        if (!Number.isFinite(valueEur) || valueEur <= 125) return false;
-        if (!proofUploaded[key]) return false;
+		const valueEur = Number(entry.originalValueEur);
+		if (!Number.isFinite(valueEur) || valueEur <= 125) return false;
+		if (!proofUploaded[key]) return false;
 
-        return true;
-    });
+		return true;
+	});
 
 	const handleContinue = (e) => {
 		e.preventDefault();
@@ -256,21 +256,29 @@ const InvoiceUploadsPage = () => {
 												</label>
 												<select
 													className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
-                                                    value={
-                                                        entry.invoiceRequired === true
-                                                            ? "true"
-                                                            : entry.invoiceRequired === false
-                                                                ? "false"
-                                                                : ""
-                                                    }
-                                                    onChange={(e) => {
-                                                        const value =
-                                                            e.target.value === ""
-                                                                ? undefined
-                                                                : e.target.value === "true";
+													value={
+														entry.invoiceRequired ===
+														true
+															? "true"
+															: entry.invoiceRequired ===
+																  false
+																? "false"
+																: ""
+													}
+													onChange={(e) => {
+														const value =
+															e.target.value ===
+															""
+																? undefined
+																: e.target
+																		.value ===
+																	"true";
 
-                                                        updateInvoiceRequirement(key, value);
-                                                    }}
+														updateInvoiceRequirement(
+															key,
+															value,
+														);
+													}}
 												>
 													<option value="">
 														Select option
@@ -310,12 +318,16 @@ const InvoiceUploadsPage = () => {
 													value={
 														entry.originalValueEur
 													}
-                                                    onChange={(e) =>
-                                                        updateOriginalValueEur(
-                                                            key,
-                                                            e.target.value.trim() === "" ? undefined : e.target.value
-                                                        )
-                                                    }
+													onChange={(e) =>
+														updateOriginalValueEur(
+															key,
+															e.target.value.trim() ===
+																""
+																? undefined
+																: e.target
+																		.value,
+														)
+													}
 													required={
 														entry.invoiceRequired
 													}

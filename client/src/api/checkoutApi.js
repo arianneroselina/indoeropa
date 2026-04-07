@@ -45,8 +45,8 @@ export const createPembayaran = async ({
 	fullName,
 	packageType,
 	totalEur,
-    priceBreakdown,
-    quantity,
+	priceBreakdown,
+	quantity,
 	paymentStatus,
 	paymentDate,
 	paymentProof,
@@ -55,7 +55,7 @@ export const createPembayaran = async ({
 	formData.append("fullName", fullName);
 	formData.append("packageType", packageType);
 	formData.append("totalEur", totalEur);
-    formData.append("priceBreakdown", priceBreakdown);
+	formData.append("priceBreakdown", priceBreakdown);
 	formData.append("quantity", quantity);
 	formData.append("paymentStatus", paymentStatus);
 	formData.append("paymentDate", paymentDate);

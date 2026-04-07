@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ShipmentMeta } from "../shipping/ShipmentMeta";
-import { getItemPricing } from "../../utils/checkoutPricing";
+import { calculatePriceWithCustoms } from "../../utils/checkoutPricing";
 
 /**
  * OrderSummary
@@ -44,7 +44,7 @@ const OrderSummary = ({
 
 			<div className="mt-4 space-y-3">
 				{cartItems.map((item, idx) => {
-					const { customsSubtotal, total } = getItemPricing(
+					const { customsAmountEur, itemTotalEur } = calculatePriceWithCustoms(
 						item,
 						relevantDutyItems,
 						customsFeeByKey,
@@ -65,13 +65,13 @@ const OrderSummary = ({
 
 								<div className="shrink-0 text-right">
 									<div className="text-sm font-semibold text-gray-900">
-										€{total.toFixed(2)}
+										€{itemTotalEur.toFixed(2)}
 									</div>
 
-									{customsSubtotal > 0 && (
+									{customsAmountEur > 0 && (
 										<div className="subtext mt-0.5 text-xs text-gray-500">
 											incl. customs €
-											{customsSubtotal.toFixed(2)}
+											{customsAmountEur.toFixed(2)}
 										</div>
 									)}
 								</div>

@@ -17,23 +17,40 @@ export const buildCustomsFeeByKey = (relevantDutyItems, invoiceByItem) => {
 	return map;
 };
 
-export const getItemPricing = (item, relevantDutyItems, customsFeeByKey) => {
-	console.log(item);
+export const calculatePriceWithCustoms = (item, relevantDutyItems, customsFeeByKey) => {
+    const transportAmountEur = Number(item.priceEur) || 0;
 
-	const unitTransport = Number(item.priceEur) || 0;
+    const dutyInfo = relevantDutyItems.find((r) => r.item === item);
+    const key = dutyInfo?.key;
 
-	const dutyInfo = relevantDutyItems.find((r) => r.item === item);
-	const key = dutyInfo?.key;
+    const customsAmountEur = key ? customsFeeByKey[key] || 0 : 0;
+    const itemTotalEur = transportAmountEur + customsAmountEur;
 
-	const unitCustoms = key ? customsFeeByKey[key] || 0 : 0;
-	const unitTotal = unitTransport + unitCustoms;
+    const quantityLabel =
+        item.billedWeightKg > 0
+            ? `${item.billedWeightKg} kg`
+            : item.hatQuantity > 0
+                ? `${item.hatQuantity} pcs`
+                : item.documentPages > 0
+                    ? `${item.documentPages} pages`
+                    : "1 item";
 
-	return {
-		key,
-		transportSubtotal: unitTransport,
-		customsSubtotal: unitCustoms,
-		total: unitTotal,
-	};
+    const baseBreakdown = `${quantityLabel} × ${transportAmountEur.toFixed(2)}€`;
+
+    const priceBreakdown =
+        customsAmountEur > 0
+            ? `${baseBreakdown} + customs ${customsAmountEur.toFixed(2)}€ = ${itemTotalEur.toFixed(2)}€`
+            : baseBreakdown;
+
+    item.priceBreakdown = priceBreakdown;
+
+    return {
+        key,
+        transportAmountEur,
+        customsAmountEur,
+        itemTotalEur,
+        priceBreakdown,
+    };
 };
 
 export const getTotalAmountEUR = (
@@ -43,7 +60,7 @@ export const getTotalAmountEUR = (
 ) => {
 	return cartItems.reduce((sum, item) => {
 		return (
-			sum + getItemPricing(item, relevantDutyItems, customsFeeByKey).total
+			sum + calculatePriceWithCustoms(item, relevantDutyItems, customsFeeByKey).itemTotalEur
 		);
 	}, 0);
 };

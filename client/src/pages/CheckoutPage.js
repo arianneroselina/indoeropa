@@ -7,9 +7,9 @@ import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 import CheckoutForm from "../components/checkout/CheckoutForm";
 import OrderSummary from "../components/checkout/OrderSummary";
 import {
-	buildCustomsFeeByKey,
-	getItemPricing,
-	getTotalAmountEUR,
+    buildCustomsFeeByKey,
+    calculatePriceWithCustoms,
+    getTotalAmountEUR,
 } from "../utils/checkoutPricing";
 import {
 	createPengirimanLokal,
@@ -27,8 +27,12 @@ const CheckoutPage = () => {
 	const [cartItems, setCartItems] = useState([]);
 	const [invoiceByItem, setInvoiceByItem] = useState({});
 
-	const [fullName, setFullName] = useState("");
-	const [address, setAddress] = useState("");
+	// Billing address
+	const [firstName, setFirstName] = useState("");
+	const [lastName, setLastName] = useState("");
+	const [street, setStreet] = useState("");
+	const [postalCode, setPostalCode] = useState("");
+	const [country, setCountry] = useState("");
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
 
@@ -83,6 +87,9 @@ const CheckoutPage = () => {
 		? "Back to Invoices"
 		: "Back to Cart";
 
+	// Derived full name for downstream API calls
+	const fullName = `${firstName} ${lastName}`.trim();
+
 	// =========================
 	// Form submission
 	// =========================
@@ -96,14 +103,20 @@ const CheckoutPage = () => {
 			const today = new Date().toISOString().slice(0, 10);
 			const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
 
-			await createPengirimanLokal({
+			// Compose billing address string for the local delivery record
+			const billingAddress = [street, postalCode, country]
+				.filter(Boolean)
+				.join(", ");
+
+			// TODO: this needs to be handled differently for each route
+			/*await createPengirimanLokal({
 				fullName,
-				address,
-			});
+				address: billingAddress,
+			});*/
 
 			for (const item of cartItems) {
 				const packageType = item.packageTypeLabel ?? "-";
-				const { total } = getItemPricing(
+				const { itemTotalEur, priceBreakdown } = calculatePriceWithCustoms(
 					item,
 					relevantDutyItems,
 					customsFeeByKey,
@@ -112,7 +125,7 @@ const CheckoutPage = () => {
 				await createPenerimaanBarang({
 					fullName,
 					packageType,
-                    quantity:
+					quantity:
 						item.billedWeightKg > 0
 							? item.billedWeightKg
 							: item.hatQuantity > 0
@@ -124,9 +137,9 @@ const CheckoutPage = () => {
 				await createPembayaran({
 					fullName,
 					packageType,
-                    totalEur: total,
-                    priceBreakdown: item.priceBreakdown,
-                    quantity:
+					totalEur: itemTotalEur,
+					priceBreakdown: priceBreakdown,
+					quantity:
 						item.billedWeightKg > 0
 							? item.billedWeightKg
 							: item.hatQuantity > 0
@@ -193,14 +206,22 @@ const CheckoutPage = () => {
 						<div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
 							<CheckoutForm
 								handleSubmit={handleSubmit}
-								fullName={fullName}
-								setFullName={setFullName}
-								address={address}
-								setAddress={setAddress}
+								// Billing address
+								firstName={firstName}
+								setFirstName={setFirstName}
+								lastName={lastName}
+								setLastName={setLastName}
+								street={street}
+								setStreet={setStreet}
+								postalCode={postalCode}
+								setPostalCode={setPostalCode}
+								country={country}
+								setCountry={setCountry}
 								email={email}
 								setEmail={setEmail}
 								phone={phone}
 								setPhone={setPhone}
+								// Payment
 								paymentMethod={paymentMethod}
 								setPaymentMethod={setPaymentMethod}
 								setPaymentProof={setPaymentProof}

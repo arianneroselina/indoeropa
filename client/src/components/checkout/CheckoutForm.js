@@ -6,8 +6,8 @@ import { Link } from "react-router-dom";
  *
  * Props:
  * - handleSubmit: form submit handler for the checkout action
- * - fullName, address, email, phone: current customer form values
- * - setFullName, setAddress, setEmail, setPhone: setters for customer form fields
+ * - firstName, lastName, street, postalCode, country, email, phone: billing address fields
+ * - setFirstName, setLastName, setStreet, setPostalCode, setCountry, setEmail, setPhone: setters
  * - paymentMethod, paymentProof, notes: current payment / notes values
  * - setPaymentMethod, setPaymentProof, setNotes: setters for payment / notes fields
  * - termsAccepted: whether the user accepted the terms
@@ -16,10 +16,16 @@ import { Link } from "react-router-dom";
  */
 const CheckoutForm = ({
 	handleSubmit,
-	fullName,
-	setFullName,
-	address,
-	setAddress,
+	firstName,
+	setFirstName,
+	lastName,
+	setLastName,
+	street,
+	setStreet,
+	postalCode,
+	setPostalCode,
+	country,
+	setCountry,
 	email,
 	setEmail,
 	phone,
@@ -35,65 +41,125 @@ const CheckoutForm = ({
 }) => {
 	return (
 		<div>
-			<form onSubmit={handleSubmit} className="space-y-6">
-				{/* Customer details */}
+			<form onSubmit={handleSubmit} className="space-y-8">
+				{/* Billing Address */}
 				<div className="space-y-4">
-					<div>
-						<label className="block text-sm font-semibold text-gray-800">
-							Full Name <span className="text-red-500">*</span>
-						</label>
-						<input
-							type="text"
-							className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
-							value={fullName}
-							onChange={(e) => setFullName(e.target.value)}
-							required
-						/>
+					<h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+						Billing Address
+					</h3>
+
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div>
+							<label className="block text-sm font-semibold text-gray-800">
+								First Name{" "}
+								<span className="text-red-500">*</span>
+							</label>
+							<input
+								type="text"
+								className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
+								value={firstName}
+								onChange={(e) => setFirstName(e.target.value)}
+								required
+							/>
+						</div>
+
+						<div>
+							<label className="block text-sm font-semibold text-gray-800">
+								Last Name{" "}
+								<span className="text-red-500">*</span>
+							</label>
+							<input
+								type="text"
+								className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
+								value={lastName}
+								onChange={(e) => setLastName(e.target.value)}
+								required
+							/>
+						</div>
 					</div>
 
 					<div>
 						<label className="block text-sm font-semibold text-gray-800">
-							Full Delivery Address{" "}
+							Street Address{" "}
 							<span className="text-red-500">*</span>
 						</label>
 						<input
 							type="text"
 							className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
-							value={address}
-							onChange={(e) => setAddress(e.target.value)}
+							placeholder="e.g. Musterstraße 12"
+							value={street}
+							onChange={(e) => setStreet(e.target.value)}
 							required
 						/>
 					</div>
 
-					<div>
-						<label className="block text-sm font-semibold text-gray-800">
-							Email <span className="text-red-500">*</span>
-						</label>
-						<input
-							type="email"
-							className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							required
-						/>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div>
+							<label className="block text-sm font-semibold text-gray-800">
+								Postal Code{" "}
+								<span className="text-red-500">*</span>
+							</label>
+							<input
+								type="text"
+								className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
+								placeholder="e.g. 60311"
+								value={postalCode}
+								onChange={(e) => setPostalCode(e.target.value)}
+								required
+							/>
+						</div>
+
+						<div>
+							<label className="block text-sm font-semibold text-gray-800">
+								Country <span className="text-red-500">*</span>
+							</label>
+							<input
+								type="text"
+								className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
+								placeholder="e.g. Germany"
+								value={country}
+								onChange={(e) => setCountry(e.target.value)}
+								required
+							/>
+						</div>
 					</div>
 
-					<div>
-						<label className="block text-sm font-semibold text-gray-800">
-							Phone Number <span className="text-red-500">*</span>
-						</label>
-						<input
-							type="tel"
-							className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
-							value={phone}
-							onChange={(e) => setPhone(e.target.value)}
-							required
-						/>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div>
+							<label className="block text-sm font-semibold text-gray-800">
+								Email <span className="text-red-500">*</span>
+							</label>
+							<input
+								type="email"
+								className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								required
+							/>
+						</div>
+
+						<div>
+							<label className="block text-sm font-semibold text-gray-800">
+								Phone Number{" "}
+								<span className="text-red-500">*</span>
+							</label>
+							<input
+								type="tel"
+								className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus"
+								value={phone}
+								onChange={(e) => setPhone(e.target.value)}
+								required
+							/>
+						</div>
 					</div>
 				</div>
 
 				{/* Payment details */}
-				<div className="mt-6 space-y-4">
+				<div className="space-y-4">
+					<h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+						Payment
+					</h3>
+
 					<div>
 						<label className="block text-sm font-semibold text-gray-800">
 							Payment Method{" "}
@@ -148,7 +214,7 @@ const CheckoutForm = ({
 				</div>
 
 				{/* Terms acceptance */}
-				<div className="mt-4 flex items-center">
+				<div className="flex items-center">
 					<input
 						type="checkbox"
 						checked={termsAccepted}
@@ -171,7 +237,7 @@ const CheckoutForm = ({
 				<button
 					type="submit"
 					disabled={submitting}
-					className="button-primary mt-6 inline-flex w-full items-center justify-center py-3 text-lg font-semibold disabled:opacity-60"
+					className="button-primary mt-2 inline-flex w-full items-center justify-center py-3 text-lg font-semibold disabled:opacity-60"
 				>
 					{submitting ? "Processing..." : "Checkout"}
 				</button>
