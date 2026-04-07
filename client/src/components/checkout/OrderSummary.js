@@ -43,15 +43,12 @@ const OrderSummary = ({
 			</div>
 
 			<div className="mt-4 space-y-3">
-				{cartItems.map((item, idx) => {
+				{cartItems.map((item) => {
 					const { customsAmountEur, itemTotalEur } =
 						calculatePriceWithCustoms(item, customsFeeByKey);
 
 					return (
-						<div
-							key={item.signature ?? idx}
-							className="rounded-xl border bg-gray-50/60 p-3"
-						>
+						<div className="rounded-xl border bg-gray-50/60 p-3">
 							<div className="flex items-start justify-between gap-3">
 								<ShipmentMeta
 									item={item}

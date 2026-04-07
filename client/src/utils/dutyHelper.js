@@ -9,7 +9,7 @@ export const DUTY_TYPES = new Set([
 /**
  * Returns only shipments that require invoice logic.
  * Output format:
- * [{ item, idx, key }]
+ * [{ item, key }]
  */
 export const getRelevantDutyItems = (cartItems = []) => {
 	return cartItems

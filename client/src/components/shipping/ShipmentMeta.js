@@ -3,8 +3,6 @@ import { getItemQuantityLabel } from "../../utils/checkoutHelper";
 
 export const ShipmentMeta = ({
 	item,
-	idx,
-	showIndex = false,
 	showDateChip = true,
 	showDetailChip = true,
 	compact = false,
@@ -33,7 +31,6 @@ export const ShipmentMeta = ({
 				}
 			>
 				<div className={titleClass}>
-					{showIndex ? `Shipment ${idx + 1}: ` : ""}
 					{item.fromCountry} → {item.toCountry}
 				</div>
 

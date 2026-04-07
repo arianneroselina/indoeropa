@@ -28,7 +28,7 @@ const InvoiceUploadsPage = () => {
 	// TODO: upload to Notion
 	const [proofUploaded, setProofUploaded] = useState({}); // { [itemKey]: boolean }
 
-    const [errorMessage, setErrorMessage] = useState("");
+	const [errorMessage, setErrorMessage] = useState("");
 
 	useEffect(() => {
 		const savedCartItems = localStorage.getItem(CART_KEY);
@@ -137,13 +137,13 @@ const InvoiceUploadsPage = () => {
 			if (entry.invoiceRequired) {
 				const val = Number(entry.originalValueEur);
 				if (!Number.isFinite(val) || val <= 125) {
-                    setErrorMessage(
-                        "Original item value must be bigger than €125 when selecting 'Yes'."
-                    );
+					setErrorMessage(
+						"Original item value must be bigger than €125 when selecting 'Yes'.",
+					);
 					return;
 				}
 				if (!proofUploaded[key]) {
-                    setErrorMessage(
+					setErrorMessage(
 						"Please upload an invoice/receipt for every shipment marked as over €125.",
 					);
 					return;
@@ -203,7 +203,7 @@ const InvoiceUploadsPage = () => {
 
 					<form onSubmit={handleContinue} className="space-y-6">
 						<div className="space-y-4">
-							{relevant.map(({ item, idx, key }) => {
+							{relevant.map(({ item, key }) => {
 								const entry = invoiceReqByItem[key] ?? {
 									invoiceRequired: false,
 									originalValueEur: "",
@@ -238,7 +238,6 @@ const InvoiceUploadsPage = () => {
 											<div className="flex items-start justify-between gap-4">
 												<ShipmentMeta
 													item={item}
-													idx={idx}
 													showIndex={true}
 													showDateChip={false}
 													showDetailChip={false}
@@ -414,11 +413,11 @@ const InvoiceUploadsPage = () => {
 							</button>
 						</div>
 
-                        {errorMessage ? (
-                            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                {errorMessage}
-                            </div>
-                        ) : null}
+						{errorMessage ? (
+							<div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+								{errorMessage}
+							</div>
+						) : null}
 					</form>
 				</div>
 			</div>
