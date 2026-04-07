@@ -120,7 +120,10 @@ const InvoiceUploadsPage = () => {
 			return true;
 		}
 
-		const valueEur = Number(entry.originalValueEur);
+		const valueEur =
+			entry.originalValueEur === undefined
+				? ""
+				: Number(entry.originalValueEur);
 		if (!Number.isFinite(valueEur) || valueEur <= 125) return false;
 		if (!proofUploaded[key]) return false;
 
@@ -135,8 +138,11 @@ const InvoiceUploadsPage = () => {
 			if (!entry?.invoiceRequired === undefined) return;
 
 			if (entry.invoiceRequired) {
-				const val = Number(entry.originalValueEur);
-				if (!Number.isFinite(val) || val <= 125) {
+				const valueEur =
+					entry.originalValueEur === undefined
+						? ""
+						: Number(entry.originalValueEur);
+				if (!Number.isFinite(valueEur) || valueEur <= 125) {
 					setErrorMessage(
 						"Original item value must be bigger than €125 when selecting 'Yes'.",
 					);
@@ -205,21 +211,22 @@ const InvoiceUploadsPage = () => {
 						<div className="space-y-4">
 							{relevant.map(({ item, key }) => {
 								const entry = invoiceReqByItem[key] ?? {
-									invoiceRequired: false,
-									originalValueEur: "",
+									invoiceRequired: undefined,
+									originalValueEur: undefined,
 								};
 
 								const originalValueNum = Number(
 									entry.originalValueEur,
 								);
 								const isValueInvalid =
-									entry.invoiceRequired &&
-									entry.originalValueEur !== "" &&
+									entry.invoiceRequired === true &&
+									entry.originalValueEur !== undefined &&
 									(!Number.isFinite(originalValueNum) ||
 										originalValueNum <= 125);
 
 								const fee =
-									entry.invoiceRequired &&
+									entry.invoiceRequired === true &&
+									entry.originalValueEur !== undefined &&
 									Number.isFinite(
 										Number(entry.originalValueEur),
 									)

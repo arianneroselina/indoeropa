@@ -11,7 +11,8 @@ import {
     mapSettings,
     mapSizePresets
 } from "./utils/notionMappers.js";
-import { buildRouteName, findOrCreateChildPage, formatRouteDate } from "./helper.js";
+import { buildRouteName, findOrCreateChildPage, findOrCreateDatabaseInPage, formatRouteDate } from "./helper.js";
+import { pembayaranSchema, penerimaanBarangSchema, pengirimanLokalSchema } from "./databaseSchema.js";
 
 dotenv.config();
 
@@ -95,17 +96,89 @@ app.post("/api/notion/order-route-page", async (req, res) => {
 });
 
 /**
+ * Create a new route database in a page
+ */
+app.post("/api/notion/order-route-databases", async (req, res) => {
+    try {
+        const { datePageId } = req.body;
+
+        if (!datePageId) {
+            return res.status(400).json({ error: "datePageId is required" });
+        }
+
+        const penerimaan = await findOrCreateDatabaseInPage({
+            notion,
+            pageId: datePageId,
+            title: "Penerimaan Barang",
+            properties: penerimaanBarangSchema,
+        });
+
+        const pembayaran = await findOrCreateDatabaseInPage({
+            notion,
+            pageId: datePageId,
+            title: "Pembayaran",
+            properties: pembayaranSchema,
+        });
+
+        const pengiriman = await findOrCreateDatabaseInPage({
+            notion,
+            pageId: datePageId,
+            title: "Pengiriman Lokal",
+            properties: pengirimanLokalSchema,
+        });
+
+        return res.json({
+            ok: true,
+            databases: {
+                penerimaanBarang: {
+                    id: penerimaan.database.id,
+                    dataSourceId: penerimaan.database.data_sources?.[0]?.id ?? null,
+                    created: penerimaan.created,
+                },
+                pembayaran: {
+                    id: pembayaran.database.id,
+                    dataSourceId: pembayaran.database.data_sources?.[0]?.id ?? null,
+                    created: pembayaran.created,
+                },
+                pengirimanLokal: {
+                    id: pengiriman.database.id,
+                    dataSourceId: pengiriman.database.data_sources?.[0]?.id ?? null,
+                    created: pengiriman.created,
+                },
+            },
+        });
+    } catch (err) {
+        const code = err?.cause?.code || err?.code;
+        const message = err?.message || String(err);
+
+        console.error("Notion error (Order Route Databases):", {
+            code,
+            message,
+        });
+
+        return res.status(500).json({
+            error: "Failed to create/find route databases in Notion",
+            code,
+            message,
+        });
+    }
+});
+
+/**
  * Post data to Notion
  */
 app.post("/api/notion/penerimaan-barang", async (req, res) => {
     try {
-        const { orderId, fullName, email, phone, packageType, quantity, request } = req.body;
+        const { dataSourceId, orderId, fullName, email, phone, packageType, quantity, request } = req.body;
+        if (!dataSourceId) {
+            return res.status(400).json({ error: "dataSourceId is required" });
+        }
         if (!fullName) return res.status(400).json({ error: "fullName is required" });
 
         const created = await notion.pages.create({
             parent: {
                 type: "data_source_id",
-                data_source_id: process.env.NOTION_DB_PENERIMAAN_BARANG,
+                data_source_id: dataSourceId,
             },
             properties: {
                 "Order ID (WEB)": {
@@ -144,6 +217,7 @@ app.post("/api/notion/penerimaan-barang", async (req, res) => {
 app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, res) => {
     try {
         const {
+            dataSourceId,
             orderId,
             fullName,
             email,
@@ -159,6 +233,9 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
 
         const paymentProof = req.file;
 
+        if (!dataSourceId) {
+            return res.status(400).json({ error: "dataSourceId is required" });
+        }
         if (!fullName) {
             return res.status(400).json({ error: "fullName is required" });
         }
@@ -198,7 +275,7 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
         const created = await notion.pages.create({
             parent: {
                 type: "data_source_id",
-                data_source_id: process.env.NOTION_DB_PEMBAYARAN,
+                data_source_id: dataSourceId,
             },
             properties: {
                 "Order ID (WEB)": {
@@ -256,14 +333,16 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
 
 app.post("/api/notion/pengiriman-lokal", async (req, res) => {
     try {
-        const { orderId, fullName, address } = req.body;
-
+        const { dataSourceId, orderId, fullName, address } = req.body;
+        if (!dataSourceId) {
+            return res.status(400).json({ error: "dataSourceId is required" });
+        }
         if (!fullName) return res.status(400).json({ error: "fullName is required" });
 
         const created = await notion.pages.create({
             parent: {
                 type: "data_source_id",
-                data_source_id: process.env.NOTION_DB_PENGIRIMAN_LOKAL,
+                data_source_id: dataSourceId,
             },
             properties: {
                 "Order ID (WEB)": {

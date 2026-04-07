@@ -26,7 +26,26 @@ export const createOrGetOrderRoutePage = async ({
 	return data;
 };
 
+export const createOrGetOrderRouteDatabases = async ({ datePageId }) => {
+	const res = await fetch(`${API_BASE}/api/notion/order-route-databases`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ datePageId }),
+	});
+
+	const data = await res.json().catch(() => ({}));
+
+	if (!res.ok) {
+		throw new Error(
+			data?.message || data?.error || "Failed to create route databases.",
+		);
+	}
+
+	return data;
+};
+
 export const createPengirimanLokal = async ({
+	dataSourceId,
 	orderId,
 	fullName,
 	phone,
@@ -36,7 +55,14 @@ export const createPengirimanLokal = async ({
 	const res = await fetch(`${API_BASE}/api/notion/pengiriman-lokal`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ orderId, fullName, phone, email, address }),
+		body: JSON.stringify({
+			dataSourceId,
+			orderId,
+			fullName,
+			phone,
+			email,
+			address,
+		}),
 	});
 
 	const data = await res.json().catch(() => ({}));
@@ -51,6 +77,7 @@ export const createPengirimanLokal = async ({
 };
 
 export const createPenerimaanBarang = async ({
+	dataSourceId,
 	orderId,
 	fullName,
 	phone,
@@ -63,6 +90,7 @@ export const createPenerimaanBarang = async ({
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
+			dataSourceId,
 			orderId,
 			fullName,
 			phone,
@@ -85,6 +113,7 @@ export const createPenerimaanBarang = async ({
 };
 
 export const createPembayaran = async ({
+	dataSourceId,
 	orderId,
 	fullName,
 	phone,
@@ -99,6 +128,7 @@ export const createPembayaran = async ({
 	paymentProof,
 }) => {
 	const formData = new FormData();
+	formData.append("dataSourceId", dataSourceId);
 	formData.append("orderId", orderId);
 	formData.append("fullName", fullName);
 	formData.append("phone", phone);

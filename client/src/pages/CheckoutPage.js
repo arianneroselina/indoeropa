@@ -17,6 +17,7 @@ import {
 	// createPengirimanLokal,
 	createPenerimaanBarang,
 	createPembayaran,
+	createOrGetOrderRouteDatabases,
 } from "../api/checkoutApi";
 import { useShippingData } from "../hooks/useShippingData";
 
@@ -133,14 +134,29 @@ const CheckoutPage = () => {
 				shipmentDate: firstItem.shipmentDate,
 			});
 
-			console.log(
-				"Using route page:",
-				routePage.title,
-				routePage.notionPageId,
-			);
+			const routeDbs = await createOrGetOrderRouteDatabases({
+				datePageId: routePage.datePageId,
+			});
+
+			const penerimaanBarangDataSourceId =
+				routeDbs.databases.penerimaanBarang.dataSourceId;
+			const pembayaranDataSourceId =
+				routeDbs.databases.pembayaran.dataSourceId;
+			const pengirimanLokalDataSourceId =
+				routeDbs.databases.pengirimanLokal.dataSourceId;
+			if (
+				!penerimaanBarangDataSourceId ||
+				!pembayaranDataSourceId ||
+				!pengirimanLokalDataSourceId
+			) {
+				throw new Error(
+					"Missing route-specific Notion data source IDs.",
+				);
+			}
 
 			// TODO: this needs to be handled differently for each route
 			/*await createPengirimanLokal({
+	            dataSourceId: pengirimanLokalDataSourceId,
 			    orderId,
 				fullName,
                 phone,
@@ -154,6 +170,7 @@ const CheckoutPage = () => {
 					calculatePriceWithCustoms(item, customsFeeByKey);
 
 				await createPenerimaanBarang({
+					dataSourceId: penerimaanBarangDataSourceId,
 					orderId,
 					fullName,
 					phone,
@@ -164,6 +181,7 @@ const CheckoutPage = () => {
 				});
 
 				await createPembayaran({
+					dataSourceId: pembayaranDataSourceId,
 					orderId,
 					fullName,
 					phone,
