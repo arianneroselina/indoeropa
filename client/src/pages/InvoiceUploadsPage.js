@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaInfoCircle } from "react-icons/fa";
 import { CART_KEY, INVOICES_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
-import { getRelevantDutyItems } from "../utils/dutyHelper";
 
 /**
  * @typedef {Object} InvoiceRequirement
@@ -17,6 +16,8 @@ import { getRelevantDutyItems } from "../utils/dutyHelper";
  * @typedef {Object.<string, boolean>} ProofUploadedByItem
  */
 
+const limit = 125;
+
 const InvoiceUploadsPage = () => {
 	const navigate = useNavigate();
 	const [cartItems, setCartItems] = useState([]);
@@ -26,7 +27,8 @@ const InvoiceUploadsPage = () => {
 
 	// session-only upload state (NOT persisted)
 	// TODO: upload to Notion
-	const [proofUploaded, setProofUploaded] = useState({}); // { [itemKey]: boolean }
+	/** @type {[ProofUploadedByItem, Function]} */
+	const [proofUploaded, setProofUploaded] = useState({});
 
 	const [errorMessage, setErrorMessage] = useState("");
 
@@ -55,7 +57,14 @@ const InvoiceUploadsPage = () => {
 	}, []);
 
 	const relevant = useMemo(() => {
-		return getRelevantDutyItems(cartItems);
+		return cartItems
+			.filter((item) => item?.duty === true)
+			.map((item, index) => ({
+				item,
+				key:
+					item.key ??
+					`${item.fromCountry || "from"}-${item.toCountry || "to"}-${item.shipmentDate || "date"}-${index}`,
+			}));
 	}, [cartItems]);
 
 	// If no relevant items, skip page
@@ -124,7 +133,8 @@ const InvoiceUploadsPage = () => {
 			entry.originalValueEur === undefined
 				? ""
 				: Number(entry.originalValueEur);
-		if (!Number.isFinite(valueEur) || valueEur <= 125) return false;
+
+		if (!Number.isFinite(valueEur) || valueEur <= limit) return false;
 		if (!proofUploaded[key]) return false;
 
 		return true;
@@ -132,25 +142,34 @@ const InvoiceUploadsPage = () => {
 
 	const handleContinue = (e) => {
 		e.preventDefault();
+		setErrorMessage("");
 
 		for (const { key } of relevant) {
 			const entry = invoiceReqByItem[key];
-			if (!entry?.invoiceRequired === undefined) return;
+
+			if (entry?.invoiceRequired === undefined) {
+				setErrorMessage(
+					`Please choose whether the original item value is above €${limit} for each relevant shipment.`,
+				);
+				return;
+			}
 
 			if (entry.invoiceRequired) {
 				const valueEur =
 					entry.originalValueEur === undefined
 						? ""
 						: Number(entry.originalValueEur);
-				if (!Number.isFinite(valueEur) || valueEur <= 125) {
+
+				if (!Number.isFinite(valueEur) || valueEur <= limit) {
 					setErrorMessage(
-						"Original item value must be bigger than €125 when selecting 'Yes'.",
+						`Original item value must be bigger than €${limit} when selecting 'Yes'.`,
 					);
 					return;
 				}
+
 				if (!proofUploaded[key]) {
 					setErrorMessage(
-						"Please upload an invoice/receipt for every shipment marked as over €125.",
+						`Please upload an invoice/receipt for every shipment marked as over €${limit}.`,
 					);
 					return;
 				}
@@ -171,6 +190,7 @@ const InvoiceUploadsPage = () => {
 						<FaArrowRight className="transform rotate-180" />
 						<span>Back to Cart</span>
 					</Link>
+
 					<h2 className="text-4xl font-semibold text-center">
 						Invoices Upload
 					</h2>
@@ -181,7 +201,7 @@ const InvoiceUploadsPage = () => {
 						<p className="text-sm text-gray-700">
 							For the items listed below with an{" "}
 							<span className="font-semibold">
-								original value above €125
+								original value above €{limit}
 							</span>
 							, an invoice or receipt is required.
 							<br />
@@ -192,16 +212,17 @@ const InvoiceUploadsPage = () => {
 								<FaInfoCircle className="text-gray-400 hover:text-gray-600 transition cursor-help" />
 								<span
 									className="
-                    pointer-events-none absolute left-0 top-full mt-2 w-72
-                    rounded-lg border bg-white px-3 py-2 text-xs text-gray-700 shadow-lg
-                    opacity-0 translate-y-1 transition
-                    group-hover:opacity-100 group-hover:translate-y-0
-                    z-20
-                  "
+										pointer-events-none absolute left-0 top-full mt-2 w-72
+										rounded-lg border bg-white px-3 py-2 text-xs text-gray-700 shadow-lg
+										opacity-0 translate-y-1 transition
+										group-hover:opacity-100 group-hover:translate-y-0
+										z-20
+									"
 								>
 									This fee covers customs processing,
 									declaration handling, and administrative
-									costs required for items valued above €125.
+									costs required for items valued above €
+									{limit}.
 								</span>
 							</span>
 						</p>
@@ -218,11 +239,12 @@ const InvoiceUploadsPage = () => {
 								const originalValueNum = Number(
 									entry.originalValueEur,
 								);
+
 								const isValueInvalid =
 									entry.invoiceRequired === true &&
 									entry.originalValueEur !== undefined &&
 									(!Number.isFinite(originalValueNum) ||
-										originalValueNum <= 125);
+										originalValueNum <= limit);
 
 								const fee =
 									entry.invoiceRequired === true &&
@@ -256,12 +278,13 @@ const InvoiceUploadsPage = () => {
 										<div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
 											<div>
 												<label className="block text-sm font-semibold text-gray-800">
-													Original item value over
-													€125?{" "}
+													Original item value over €
+													{limit}?{" "}
 													<span className="text-red-500">
 														*
 													</span>
 												</label>
+
 												<select
 													className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
 													value={
@@ -324,7 +347,8 @@ const InvoiceUploadsPage = () => {
 															: "border-gray-300 input-focus",
 													].join(" ")}
 													value={
-														entry.originalValueEur
+														entry.originalValueEur ??
+														""
 													}
 													onChange={(e) =>
 														updateOriginalValueEur(
@@ -345,7 +369,7 @@ const InvoiceUploadsPage = () => {
 													<p className="subtext text-xs text-red-600 mt-2">
 														Value must be bigger
 														than €125 when selecting
-														'Yes'.
+														"Yes".
 													</p>
 												)}
 
@@ -405,6 +429,7 @@ const InvoiceUploadsPage = () => {
 							<Link to="/cart" className="button-secondary">
 								Cancel
 							</Link>
+
 							<button
 								type="submit"
 								disabled={!isInvoiceComplete}

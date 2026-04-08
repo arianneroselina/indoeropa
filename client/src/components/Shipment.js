@@ -39,6 +39,7 @@ import { useShippingData } from "../hooks/useShippingData";
  * @property {string} priceBreakdown
  * @property {number | undefined} documentPages
  * @property {number | undefined} hatQuantity
+ * @property {boolean} duty
  * @property {string} createdAt
  * @property {string} [signature]
  */
@@ -435,6 +436,7 @@ export default function Shipment({ variant = "default" }) {
 			priceBreakdown: priceResult.breakdown,
 			documentPages: isDocument ? Number(documentPages) : undefined,
 			hatQuantity: isHat ? Number(hatQuantity) : undefined,
+			duty: selectedPackageType?.duty,
 			createdAt: new Date().toISOString(),
 		};
 

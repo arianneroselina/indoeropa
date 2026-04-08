@@ -61,6 +61,7 @@ export function mapCountries(rows) {
  * - Price (pages < 11) (number)
  * - Price (pages < 51) (number)
  * - Price (pages < 101) (number)
+ * - Duty (checkbox)
  * - Active (checkbox)
  */
 export function mapPackageTypes(rows) {
@@ -96,6 +97,7 @@ export function mapPackageTypes(rows) {
                 description: getPlainText(p["Description"]),
                 iconKey: getSelectName(p[iconProp]) || getPlainText(p[iconProp]),
                 pricing,
+                duty: getCheckbox(p["Duty"]) ?? false,
             };
         })
         .sort((a, b) => a.number - b.number);

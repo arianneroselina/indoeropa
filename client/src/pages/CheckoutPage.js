@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
-import { CART_KEY, INVOICES_KEY } from "../utils/constants";
-import { hasDutyStep, getRelevantDutyItems } from "../utils/dutyHelper";
+import {
+	CART_KEY,
+	INVOICES_KEY,
+	CHECKOUT_SUCCESS_KEY,
+} from "../utils/constants";
 import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
 import CheckoutForm from "../components/checkout/CheckoutForm";
 import OrderSummary from "../components/checkout/OrderSummary";
@@ -71,7 +74,14 @@ const CheckoutPage = () => {
 	// Derived pricing
 	// =========================
 	const relevantDutyItems = useMemo(() => {
-		return getRelevantDutyItems(cartItems);
+		return cartItems
+			.filter((item) => item?.duty === true)
+			.map((item, index) => ({
+				item,
+				key:
+					item.key ??
+					`${item.fromCountry || "from"}-${item.toCountry || "to"}-${item.shipmentDate || "date"}-${index}`,
+			}));
 	}, [cartItems]);
 
 	const customsFeeByKey = useMemo(() => {
@@ -86,10 +96,9 @@ const CheckoutPage = () => {
 		return totalAmountEUR * eurToIdrRate;
 	}, [totalAmountEUR, eurToIdrRate]);
 
-	const backTo = hasDutyStep(cartItems) ? "/invoices" : "/cart";
-	const backLabel = hasDutyStep(cartItems)
-		? "Back to Invoices"
-		: "Back to Cart";
+	const hasDutyItems = cartItems.some((item) => item?.duty === true);
+	const backTo = hasDutyItems ? "/invoices" : "/cart";
+	const backLabel = hasDutyItems ? "Back to Invoices" : "Back to Cart";
 
 	// Derived full name for downstream API calls
 	const fullName = `${firstName} ${lastName}`.trim();
@@ -97,13 +106,14 @@ const CheckoutPage = () => {
 	// =========================
 	// Form submission
 	// =========================
-	const orderId = `ORD-${Date.now()}`;
-
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (submitting) return;
 		setSubmitting(true);
+		setErrorMessage("");
+
+		const orderId = `ORD-${Date.now()}`;
 
 		try {
 			const today = new Date().toISOString().slice(0, 10);
@@ -144,6 +154,7 @@ const CheckoutPage = () => {
 				routeDbs.databases.pembayaran.dataSourceId;
 			const pengirimanLokalDataSourceId =
 				routeDbs.databases.pengirimanLokal.dataSourceId;
+
 			if (
 				!penerimaanBarangDataSourceId ||
 				!pembayaranDataSourceId ||
@@ -156,13 +167,13 @@ const CheckoutPage = () => {
 
 			// TODO: this needs to be handled differently for each route
 			/*await createPengirimanLokal({
-	            dataSourceId: pengirimanLokalDataSourceId,
-			    orderId,
-				fullName,
+                dataSourceId: pengirimanLokalDataSourceId,
+                orderId,
+                fullName,
                 phone,
                 email,
-				address: billingAddress,
-			});*/
+                address: billingAddress,
+            });*/
 
 			for (const item of cartItems) {
 				const packageType = item.packageTypeLabel ?? "-";
@@ -189,7 +200,7 @@ const CheckoutPage = () => {
 					billingAddress,
 					packageType,
 					totalEur: itemTotalEur,
-					priceBreakdown: priceBreakdown,
+					priceBreakdown,
 					quantity: getItemQuantity(item),
 					paymentStatus,
 					paymentDate: today,
@@ -202,14 +213,29 @@ const CheckoutPage = () => {
 			setCartItems([]);
 			setInvoiceByItem({});
 
+			const successPayload = {
+				orderId,
+				fullName,
+				email,
+				phone,
+				billingAddress,
+				fromCountry: firstItem.fromCountry,
+				toCountry: firstItem.toCountry,
+				shipmentDate: firstItem.shipmentDate,
+				totalAmountEUR,
+				totalAmountIDR,
+				itemsCount: cartItems.length,
+				paidViaLabel: paymentMethod?.toUpperCase() || "",
+				hasPaymentProof: Boolean(paymentProof),
+			};
+
+			sessionStorage.setItem(
+				CHECKOUT_SUCCESS_KEY,
+				JSON.stringify(successPayload),
+			);
+
 			navigate("/checkout/success", {
-				state: {
-					fullName,
-					totalAmountEUR,
-					totalAmountIDR,
-					itemsCount: cartItems.length,
-					paidViaLabel: paymentMethod?.toUpperCase() || "",
-				},
+				state: successPayload,
 			});
 		} catch (err) {
 			console.error(err);
@@ -252,7 +278,6 @@ const CheckoutPage = () => {
 						<div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
 							<CheckoutForm
 								handleSubmit={handleSubmit}
-								// Billing address
 								firstName={firstName}
 								setFirstName={setFirstName}
 								lastName={lastName}
@@ -267,7 +292,6 @@ const CheckoutPage = () => {
 								setEmail={setEmail}
 								phone={phone}
 								setPhone={setPhone}
-								// Payment
 								paymentMethod={paymentMethod}
 								setPaymentMethod={setPaymentMethod}
 								setPaymentProof={setPaymentProof}

@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaTrash } from "react-icons/fa";
 import { CART_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
-import { hasDutyStep } from "../utils/dutyHelper";
 
 const CartPage = () => {
 	const navigate = useNavigate();
@@ -41,7 +40,7 @@ const CartPage = () => {
 	};
 
 	const goNext = () => {
-		navigate(hasDutyStep(cartItems) ? "/invoices" : "/checkout");
+		navigate(cartItems.some((item) => item?.duty === true) ? "/invoices" : "/checkout");
 	};
 
 	return (

@@ -28,10 +28,7 @@ const Hero = () => {
 
 					{/* Shop Button */}
 					<div className="flex justify-center sm:justify-start">
-						<a
-							href="/src/components/Shipment"
-							className="button-primary"
-						>
+						<a href="/shipment" className="button-primary">
 							Shop All
 							<FaArrowRight className="ml-2 text-sm" />
 						</a>
