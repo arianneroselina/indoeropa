@@ -13,6 +13,7 @@ import {
 	buildCustomsFeeByKey,
 	calculatePriceWithCustoms,
 	getItemQuantity,
+	getItemQuantityLabel,
 	getTotalAmountEUR,
 } from "../utils/checkoutHelper";
 import {
@@ -219,14 +220,32 @@ const CheckoutPage = () => {
 				email,
 				phone,
 				billingAddress,
-				fromCountry: firstItem.fromCountry,
-				toCountry: firstItem.toCountry,
-				shipmentDate: firstItem.shipmentDate,
 				totalAmountEUR,
 				totalAmountIDR,
 				itemsCount: cartItems.length,
 				paidViaLabel: paymentMethod?.toUpperCase() || "",
 				hasPaymentProof: Boolean(paymentProof),
+				submittedAt: new Date().toISOString(),
+				status: "Order request received",
+				items: cartItems.map((item, index) => {
+					const { itemTotalEur, priceBreakdown } =
+						calculatePriceWithCustoms(item, customsFeeByKey);
+
+					return {
+						lineNumber: index + 1,
+						description: item.packageTypeLabel || "Shipment",
+						packageType: item.packageTypeLabel || "-",
+						quantityLabel: getItemQuantityLabel(item),
+						weightKg: item.weightKg ?? null,
+						billedWeightKg: item.billedWeightKg ?? null,
+						fromCountry: item.fromCountry || "-",
+						toCountry: item.toCountry || "-",
+						shipmentDate: item.shipmentDate || "-",
+						duty: Boolean(item.duty),
+						amountEur: itemTotalEur,
+						priceBreakdown,
+					};
+				}),
 			};
 
 			sessionStorage.setItem(

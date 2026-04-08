@@ -40,7 +40,11 @@ const CartPage = () => {
 	};
 
 	const goNext = () => {
-		navigate(cartItems.some((item) => item?.duty === true) ? "/invoices" : "/checkout");
+		navigate(
+			cartItems.some((item) => item?.duty === true)
+				? "/invoices"
+				: "/checkout",
+		);
 	};
 
 	return (

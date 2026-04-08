@@ -10,9 +10,10 @@ import {
     mapPackageTypes,
     mapSettings,
     mapSizePresets
-} from "./utils/notionMappers.js";
-import { buildRouteName, findOrCreateChildPage, findOrCreateDatabaseInPage, formatRouteDate } from "./helper.js";
-import { pembayaranSchema, penerimaanBarangSchema, pengirimanLokalSchema } from "./databaseSchema.js";
+} from "./src/notionMappers.js";
+import { buildRouteName, findOrCreateChildPage, findOrCreateDatabaseInPage, formatRouteDate } from "./src/helper.js";
+import { pembayaranSchema, penerimaanBarangSchema, pengirimanLokalSchema } from "./src/databaseSchema.js";
+import orderConfirmationRoutes from "./src/routes/orderConfirmationRoutes.js";
 
 dotenv.config();
 
@@ -436,3 +437,5 @@ app.get("/api/notion/shipping-data", async (req, res) => {
         });
     }
 });
+
+app.use("/api/order-confirmation", orderConfirmationRoutes);

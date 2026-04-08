@@ -1,34 +1,43 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
 	FaCheckCircle,
 	FaArrowRight,
 	FaEnvelope,
-	FaPhone,
-	FaMapMarkerAlt,
 	FaReceipt,
+	FaDownload,
 } from "react-icons/fa";
 import {
 	CART_KEY,
 	CHECKOUT_SUCCESS_KEY,
 	INVOICES_KEY,
 } from "../utils/constants";
-import {formatDateToDDMMYYYY} from "../utils/formatDate";
+import { formatDateToDDMMYYYY } from "../utils/formatDate";
+import {
+	downloadOrderConfirmationPdf,
+	sendOrderConfirmationEmail,
+} from "../api/orderConfirmationApi";
 
 const CheckoutSuccessPage = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const fallbackState = (() => {
+	// State to manage the progress of the email sending process
+	const [sendingEmail, setSendingEmail] = useState(false);
+	const [downloadingPdf, setDownloadingPdf] = useState(false);
+	const [emailSent, setEmailSent] = useState(false);
+	const [actionError, setActionError] = useState("");
+
+	const fallbackState = useMemo(() => {
 		try {
-			return JSON.parse(
-				sessionStorage.getItem(CHECKOUT_SUCCESS_KEY) || "null",
-			);
+			const raw = sessionStorage.getItem(CHECKOUT_SUCCESS_KEY);
+			return raw ? JSON.parse(raw) : null;
 		} catch {
 			return null;
 		}
-	})();
+	}, []);
 
+	const successData = location.state || fallbackState || {};
 	const {
 		orderId = "",
 		fullName = "",
@@ -43,7 +52,7 @@ const CheckoutSuccessPage = () => {
 		itemsCount = null,
 		paidViaLabel = "",
 		hasPaymentProof = false,
-	} = location.state || fallbackState || {};
+	} = successData;
 
 	useEffect(() => {
 		localStorage.removeItem(CART_KEY);
@@ -55,6 +64,7 @@ const CheckoutSuccessPage = () => {
 		fullName ||
 		email ||
 		phone ||
+		billingAddress ||
 		fromCountry ||
 		toCountry ||
 		shipmentDate ||
@@ -64,13 +74,43 @@ const CheckoutSuccessPage = () => {
 
 	const nextSteps = useMemo(
 		() => [
-			"We'll send you the order confirmation via email.",
+			"Download or send the order confirmation via email.",
 			"Your payment details will be reviewed.",
 			"We’ll confirm the shipment schedule.",
 			"We’ll contact you if any extra information is needed.",
 		],
 		[],
 	);
+
+	const handleDownloadPdf = async () => {
+		try {
+			setDownloadingPdf(true);
+			setActionError("");
+
+			await downloadOrderConfirmationPdf(successData);
+		} catch (err) {
+			console.error(err);
+			setActionError(err.message || "Failed to download PDF.");
+		} finally {
+			setDownloadingPdf(false);
+		}
+	};
+
+	const handleSendEmail = async () => {
+		try {
+			setSendingEmail(true);
+			setEmailSent(false);
+			setActionError("");
+
+			await sendOrderConfirmationEmail(successData);
+			setEmailSent(true);
+		} catch (err) {
+			console.error(err);
+			setActionError(err.message || "Failed to send confirmation email.");
+		} finally {
+			setSendingEmail(false);
+		}
+	};
 
 	return (
 		<section className="py-24 bg-gray-100">
@@ -143,7 +183,9 @@ const CheckoutSuccessPage = () => {
 												Shipment date
 											</span>
 											<span className="text-sm subtext text-gray-900 text-right">
-												{formatDateToDDMMYYYY(shipmentDate)}
+												{formatDateToDDMMYYYY(
+													shipmentDate,
+												)}
 											</span>
 										</div>
 									)}
@@ -200,33 +242,53 @@ const CheckoutSuccessPage = () => {
 								</div>
 							</div>
 
-							<div className="rounded-2xl border p-5">
-								<h2 className="text-lg font-semibold text-gray-900">
-									Contact details
-								</h2>
+							<div className="text-center">
+								<p className="text-sm text-gray-600">
+									Download your order confirmation as a PDF or
+									send it to{" "}
+									<span className="font-semibold text-gray-800">
+										{email || "your email"}
+									</span>
+									.
+								</p>
 
-								<div className="mt-4 space-y-3 text-sm subtext text-gray-700">
-									{email ? (
-										<div className="flex items-start gap-3">
-											<FaEnvelope className="mt-1 text-gray-500" />
-											<span>{email}</span>
-										</div>
-									) : null}
+								<div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+									<button
+										type="button"
+										onClick={handleDownloadPdf}
+										disabled={downloadingPdf}
+										className="button-secondary inline-flex items-center justify-center"
+									>
+										<FaDownload className="mr-2 text-sm" />
+										{downloadingPdf
+											? "Downloading..."
+											: "Download PDF"}
+									</button>
 
-									{phone ? (
-										<div className="flex items-start gap-3">
-											<FaPhone className="mt-1 text-gray-500" />
-											<span>{phone}</span>
-										</div>
-									) : null}
-
-									{billingAddress ? (
-										<div className="flex items-start gap-3">
-											<FaMapMarkerAlt className="mt-1 text-gray-500" />
-											<span>{billingAddress}</span>
-										</div>
-									) : null}
+									<button
+										type="button"
+										onClick={handleSendEmail}
+										disabled={sendingEmail}
+										className="button-primary inline-flex items-center justify-center"
+									>
+										<FaEnvelope className="mr-2 text-sm" />
+										{sendingEmail
+											? "Sending..."
+											: "Send per email"}
+									</button>
 								</div>
+
+								{emailSent && (
+									<p className="mt-3 text-sm text-green-700">
+										Confirmation email sent successfully.
+									</p>
+								)}
+
+								{actionError && (
+									<p className="mt-3 text-sm text-red-700">
+										{actionError}
+									</p>
+								)}
 							</div>
 
 							<div className="rounded-2xl border p-5">
