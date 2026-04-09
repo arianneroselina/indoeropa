@@ -75,9 +75,9 @@ const CheckoutSuccessPage = () => {
 	const nextSteps = useMemo(
 		() => [
 			"Download or send the order confirmation via email.",
-			"Your payment details will be reviewed.",
-			"We’ll confirm the shipment schedule.",
-			"We’ll contact you if any extra information is needed.",
+			"Our team will review your payment details.",
+			"We’ll confirm your shipment schedule as we process your order.",
+			"You’ll receive updates if we need additional information or when your order status changes.",
 		],
 		[],
 	);

@@ -1,6 +1,6 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import multer from "multer";
 import { Client } from "@notionhq/client";
 import {
@@ -14,8 +14,6 @@ import {
 import { buildRouteName, findOrCreateChildPage, findOrCreateDatabaseInPage, formatRouteDate } from "./src/helper.js";
 import { pembayaranSchema, penerimaanBarangSchema, pengirimanLokalSchema } from "./src/databaseSchema.js";
 import orderConfirmationRoutes from "./src/routes/orderConfirmationRoutes.js";
-
-dotenv.config();
 
 const app = express();
 app.use(cors());

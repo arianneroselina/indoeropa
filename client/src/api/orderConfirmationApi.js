@@ -19,7 +19,7 @@ export const downloadOrderConfirmationPdf = async (payload) => {
 
 	const a = document.createElement("a");
 	a.href = url;
-	a.download = `order-confirmation-${payload.orderId}.pdf`;
+	a.download = `INDOEROPA-order-confirmation-${payload.orderId}.pdf`;
 	document.body.appendChild(a);
 	a.click();
 	a.remove();

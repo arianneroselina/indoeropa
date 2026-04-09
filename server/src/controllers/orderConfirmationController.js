@@ -23,7 +23,7 @@ export const downloadOrderConfirmationPdfController = async (req, res) => {
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
             "Content-Disposition",
-            `attachment; filename="order-confirmation-${data.orderId}.pdf"`,
+            `attachment; filename="INDOEROPA-order-confirmation-${data.orderId}.pdf"`,
         );
 
         return res.send(pdfBuffer);
@@ -44,6 +44,10 @@ export const sendOrderConfirmationEmailController = async (req, res) => {
             to: data.email,
             orderId: data.orderId,
             pdfBuffer,
+            customerName: data.fullName,
+            itemsCount: data.itemsCount,
+            totalAmountEUR: data.totalAmountEUR,
+            totalAmountIDR: data.totalAmountIDR
         });
 
         return res.json({
