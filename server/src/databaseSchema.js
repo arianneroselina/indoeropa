@@ -1,16 +1,12 @@
 const jenisItemOptions = [
-    { name: "Document" },
+    { name: "Documents" },
     { name: "Racket" },
     { name: "Shoes" },
     { name: "Hat" },
     { name: "Bag" },
-    { name: "Super Volume" },
-    { name: "Volume" },
-    { name: "Standard" },
     { name: "1 kg Volume" },
     { name: "1 kg Super Volume" },
     { name: "Standard items" },
-    { name: "Documents" },
 ];
 
 const penerimaanBarangOptions = [
