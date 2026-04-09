@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { sendContactMessage } from "../api/contactApi";
-import { FaArrowRight } from "react-icons/fa";
 
 const ContactPage = () => {
 	const [formData, setFormData] = useState({
@@ -74,96 +73,113 @@ const ContactPage = () => {
 							</p>
 
 							<form onSubmit={handleSubmit} className="space-y-5">
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-									<div>
-										<label
-											htmlFor="name"
-											className="block text-sm font-medium text-gray-700 mb-1"
+								<fieldset
+									disabled={isSubmitting}
+									className={isSubmitting ? "opacity-70" : ""}
+								>
+									<div className="space-y-5">
+										<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+											<div>
+												<label
+													htmlFor="name"
+													className="block text-sm font-medium text-gray-700 mb-1"
+												>
+													Name
+												</label>
+												<input
+													id="name"
+													name="name"
+													type="text"
+													value={formData.name}
+													onChange={handleChange}
+													required
+													className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+												/>
+											</div>
+
+											<div>
+												<label
+													htmlFor="phone"
+													className="block text-sm font-medium text-gray-700 mb-1"
+												>
+													Phone
+												</label>
+												<input
+													id="phone"
+													name="phone"
+													type="text"
+													value={formData.phone}
+													onChange={handleChange}
+													className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+												/>
+											</div>
+										</div>
+
+										<div>
+											<label
+												htmlFor="email"
+												className="block text-sm font-medium text-gray-700 mb-1"
+											>
+												Email
+											</label>
+											<input
+												id="email"
+												name="email"
+												type="email"
+												value={formData.email}
+												onChange={handleChange}
+												required
+												className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+											/>
+										</div>
+
+										<div>
+											<label
+												htmlFor="subject"
+												className="block text-sm font-medium text-gray-700 mb-1"
+											>
+												Subject
+											</label>
+											<input
+												id="subject"
+												name="subject"
+												type="text"
+												value={formData.subject}
+												onChange={handleChange}
+												required
+												className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+											/>
+										</div>
+
+										<div>
+											<label
+												htmlFor="message"
+												className="block text-sm font-medium text-gray-700 mb-1"
+											>
+												Message
+											</label>
+											<textarea
+												id="message"
+												name="message"
+												rows="6"
+												value={formData.message}
+												onChange={handleChange}
+												required
+												className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+											/>
+										</div>
+
+										<button
+											type="submit"
+											disabled={isSubmitting}
+											className="button-primary font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
 										>
-											Name
-										</label>
-										<input
-											id="name"
-											name="name"
-											type="text"
-											value={formData.name}
-											onChange={handleChange}
-											required
-											className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900"
-										/>
+											{isSubmitting
+												? "Sending..."
+												: "Send Message"}
+										</button>
 									</div>
-
-									<div>
-										<label
-											htmlFor="phone"
-											className="block text-sm font-medium text-gray-700 mb-1"
-										>
-											Phone
-										</label>
-										<input
-											id="phone"
-											name="phone"
-											type="text"
-											value={formData.phone}
-											onChange={handleChange}
-											className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900"
-										/>
-									</div>
-								</div>
-
-								<div>
-									<label
-										htmlFor="email"
-										className="block text-sm font-medium text-gray-700 mb-1"
-									>
-										Email
-									</label>
-									<input
-										id="email"
-										name="email"
-										type="email"
-										value={formData.email}
-										onChange={handleChange}
-										required
-										className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900"
-									/>
-								</div>
-
-								<div>
-									<label
-										htmlFor="subject"
-										className="block text-sm font-medium text-gray-700 mb-1"
-									>
-										Subject
-									</label>
-									<input
-										id="subject"
-										name="subject"
-										type="text"
-										value={formData.subject}
-										onChange={handleChange}
-										required
-										className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900"
-									/>
-								</div>
-
-								<div>
-									<label
-										htmlFor="message"
-										className="block text-sm font-medium text-gray-700 mb-1"
-									>
-										Message
-									</label>
-									<textarea
-										id="message"
-										name="message"
-										rows="6"
-										value={formData.message}
-										onChange={handleChange}
-										required
-										className="subtext w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none"
-									/>
-								</div>
+								</fieldset>
 
 								{submitSuccess && (
 									<div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
@@ -176,16 +192,6 @@ const ContactPage = () => {
 										{submitError}
 									</div>
 								)}
-
-								<button
-									type="submit"
-									disabled={isSubmitting}
-									className="button-primary font-semibold"
-								>
-									{isSubmitting
-										? "Sending..."
-										: "Send Message"}
-								</button>
 							</form>
 						</div>
 
