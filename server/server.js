@@ -14,6 +14,7 @@ import {
 import { buildRouteName, findOrCreateChildPage, findOrCreateDatabaseInPage, formatRouteDate } from "./src/helper.js";
 import { pembayaranSchema, penerimaanBarangSchema, pengirimanLokalSchema } from "./src/databaseSchema.js";
 import orderConfirmationRoutes from "./src/routes/orderConfirmationRoutes.js";
+import contactRoutes from "./src/routes/contactRoutes.js";
 
 const app = express();
 app.use(cors());
@@ -437,3 +438,5 @@ app.get("/api/notion/shipping-data", async (req, res) => {
 });
 
 app.use("/api/order-confirmation", orderConfirmationRoutes);
+
+app.use("/api/contact", contactRoutes);

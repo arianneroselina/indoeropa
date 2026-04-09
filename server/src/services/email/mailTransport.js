@@ -5,7 +5,7 @@ const required = [
     "SMTP_PORT",
     "SMTP_USER",
     "SMTP_PASS",
-    "MAIL_FROM",
+    "SERVICE_MAIL",
 ];
 
 for (const key of required) {

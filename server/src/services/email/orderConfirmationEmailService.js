@@ -11,7 +11,7 @@ export const sendOrderConfirmationEmail = async ({
                                                      totalAmountIDR,
                                                  }) => {
     await mailTransport.sendMail({
-        from: process.env.MAIL_FROM,
+        from: process.env.SERVICE_MAIL,
         to,
         subject: `Your Order Confirmation #${orderId}`,
         text: `
