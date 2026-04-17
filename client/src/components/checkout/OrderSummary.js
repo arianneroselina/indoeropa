@@ -1,22 +1,18 @@
 import { Link } from "react-router-dom";
 import { ShipmentMeta } from "../shipping/ShipmentMeta";
-import { calculatePriceWithCustoms } from "../../utils/checkoutHelper";
+import { totalPriceWithCustoms } from "../../utils/checkoutHelper";
 
 /**
  * OrderSummary
  *
  * Props:
  * - cartItems: array of cart/shipment items shown in the summary
- * - relevantDutyItems: duty-relevant items used to calculate customs per item
- * - customsFeeByKey: map of customs fee per duty key
  * - totalAmountEUR: final total in EUR (including customs)
  * - totalAmountIDR: final total in IDR
  * - eurToIdrRate: exchange rate used for conversion
  */
 const OrderSummary = ({
 	cartItems,
-	relevantDutyItems,
-	customsFeeByKey,
 	totalAmountEUR,
 	totalAmountIDR,
 	eurToIdrRate,
@@ -44,8 +40,8 @@ const OrderSummary = ({
 
 			<div className="mt-4 space-y-3">
 				{cartItems.map((item) => {
-					const { customsAmountEur, itemTotalEur } =
-						calculatePriceWithCustoms(item, customsFeeByKey);
+					const { customsAmountEUR, itemTotalEUR } =
+						totalPriceWithCustoms(item);
 
 					return (
 						<div className="rounded-xl border bg-gray-50/60 p-3">
@@ -59,13 +55,13 @@ const OrderSummary = ({
 
 								<div className="shrink-0 text-right">
 									<div className="text-sm font-semibold text-gray-900">
-										€{itemTotalEur.toFixed(2)}
+										€{itemTotalEUR.toFixed(2)}
 									</div>
 
-									{customsAmountEur > 0 && (
+									{customsAmountEUR > 0 && (
 										<div className="subtext mt-0.5 text-xs text-gray-500">
 											incl. customs €
-											{customsAmountEur.toFixed(2)}
+											{customsAmountEUR.toFixed(2)}
 										</div>
 									)}
 								</div>

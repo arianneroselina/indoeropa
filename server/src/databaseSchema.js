@@ -78,7 +78,7 @@ export const pembayaranSchema = {
     "Price Breakdown (WEB)": { rich_text: {} },
     "Bukti Pembelian Barang (WEB)": { files: {} },
     "Status Pembayaran (WEB)": {
-        multi_select: {
+        select: {
             options: statusPembayaranOptions,
         },
     },

@@ -1,4 +1,4 @@
-import { escapeHtml, formatDisplayDate, formatEur, formatIdr, formatWeight } from "../utils.js";
+import { escapeHtml, formatDisplayDate, formatEUR, formatIDR, formatWeight } from "../utils.js";
 
 const renderShipmentCards = (items = []) => {
     if (!Array.isArray(items) || items.length === 0) {
@@ -25,7 +25,7 @@ const renderShipmentCards = (items = []) => {
 							Shipment ${escapeHtml(item.lineNumber ?? "-")} — ${escapeHtml(item.description || "Shipment")}
 						</div>
 						<div class="shipment-card-amount">
-							${formatEur(item.amountEur)}
+							${formatEUR(item.amountEUR)}
 						</div>
 					</div>
 
@@ -465,11 +465,11 @@ export const renderOrderConfirmationHtml = (data) => {
 							<div class="total-box">
 								<div class="total-line grand">
 									<span>Total Euro</span>
-									<span>${formatEur(data.totalAmountEUR)}</span>
+									<span>${formatEUR(data.totalAmountEUR)}</span>
 								</div>
 								<div class="total-line">
 									<span>Total Rupiah</span>
-									<span>${formatIdr(data.totalAmountIDR)}</span>
+									<span>${formatIDR(data.totalAmountIDR)}</span>
 								</div>
 								<div class="total-line">
 									<span>Total Shipments</span>

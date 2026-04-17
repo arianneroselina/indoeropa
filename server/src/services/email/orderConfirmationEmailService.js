@@ -1,5 +1,5 @@
 import { mailTransport } from "./mailTransport.js";
-import { formatEur, formatIdr } from "../utils.js";
+import { formatEUR, formatIDR } from "../utils.js";
 
 export const sendOrderConfirmationEmail = async ({
                                                      to,
@@ -24,8 +24,8 @@ Your order confirmation PDF is attached to this email.
 Order details:
 - Order ID: ${orderId}
 - Total shipments: ${itemsCount}
-${totalAmountEUR ? `- Total amount (EUR): ${formatEur(totalAmountEUR)}` : ""}
-${totalAmountIDR ? `- Total amount (IDR): ${formatIdr(totalAmountIDR)}` : ""}
+${totalAmountEUR ? `- Total amount (EUR): ${formatEUR(totalAmountEUR)}` : ""}
+${totalAmountIDR ? `- Total amount (IDR): ${formatIDR(totalAmountIDR)}` : ""}
 
 Next steps:
 1. Please review the attached PDF carefully and keep this email for your records.
@@ -94,7 +94,7 @@ Thank you for choosing us.
                 ? `
                 <tr>
                   <td style="padding:12px 20px; font-size:14px; color:#444444; border-top:1px solid #d9e2ec;">Total Euro</td>
-                  <td style="padding:12px 20px; font-size:14px; color:#111111; font-weight:bold; border-top:1px solid #d9e2ec;">${formatEur(totalAmountEUR)}</td>
+                  <td style="padding:12px 20px; font-size:14px; color:#111111; font-weight:bold; border-top:1px solid #d9e2ec;">${formatEUR(totalAmountEUR)}</td>
                 </tr>`
                 : ""
         }
@@ -103,7 +103,7 @@ Thank you for choosing us.
                 ? `
                 <tr>
                   <td style="padding:12px 20px; font-size:14px; color:#444444; border-top:1px solid #d9e2ec;">Total Rupiah</td>
-                  <td style="padding:12px 20px; font-size:14px; color:#111111; font-weight:bold; border-top:1px solid #d9e2ec;">${formatIdr(totalAmountIDR)}</td>
+                  <td style="padding:12px 20px; font-size:14px; color:#111111; font-weight:bold; border-top:1px solid #d9e2ec;">${formatIDR(totalAmountIDR)}</td>
                 </tr>`
                 : ""
         }

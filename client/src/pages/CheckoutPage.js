@@ -1,17 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
-import {
-	CART_KEY,
-	INVOICES_KEY,
-	CHECKOUT_SUCCESS_KEY,
-} from "../utils/constants";
-import { PAYMENT_STATUS_MAP } from "../utils/notionMapping";
+import { CART_KEY, CHECKOUT_SUCCESS_KEY } from "../utils/constants";
+import { PAYMENT_STATUS_MAP } from "../utils/notionMappers";
 import CheckoutForm from "../components/checkout/CheckoutForm";
 import OrderSummary from "../components/checkout/OrderSummary";
 import {
-	buildCustomsFeeByKey,
-	calculatePriceWithCustoms,
+	totalPriceWithCustoms,
 	getItemQuantity,
 	getItemQuantityLabel,
 	getTotalAmountEUR,
@@ -22,6 +17,7 @@ import {
 	createPenerimaanBarang,
 	createPembayaran,
 	createOrGetOrderRouteDatabases,
+	createOrderHistory,
 } from "../api/checkoutApi";
 import { useShippingData } from "../hooks/useShippingData";
 
@@ -32,7 +28,6 @@ const CheckoutPage = () => {
 	// Local state
 	// =========================
 	const [cartItems, setCartItems] = useState([]);
-	const [invoiceByItem, setInvoiceByItem] = useState({});
 
 	// Billing address
 	const [firstName, setFirstName] = useState("");
@@ -61,37 +56,18 @@ const CheckoutPage = () => {
 		try {
 			const savedCartItems = localStorage.getItem(CART_KEY);
 			if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
-
-			const savedInvoices = localStorage.getItem(INVOICES_KEY);
-			if (savedInvoices) setInvoiceByItem(JSON.parse(savedInvoices));
 		} catch (err) {
 			console.error("Failed to parse local storage checkout data", err);
 			localStorage.removeItem(CART_KEY);
-			localStorage.removeItem(INVOICES_KEY);
 		}
 	}, []);
 
 	// =========================
 	// Derived pricing
 	// =========================
-	const relevantDutyItems = useMemo(() => {
-		return cartItems
-			.filter((item) => item?.duty === true)
-			.map((item, index) => ({
-				item,
-				key:
-					item.key ??
-					`${item.fromCountry || "from"}-${item.toCountry || "to"}-${item.shipmentDate || "date"}-${index}`,
-			}));
-	}, [cartItems]);
-
-	const customsFeeByKey = useMemo(() => {
-		return buildCustomsFeeByKey(relevantDutyItems, invoiceByItem);
-	}, [relevantDutyItems, invoiceByItem]);
-
 	const totalAmountEUR = useMemo(() => {
-		return getTotalAmountEUR(cartItems, customsFeeByKey);
-	}, [cartItems, customsFeeByKey]);
+		return getTotalAmountEUR(cartItems);
+	}, [cartItems]);
 
 	const totalAmountIDR = useMemo(() => {
 		return totalAmountEUR * eurToIdrRate;
@@ -111,75 +87,120 @@ const CheckoutPage = () => {
 		e.preventDefault();
 
 		if (submitting) return;
+
 		setSubmitting(true);
 		setErrorMessage("");
 
-		const orderId = `ORD-${Date.now()}`;
-
 		try {
-			const today = new Date().toISOString().slice(0, 10);
-			const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
+			const orderId = `ORD-${Date.now()}`;
+			const submittedAt = new Date().toISOString();
+			const today = submittedAt.slice(0, 10);
 
+			const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
 			if (!paymentStatus) {
 				throw new Error("Invalid payment method.");
 			}
 
-			// Compose billing address string for the local delivery record
 			const billingAddress = [street, postalCode, country]
 				.filter(Boolean)
 				.join(", ");
 
-			const firstItem = cartItems[0];
-			if (
-				!firstItem?.fromCountry ||
-				!firstItem?.toCountry ||
-				!firstItem?.shipmentDate
-			) {
-				throw new Error("Missing route information for checkout.");
-			}
+			const shipments = cartItems.map((item, index) => {
+				if (
+					!item.fromCountry ||
+					!item.toCountry ||
+					!item.shipmentDate
+				) {
+					throw new Error("Missing route information for checkout.");
+				}
 
-			// create a new route page if it doesn't exist yet
-			const routePage = await createOrGetOrderRoutePage({
-				fromCountry: firstItem.fromCountry,
-				toCountry: firstItem.toCountry,
-				shipmentDate: firstItem.shipmentDate,
-			});
-
-			const routeDbs = await createOrGetOrderRouteDatabases({
-				datePageId: routePage.datePageId,
-			});
-
-			const penerimaanBarangDataSourceId =
-				routeDbs.databases.penerimaanBarang.dataSourceId;
-			const pembayaranDataSourceId =
-				routeDbs.databases.pembayaran.dataSourceId;
-			const pengirimanLokalDataSourceId =
-				routeDbs.databases.pengirimanLokal.dataSourceId;
-
-			if (
-				!penerimaanBarangDataSourceId ||
-				!pembayaranDataSourceId ||
-				!pengirimanLokalDataSourceId
-			) {
-				throw new Error(
-					"Missing route-specific Notion data source IDs.",
-				);
-			}
-
-			// TODO: this needs to be handled differently for each route
-			/*await createPengirimanLokal({
-                dataSourceId: pengirimanLokalDataSourceId,
-                orderId,
-                fullName,
-                phone,
-                email,
-                address: billingAddress,
-            });*/
-
-			for (const item of cartItems) {
 				const packageType = item.packageTypeLabel ?? "-";
-				const { itemTotalEur, priceBreakdown } =
-					calculatePriceWithCustoms(item, customsFeeByKey);
+
+				const itemQuantity = getItemQuantity(item);
+				const quantity = String(itemQuantity.value ?? "");
+				const unit = String(itemQuantity.unit ?? "");
+
+				const { itemTotalEUR, priceBreakdown } =
+					totalPriceWithCustoms(item);
+
+				return {
+					shipmentId: `${orderId}-S${index + 1}`,
+					fromCountry: item.fromCountry,
+					toCountry: item.toCountry,
+					shipmentDate: item.shipmentDate,
+					packageType,
+					quantity,
+					unit,
+					priceEUR: item.priceEUR,
+					dutyPriceEUR: item.duty
+						? Number(item.customsFeeEUR || 0)
+						: 0,
+					totalEUR: itemTotalEUR,
+					priceBreakdown,
+					item,
+				};
+			});
+
+			// one order and all shipments
+			await createOrderHistory({
+				orderId,
+				fullName,
+				email,
+				phone,
+				billingAddress,
+				totalAmountEUR,
+				totalAmountIDR,
+				paymentStatus: paymentStatus || "",
+				paymentProof,
+				submittedAt,
+				specialRequest: notes,
+				shipments: shipments.map(
+					({ priceBreakdown, item, ...shipmentPayload }) =>
+						shipmentPayload,
+				),
+			});
+
+			// route-specific records
+			for (const shipment of shipments) {
+				const { packageType, quantity, totalEUR, priceBreakdown } =
+					shipment;
+
+				const routePage = await createOrGetOrderRoutePage({
+					fromCountry: shipment.fromCountry,
+					toCountry: shipment.toCountry,
+					shipmentDate: shipment.shipmentDate,
+				});
+
+				const routeDbs = await createOrGetOrderRouteDatabases({
+					datePageId: routePage.datePageId,
+				});
+
+				const penerimaanBarangDataSourceId =
+					routeDbs.databases.penerimaanBarang.dataSourceId;
+				const pembayaranDataSourceId =
+					routeDbs.databases.pembayaran.dataSourceId;
+				const pengirimanLokalDataSourceId =
+					routeDbs.databases.pengirimanLokal.dataSourceId;
+
+				if (
+					!penerimaanBarangDataSourceId ||
+					!pembayaranDataSourceId ||
+					!pengirimanLokalDataSourceId
+				) {
+					throw new Error(
+						"Missing route-specific Notion data source IDs.",
+					);
+				}
+
+				// TODO: this needs to be handled differently for each route
+				/*await createPengirimanLokal({
+                    dataSourceId: pengirimanLokalDataSourceId,
+                    orderId,
+                    fullName,
+                    phone,
+                    email,
+                    address: billingAddress,
+                });*/
 
 				await createPenerimaanBarang({
 					dataSourceId: penerimaanBarangDataSourceId,
@@ -188,7 +209,7 @@ const CheckoutPage = () => {
 					phone,
 					email,
 					packageType,
-					quantity: getItemQuantity(item),
+					quantity: Number(quantity),
 					request: notes,
 				});
 
@@ -200,9 +221,9 @@ const CheckoutPage = () => {
 					email,
 					billingAddress,
 					packageType,
-					totalEur: itemTotalEur,
+					totalEUR: totalEUR,
 					priceBreakdown,
-					quantity: getItemQuantity(item),
+					quantity: Number(quantity),
 					paymentStatus,
 					paymentDate: today,
 					paymentProof,
@@ -210,9 +231,7 @@ const CheckoutPage = () => {
 			}
 
 			localStorage.removeItem(CART_KEY);
-			localStorage.removeItem(INVOICES_KEY);
 			setCartItems([]);
-			setInvoiceByItem({});
 
 			const successPayload = {
 				orderId,
@@ -225,27 +244,22 @@ const CheckoutPage = () => {
 				itemsCount: cartItems.length,
 				paidViaLabel: paymentMethod?.toUpperCase() || "",
 				hasPaymentProof: Boolean(paymentProof),
-				submittedAt: new Date().toISOString(),
+				submittedAt,
 				status: "Order request received",
-				items: cartItems.map((item, index) => {
-					const { itemTotalEur, priceBreakdown } =
-						calculatePriceWithCustoms(item, customsFeeByKey);
-
-					return {
-						lineNumber: index + 1,
-						description: item.packageTypeLabel || "Shipment",
-						packageType: item.packageTypeLabel || "-",
-						quantityLabel: getItemQuantityLabel(item),
-						weightKg: item.weightKg ?? null,
-						billedWeightKg: item.billedWeightKg ?? null,
-						fromCountry: item.fromCountry || "-",
-						toCountry: item.toCountry || "-",
-						shipmentDate: item.shipmentDate || "-",
-						duty: Boolean(item.duty),
-						amountEur: itemTotalEur,
-						priceBreakdown,
-					};
-				}),
+				items: shipments.map((shipment, index) => ({
+					lineNumber: index + 1,
+					description: shipment.packageType || "Shipment",
+					packageType: shipment.packageType || "-",
+					quantityLabel: getItemQuantityLabel(shipment.item),
+					weightKg: shipment.item.weightKg ?? null,
+					billedWeightKg: shipment.item.billedWeightKg ?? null,
+					fromCountry: shipment.fromCountry || "-",
+					toCountry: shipment.toCountry || "-",
+					shipmentDate: shipment.shipmentDate || "-",
+					duty: Boolean(shipment.item.duty),
+					amountEUR: shipment.totalEUR,
+					priceBreakdown: shipment.priceBreakdown,
+				})),
 			};
 
 			sessionStorage.setItem(
@@ -324,8 +338,6 @@ const CheckoutPage = () => {
 							<aside className="h-fit lg:sticky lg:top-24">
 								<OrderSummary
 									cartItems={cartItems}
-									relevantDutyItems={relevantDutyItems}
-									customsFeeByKey={customsFeeByKey}
 									totalAmountEUR={totalAmountEUR}
 									totalAmountIDR={totalAmountIDR}
 									eurToIdrRate={eurToIdrRate}

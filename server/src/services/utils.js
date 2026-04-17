@@ -6,12 +6,12 @@ export const escapeHtml = (value = "") =>
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 
-export const formatEur = (value) =>
+export const formatEUR = (value) =>
     typeof value === "number" && Number.isFinite(value)
         ? `€${value.toFixed(2)}`
         : "€0.00";
 
-export const formatIdr = (value) =>
+export const formatIDR = (value) =>
     typeof value === "number" && Number.isFinite(value)
         ? `Rp${Math.round(value).toLocaleString("id-ID")}`
         : "Rp0";

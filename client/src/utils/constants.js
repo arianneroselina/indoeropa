@@ -27,7 +27,6 @@ export const API_BASE =
 	(process.env.NODE_ENV === "development" ? "http://localhost:3001" : "");
 
 export const CART_KEY = "shipping_cart_items";
-export const INVOICES_KEY = "checkout_invoices";
 export const CHECKOUT_SUCCESS_KEY = "last_checkout_success";
 
 export const DHL_LOGO = "/dhl.png";

@@ -120,7 +120,7 @@ export const createPembayaran = async ({
 	email,
 	billingAddress,
 	packageType,
-	totalEur,
+	totalEUR,
 	priceBreakdown,
 	quantity,
 	paymentStatus,
@@ -135,7 +135,7 @@ export const createPembayaran = async ({
 	formData.append("email", email);
 	formData.append("billingAddress", billingAddress);
 	formData.append("packageType", packageType);
-	formData.append("totalEur", totalEur);
+	formData.append("totalEUR", totalEUR);
 	formData.append("priceBreakdown", priceBreakdown);
 	formData.append("quantity", quantity);
 	formData.append("paymentStatus", paymentStatus);
@@ -155,6 +155,54 @@ export const createPembayaran = async ({
 	if (!res.ok) {
 		throw new Error(
 			data?.message || data?.error || "Failed to save Pembayaran.",
+		);
+	}
+
+	return data;
+};
+
+export const createOrderHistory = async ({
+	orderId,
+	fullName,
+	email,
+	phone,
+	billingAddress,
+	totalAmountEUR,
+	totalAmountIDR,
+	paymentStatus,
+	paymentProof,
+	submittedAt,
+	specialRequest,
+	shipments,
+}) => {
+	const formData = new FormData();
+
+	formData.append("orderId", orderId);
+	formData.append("fullName", fullName);
+	formData.append("email", email);
+	formData.append("phone", phone);
+	formData.append("billingAddress", billingAddress);
+	formData.append("totalAmountEUR", totalAmountEUR);
+	formData.append("totalAmountIDR", totalAmountIDR);
+	formData.append("paymentStatus", paymentStatus || "");
+	formData.append("submittedAt", submittedAt);
+	formData.append("specialRequest", specialRequest || "");
+	formData.append("shipments", JSON.stringify(shipments || []));
+
+	if (paymentProof) {
+		formData.append("paymentProof", paymentProof);
+	}
+
+	const res = await fetch(`${API_BASE}/api/notion/order-history`, {
+		method: "POST",
+		body: formData,
+	});
+
+	const data = await res.json().catch(() => ({}));
+
+	if (!res.ok) {
+		throw new Error(
+			data?.message || data?.error || "Failed to save Order History.",
 		);
 	}
 

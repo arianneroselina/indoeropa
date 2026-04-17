@@ -1,59 +1,45 @@
-export const buildCustomsFeeByKey = (relevantDutyItems, invoiceByItem) => {
-	const map = {};
-
-	for (const { key } of relevantDutyItems) {
-		const entry = invoiceByItem?.[key];
-
-		if (!entry?.invoiceRequired) {
-			map[key] = 0;
-			continue;
-		}
-
-		const original = Number(entry.originalValueEur);
-		map[key] =
-			Number.isFinite(original) && original > 0 ? original * 0.025 : 0;
-	}
-
-	return map;
-};
-
-export const calculatePriceWithCustoms = (item, customsFeeByKey) => {
-	const transportAmountEur = Number(item.priceEur) || 0;
+export const totalPriceWithCustoms = (item) => {
+	const transportAmountEUR = Number(item.priceEUR) || 0;
+	const customsAmountEUR =
+		item.duty && item.invoiceRequired ? Number(item.customsFeeEUR) || 0 : 0;
 	const key = item.key;
 
-	const customsAmountEur = key ? customsFeeByKey[key] || 0 : 0;
-	const itemTotalEur = transportAmountEur + customsAmountEur;
+	const itemTotalEUR = transportAmountEUR + customsAmountEUR;
 
 	const quantityLabel = getItemQuantityLabel(item);
-	const baseBreakdown = `${quantityLabel} × ${transportAmountEur.toFixed(2)}€`;
+	const baseBreakdown = `${quantityLabel} × ${transportAmountEUR.toFixed(2)}€`;
 
 	const priceBreakdown =
-		customsAmountEur > 0
-			? `${baseBreakdown} + customs ${customsAmountEur.toFixed(2)}€ = ${itemTotalEur.toFixed(2)}€`
+		customsAmountEUR > 0
+			? `${baseBreakdown} + customs ${customsAmountEUR.toFixed(2)}€ = ${itemTotalEUR.toFixed(2)}€`
 			: baseBreakdown;
 
 	return {
 		key,
-		transportAmountEur,
-		customsAmountEur,
-		itemTotalEur,
+		transportAmountEUR,
+		customsAmountEUR,
+		itemTotalEUR,
 		priceBreakdown,
 	};
 };
 
-export const getTotalAmountEUR = (cartItems, customsFeeByKey) => {
+export const getTotalAmountEUR = (cartItems) => {
 	return cartItems.reduce((sum, item) => {
-		return (
-			sum + calculatePriceWithCustoms(item, customsFeeByKey).itemTotalEur
-		);
+		return sum + totalPriceWithCustoms(item).itemTotalEUR;
 	}, 0);
 };
 
 export const getItemQuantity = (item) => {
-	if (Number(item.billedWeightKg) > 0) return Number(item.billedWeightKg);
-	if (Number(item.hatQuantity) > 0) return Number(item.hatQuantity);
-	if (Number(item.documentPages) > 0) return Number(item.documentPages);
-	return 0;
+	if (Number(item.billedWeightKg) > 0) {
+		return { value: Number(item.billedWeightKg), unit: "kg" };
+	}
+	if (Number(item.hatQuantity) > 0) {
+		return { value: Number(item.hatQuantity), unit: "pcs" };
+	}
+	if (Number(item.documentPages) > 0) {
+		return { value: Number(item.documentPages), unit: "pages" };
+	}
+	return { value: 1, unit: "item" };
 };
 
 export const getItemQuantityLabel = (item) => {

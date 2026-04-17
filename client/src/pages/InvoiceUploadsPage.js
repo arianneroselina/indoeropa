@@ -1,73 +1,66 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaInfoCircle } from "react-icons/fa";
-import { CART_KEY, INVOICES_KEY } from "../utils/constants";
+import { CART_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 
-/**
- * @typedef {Object} InvoiceRequirement
- * @property {boolean | undefined} [invoiceRequired]
- * @property {string | undefined} [originalValueEur]
- */
-
-/** @typedef {Object.<string, InvoiceRequirement>} InvoiceReqByItem */
-
-/**
- * @typedef {Object.<string, boolean>} ProofUploadedByItem
- */
-
 const limit = 125;
+const customsFee = 0.025; // 2.5%
+
+/**
+ * @param {number | undefined} value
+ */
+const calculateCustomsFee = (value) =>
+	Number.isFinite(value) && value > limit
+		? Number((value * customsFee).toFixed(2))
+		: undefined;
 
 const InvoiceUploadsPage = () => {
 	const navigate = useNavigate();
 	const [cartItems, setCartItems] = useState([]);
 
-	/** @type {[InvoiceReqByItem, Function]} */
-	const [invoiceReqByItem, setInvoiceReqByItem] = useState({});
-
 	// session-only upload state (NOT persisted)
 	// TODO: upload to Notion
-	/** @type {[ProofUploadedByItem, Function]} */
 	const [proofUploaded, setProofUploaded] = useState({});
-
 	const [errorMessage, setErrorMessage] = useState("");
 
 	useEffect(() => {
 		const savedCartItems = localStorage.getItem(CART_KEY);
-		if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
+		if (!savedCartItems) return;
 
-		const savedInvoices = localStorage.getItem(INVOICES_KEY);
-		if (savedInvoices) {
-			const parsed = JSON.parse(savedInvoices);
+		const parsed = JSON.parse(savedCartItems);
 
-			// remove any previously persisted proof fields
-			const cleaned = Object.fromEntries(
-				Object.entries(parsed).map(([k, v]) => [
-					k,
-					{
-						invoiceRequired: v?.invoiceRequired,
-						originalValueEur: v?.originalValueEur,
-					},
-				]),
-			);
+		// keep only shipment-owned invoice/customs fields on the cart item itself
+		const cleaned = parsed.map((item) => ({
+			...item,
+			invoiceRequired:
+				item?.invoiceRequired === true
+					? true
+					: item?.invoiceRequired === false
+						? false
+						: undefined,
+			originalValueEUR:
+				item?.originalValueEUR !== undefined &&
+				item?.originalValueEUR !== null &&
+				item?.originalValueEUR !== ""
+					? Number(item.originalValueEUR)
+					: undefined,
+			customsFeeEUR:
+				item?.customsFeeEUR !== undefined &&
+				item?.customsFeeEUR !== null
+					? Number(item.customsFeeEUR)
+					: undefined,
+		}));
 
-			setInvoiceReqByItem(cleaned);
-			localStorage.setItem(INVOICES_KEY, JSON.stringify(cleaned));
-		}
+		setCartItems(cleaned);
+		localStorage.setItem(CART_KEY, JSON.stringify(cleaned));
 	}, []);
 
-	const relevant = useMemo(() => {
-		return cartItems
-			.filter((item) => item?.duty === true)
-			.map((item, index) => ({
-				item,
-				key:
-					item.key ??
-					`${item.fromCountry || "from"}-${item.toCountry || "to"}-${item.shipmentDate || "date"}-${index}`,
-			}));
-	}, [cartItems]);
+	const relevant = useMemo(
+		() => cartItems.filter((item) => item?.duty === true),
+		[cartItems],
+	);
 
-	// If no relevant items, skip page
 	useEffect(() => {
 		if (cartItems.length > 0 && relevant.length === 0) {
 			navigate("/checkout", { replace: true });
@@ -76,66 +69,77 @@ const InvoiceUploadsPage = () => {
 
 	/**
 	 * @param {string} itemKey
-	 * @param {boolean | undefined} invoiceRequired
+	 * @param {(item: any) => any} updater
 	 */
-	const updateInvoiceRequirement = (itemKey, invoiceRequired) => {
-		setInvoiceReqByItem((prev) => {
-			const next = {
-				...prev,
-				[itemKey]: {
-					invoiceRequired,
-					originalValueEur:
-						invoiceRequired === true
-							? prev[itemKey]?.originalValueEur
-							: undefined,
-				},
-			};
+	const updateCartItem = (itemKey, updater) => {
+		setCartItems((prev) => {
+			const next = prev.map((item) =>
+				item.key === itemKey ? updater(item) : item,
+			);
 
-			localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
+			localStorage.setItem(CART_KEY, JSON.stringify(next));
 			return next;
 		});
 	};
 
 	/**
 	 * @param {string} itemKey
-	 * @param {string | undefined} originalValueEur
+	 * @param {boolean | undefined} invoiceRequired
 	 */
-	const updateOriginalValueEur = (itemKey, originalValueEur) => {
-		setInvoiceReqByItem((prev) => {
-			const next = {
-				...prev,
-				[itemKey]: {
-					...prev[itemKey],
-					originalValueEur,
-				},
-			};
+	const updateInvoiceRequirement = (itemKey, invoiceRequired) => {
+		updateCartItem(itemKey, (item) => {
+			if (invoiceRequired !== true) {
+				return {
+					...item,
+					invoiceRequired,
+					originalValueEUR: undefined,
+					customsFeeEUR: undefined,
+				};
+			}
 
-			localStorage.setItem(INVOICES_KEY, JSON.stringify(next));
-			return next;
+			const originalValueEUR = item.originalValueEUR;
+			const customsFeeEUR = calculateCustomsFee(originalValueEUR);
+
+			return {
+				...item,
+				invoiceRequired: true,
+				originalValueEUR,
+				customsFeeEUR,
+			};
 		});
 	};
 
-	const setProofFile = (key, file) => {
-		setProofUploaded((prev) => ({ ...prev, [key]: !!file }));
+	/**
+	 * @param {string} itemKey
+	 * @param {string | undefined} rawValue
+	 */
+	const updateOriginalValueEUR = (itemKey, rawValue) => {
+		updateCartItem(itemKey, (item) => {
+			const originalValueEUR =
+				rawValue === undefined || rawValue === ""
+					? undefined
+					: Number(rawValue);
+
+			return {
+				...item,
+				originalValueEUR,
+				customsFeeEUR: calculateCustomsFee(originalValueEUR),
+			};
+		});
 	};
 
-	const isInvoiceComplete = relevant.every(({ key }) => {
-		const entry = invoiceReqByItem[key];
+	const setProofFile = (itemKey, file) => {
+		setProofUploaded((prev) => ({ ...prev, [itemKey]: !!file }));
+	};
 
-		if (!entry) return false;
-		if (entry.invoiceRequired === undefined) return false;
+	const isInvoiceComplete = relevant.every((item) => {
+		if (item.invoiceRequired === undefined) return false;
+		if (item.invoiceRequired === false) return true;
 
-		if (entry.invoiceRequired === false) {
-			return true;
-		}
+		const valueEUR = Number(item.originalValueEUR);
 
-		const valueEur =
-			entry.originalValueEur === undefined
-				? ""
-				: Number(entry.originalValueEur);
-
-		if (!Number.isFinite(valueEur) || valueEur <= limit) return false;
-		if (!proofUploaded[key]) return false;
+		if (!Number.isFinite(valueEUR) || valueEUR <= limit) return false;
+		if (!proofUploaded[item.key]) return false;
 
 		return true;
 	});
@@ -144,30 +148,25 @@ const InvoiceUploadsPage = () => {
 		e.preventDefault();
 		setErrorMessage("");
 
-		for (const { key } of relevant) {
-			const entry = invoiceReqByItem[key];
-
-			if (entry?.invoiceRequired === undefined) {
+		for (const item of relevant) {
+			if (item.invoiceRequired === undefined) {
 				setErrorMessage(
 					`Please choose whether the original item value is above €${limit} for each relevant shipment.`,
 				);
 				return;
 			}
 
-			if (entry.invoiceRequired) {
-				const valueEur =
-					entry.originalValueEur === undefined
-						? ""
-						: Number(entry.originalValueEur);
+			if (item.invoiceRequired) {
+				const valueEUR = Number(item.originalValueEUR);
 
-				if (!Number.isFinite(valueEur) || valueEur <= limit) {
+				if (!Number.isFinite(valueEUR) || valueEUR <= limit) {
 					setErrorMessage(
 						`Original item value must be bigger than €${limit} when selecting 'Yes'.`,
 					);
 					return;
 				}
 
-				if (!proofUploaded[key]) {
+				if (!proofUploaded[item.key]) {
 					setErrorMessage(
 						`Please upload an invoice/receipt for every shipment marked as over €${limit}.`,
 					);
@@ -230,37 +229,24 @@ const InvoiceUploadsPage = () => {
 
 					<form onSubmit={handleContinue} className="space-y-6">
 						<div className="space-y-4">
-							{relevant.map(({ item, key }) => {
-								const entry = invoiceReqByItem[key] ?? {
-									invoiceRequired: undefined,
-									originalValueEur: undefined,
-								};
-
+							{relevant.map((item) => {
 								const originalValueNum = Number(
-									entry.originalValueEur,
+									item.originalValueEUR,
 								);
 
 								const isValueInvalid =
-									entry.invoiceRequired === true &&
-									entry.originalValueEur !== undefined &&
+									item.invoiceRequired === true &&
+									item.originalValueEUR !== undefined &&
 									(!Number.isFinite(originalValueNum) ||
 										originalValueNum <= limit);
 
-								const fee =
-									entry.invoiceRequired === true &&
-									entry.originalValueEur !== undefined &&
-									Number.isFinite(
-										Number(entry.originalValueEur),
-									)
-										? (
-												Number(entry.originalValueEur) *
-												0.025
-											).toFixed(2)
-										: "0.00";
+								const fee = Number(
+									item.customsFeeEUR || 0,
+								).toFixed(2);
 
 								return (
 									<div
-										key={key}
+										key={item.key}
 										className="rounded-2xl border bg-gray-50/60 p-5"
 									>
 										<div className="flex items-start justify-between gap-4">
@@ -288,10 +274,10 @@ const InvoiceUploadsPage = () => {
 												<select
 													className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
 													value={
-														entry.invoiceRequired ===
+														item.invoiceRequired ===
 														true
 															? "true"
-															: entry.invoiceRequired ===
+															: item.invoiceRequired ===
 																  false
 																? "false"
 																: ""
@@ -306,7 +292,7 @@ const InvoiceUploadsPage = () => {
 																	"true";
 
 														updateInvoiceRequirement(
-															key,
+															item.key,
 															value,
 														);
 													}}
@@ -325,7 +311,7 @@ const InvoiceUploadsPage = () => {
 
 											<div
 												className={
-													entry.invoiceRequired
+													item.invoiceRequired
 														? ""
 														: "opacity-50 pointer-events-none"
 												}
@@ -347,12 +333,12 @@ const InvoiceUploadsPage = () => {
 															: "border-gray-300 input-focus",
 													].join(" ")}
 													value={
-														entry.originalValueEur ??
+														item.originalValueEUR ??
 														""
 													}
 													onChange={(e) =>
-														updateOriginalValueEur(
-															key,
+														updateOriginalValueEUR(
+															item.key,
 															e.target.value.trim() ===
 																""
 																? undefined
@@ -361,20 +347,20 @@ const InvoiceUploadsPage = () => {
 														)
 													}
 													required={
-														entry.invoiceRequired
+														item.invoiceRequired
 													}
 												/>
 
 												{isValueInvalid && (
 													<p className="subtext text-xs text-red-600 mt-2">
 														Value must be bigger
-														than €125 when selecting
-														"Yes".
+														than €{limit} when
+														selecting "Yes".
 													</p>
 												)}
 
 												{!isValueInvalid &&
-													entry.invoiceRequired && (
+													item.invoiceRequired && (
 														<p className="subtext text-xs text-gray-600 mt-2">
 															Customs handling
 															fee:{" "}
@@ -389,14 +375,14 @@ const InvoiceUploadsPage = () => {
 
 											<div
 												className={
-													entry.invoiceRequired
+													item.invoiceRequired
 														? ""
 														: "opacity-50 pointer-events-none"
 												}
 											>
 												<label className="block text-sm font-semibold text-gray-800">
 													Upload invoice/receipt{" "}
-													{entry.invoiceRequired && (
+													{item.invoiceRequired && (
 														<span className="text-red-500">
 															*
 														</span>
@@ -408,14 +394,14 @@ const InvoiceUploadsPage = () => {
 													className="subtext w-full p-3 border border-gray-300 rounded-xl input-focus"
 													onChange={(e) =>
 														setProofFile(
-															key,
+															item.key,
 															e.target
 																.files?.[0] ??
 																null,
 														)
 													}
 													required={
-														entry.invoiceRequired
+														item.invoiceRequired
 													}
 												/>
 											</div>

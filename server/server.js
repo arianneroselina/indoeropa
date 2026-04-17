@@ -224,7 +224,7 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
             phone,
             billingAddress,
             packageType,
-            totalEur,
+            totalEUR,
             priceBreakdown,
             quantity,
             paymentStatus,
@@ -297,7 +297,7 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
                     select: packageType ? { name: String(packageType) } : null,
                 },
                 "Total Harga (WEB)": {
-                    number: Number(totalEur) || 0,
+                    number: Number(totalEUR) || 0,
                 },
                 "Price Breakdown (WEB)": {
                     rich_text: [{ text: { content: String(priceBreakdown || "") } }],
@@ -306,7 +306,7 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
                     number: Number(quantity) || 0,
                 },
                 "Status Pembayaran (WEB)": {
-                    multi_select: paymentStatus ? [{ name: String(paymentStatus) }] : [],
+                    select: paymentStatus ? { name: String(paymentStatus) } : null,
                 },
                 "Tanggal Pembayaran (WEB)": {
                     date: paymentDate ? { start: String(paymentDate) } : null,
@@ -370,6 +370,242 @@ app.post("/api/notion/pengiriman-lokal", async (req, res) => {
         });
     }
 });
+
+app.post("/api/notion/order-history", upload.fields([{ name: "paymentProof", maxCount: 1 }]), async (req, res) => {
+    try {
+        const {
+            orderId,
+            fullName,
+            email,
+            phone,
+            billingAddress,
+            totalAmountEUR,
+            totalAmountIDR,
+            paymentStatus,
+            submittedAt,
+            specialRequest,
+            shipments,
+        } = req.body;
+
+        const orderHistoryDataSourceId = process.env.NOTION_DB_ORDER_HISTORY;
+        const shipmentsDataSourceId = process.env.NOTION_DB_SHIPMENTS;
+
+        if (!orderHistoryDataSourceId) {
+            return res.status(500).json({
+                error: "NOTION_DB_ORDER_HISTORY is not set",
+            });
+        }
+
+        if (!shipmentsDataSourceId) {
+            return res.status(500).json({
+                error: "NOTION_DB_SHIPMENTS is not set",
+            });
+        }
+
+        if (!orderId) {
+            return res.status(400).json({ error: "orderId is required" });
+        }
+
+        let parsedShipments = [];
+
+        try {
+            parsedShipments = JSON.parse(shipments || "[]");
+        } catch {
+            return res.status(400).json({
+                error: "shipments must be valid JSON",
+            });
+        }
+
+        const paymentProof = req.files?.paymentProof?.[0];
+
+        async function uploadNotionFile(file) {
+            if (!file) return [];
+
+            const fileUpload = await notion.fileUploads.create({
+                mode: "single_part",
+                filename: file.originalname,
+                content_type: file.mimetype,
+            });
+
+            await notion.fileUploads.send({
+                file_upload_id: fileUpload.id,
+                file: {
+                    filename: file.originalname,
+                    data: new Blob([file.buffer], {
+                        type: file.mimetype,
+                    }),
+                },
+            });
+
+            return [
+                {
+                    type: "file_upload",
+                    file_upload: {
+                        id: fileUpload.id,
+                    },
+                    name: file.originalname,
+                },
+            ];
+        }
+
+        function buildOrderProperties({
+                                          orderId,
+                                          submittedAt,
+                                          fullName,
+                                          email,
+                                          phone,
+                                          billingAddress,
+                                          totalAmountEUR,
+                                          totalAmountIDR,
+                                          paymentStatus,
+                                          paymentProofFiles,
+                                          specialRequest,
+                                      }) {
+            return {
+                "Order ID": {
+                    title: [{ text: { content: String(orderId) } }],
+                },
+                "Submitted At": {
+                    date: submittedAt ? { start: String(submittedAt) } : null,
+                },
+                "Full Name": {
+                    rich_text: [{ text: { content: String(fullName || "") } }],
+                },
+                "Email": {
+                    email: email ? String(email) : null,
+                },
+                "Phone": {
+                    phone_number: phone ? String(phone) : null,
+                },
+                "Billing Address": {
+                    rich_text: [{ text: { content: String(billingAddress || "") } }],
+                },
+                "Total (EUR)": {
+                    number: Number(totalAmountEUR) || 0,
+                },
+                "Total (IDR)": {
+                    number: Number(totalAmountIDR) || 0,
+                },
+                "Payment Status": {
+                    select: paymentStatus ? { name: String(paymentStatus) } : null,
+                },
+                "Payment Proof": {
+                    files: paymentProofFiles,
+                },
+                "Special Request": {
+                    rich_text: [{ text: { content: String(specialRequest || "") } }],
+                },
+            };
+        }
+
+        function buildShipmentProperties(shipment, orderPageId) {
+            return {
+                "Shipment ID": {
+                    title: [
+                        {
+                            text: {
+                                content: String(
+                                    shipment.shipmentId || `${orderId}-1`,
+                                ),
+                            },
+                        },
+                    ],
+                },
+                "From Country": {
+                    select: shipment.fromCountry ? { name: String(shipment.fromCountry) } : null,
+                },
+                "To Country": {
+                    select: shipment.toCountry ? { name: String(shipment.toCountry) } : null,
+                },
+                "Shipment Date": {
+                    date: shipment.shipmentDate
+                        ? { start: String(shipment.shipmentDate) }
+                        : null,
+                },
+                "Package Type": {
+                    select: shipment.packageType ? { name: String(shipment.packageType) } : null,
+                },
+                "Quantity":  {
+                    number: Number(shipment.quantity) || 0,
+                },
+                "Unit": {
+                    select: shipment.unit ? { name: String(shipment.unit) } : null,
+                },
+                "Price (EUR)": {
+                    number: Number(shipment.priceEUR) || 0,
+                },
+                "Duty Price (EUR)": {
+                    number: Number(shipment.dutyPriceEUR) || 0,
+                },
+                "Order": {
+                    relation: [{ id: orderPageId }],
+                },
+            };
+        }
+
+        const paymentProofFiles = await uploadNotionFile(paymentProof);
+
+        const createdOrder = await notion.pages.create({
+            parent: {
+                type: "data_source_id",
+                data_source_id: orderHistoryDataSourceId,
+            },
+            properties: buildOrderProperties({
+                orderId,
+                submittedAt,
+                fullName,
+                email,
+                phone,
+                billingAddress,
+                totalAmountEUR,
+                totalAmountIDR,
+                paymentStatus,
+                paymentProofFiles,
+                specialRequest,
+            }),
+        });
+
+        const orderPageId = createdOrder.id;
+
+        const createdShipments = [];
+
+        for (const shipment of parsedShipments) {
+            const createdShipment = await notion.pages.create({
+                parent: {
+                    type: "data_source_id",
+                    data_source_id: shipmentsDataSourceId,
+                },
+                properties: buildShipmentProperties(shipment, orderPageId),
+            });
+
+            createdShipments.push({
+                id: createdShipment.id,
+                shipmentId: shipment.shipmentId || null,
+            });
+        }
+
+        return res.json({
+            ok: true,
+            orderPageId,
+            shipmentPageIds: createdShipments.map((s) => s.id),
+            createdShipments,
+        });
+    } catch (err) {
+        const code = err?.cause?.code || err?.code;
+        const message = err?.message || String(err);
+
+        console.error("Notion error (Order + Shipments):", {
+            code,
+            message,
+        });
+
+        return res.status(500).json({
+            error: "Failed to save Order History / Shipments",
+            code,
+            message,
+        });
+    }},
+);
 
 /**
  * Get data from Notion

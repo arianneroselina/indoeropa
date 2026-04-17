@@ -35,11 +35,16 @@ import { useShippingData } from "../hooks/useShippingData";
  * @property {{ l: number, w: number, h: number }} dimensionsCm
  * @property {string} packageTypeId
  * @property {string} packageTypeLabel
- * @property {number} priceEur
+ * @property {number} priceEUR
  * @property {string} priceBreakdown
  * @property {number | undefined} documentPages
  * @property {number | undefined} hatQuantity
+
  * @property {boolean} duty
+ * @property {boolean | undefined} invoiceRequired
+ * @property {number | undefined} originalValueEUR
+ * @property {number | undefined} customsFeeEUR
+
  * @property {string} createdAt
  * @property {string} [signature]
  */
@@ -432,7 +437,7 @@ export default function Shipment({ variant = "default" }) {
 			dimensionsCm: { ...dims },
 			packageTypeId: selectedPackageTypeId,
 			packageTypeLabel: selectedPackageType?.label ?? "",
-			priceEur: priceResult.total,
+			priceEUR: priceResult.total,
 			priceBreakdown: priceResult.breakdown,
 			documentPages: isDocument ? Number(documentPages) : undefined,
 			hatQuantity: isHat ? Number(hatQuantity) : undefined,

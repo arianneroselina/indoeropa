@@ -7,11 +7,7 @@ import {
 	FaReceipt,
 	FaDownload,
 } from "react-icons/fa";
-import {
-	CART_KEY,
-	CHECKOUT_SUCCESS_KEY,
-	INVOICES_KEY,
-} from "../utils/constants";
+import { CART_KEY, CHECKOUT_SUCCESS_KEY } from "../utils/constants";
 import { formatDateToDDMMYYYY } from "../utils/formatDate";
 import {
 	downloadOrderConfirmationPdf,
@@ -56,7 +52,6 @@ const CheckoutSuccessPage = () => {
 
 	useEffect(() => {
 		localStorage.removeItem(CART_KEY);
-		localStorage.removeItem(INVOICES_KEY);
 	}, []);
 
 	const hasSummary =
