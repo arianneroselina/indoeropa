@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
 import { CART_KEY, CHECKOUT_SUCCESS_KEY } from "../utils/constants";
 import { PAYMENT_STATUS_MAP } from "../utils/notionMappers";
@@ -13,31 +13,47 @@ import {
 } from "../utils/checkoutHelper";
 import {
 	createOrGetOrderRoutePage,
-	// createPengirimanLokal,
+	createPengirimanLokal,
 	createPenerimaanBarang,
 	createPembayaran,
 	createOrGetOrderRouteDatabases,
 	createOrderHistory,
 } from "../api/checkoutApi";
 import { useShippingData } from "../hooks/useShippingData";
-import { useLocation } from "react-router-dom";
 
 const CheckoutPage = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	// =========================
 	// Local state
 	// =========================
 	const [cartItems, setCartItems] = useState([]);
 
-	// Billing address
+	// Buyer info
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
-	const [street, setStreet] = useState("");
-	const [postalCode, setPostalCode] = useState("");
-	const [country, setCountry] = useState("");
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
+
+	// Delivery info
+	const [deliveryRecipientFirstName, setDeliveryRecipientFirstName] =
+		useState("");
+	const [deliveryRecipientLastName, setDeliveryRecipientLastName] =
+		useState("");
+	const [deliveryRecipientPhone, setDeliveryRecipientPhone] = useState("");
+	const [deliveryStreet, setDeliveryStreet] = useState("");
+	const [deliveryPostalCode, setDeliveryPostalCode] = useState("");
+	const [deliveryCountry, setDeliveryCountry] = useState("");
+
+	// Billing info
+	const [billingSameAsDelivery, setBillingSameAsDelivery] = useState(true);
+	const [billingFirstName, setBillingFirstName] = useState("");
+	const [billingLastName, setBillingLastName] = useState("");
+	const [billingPhone, setBillingPhone] = useState("");
+	const [billingStreet, setBillingStreet] = useState("");
+	const [billingPostalCode, setBillingPostalCode] = useState("");
+	const [billingCountry, setBillingCountry] = useState("");
 
 	const [paymentMethod, setPaymentMethod] = useState("");
 	const [paymentProof, setPaymentProof] = useState(null);
@@ -50,7 +66,6 @@ const CheckoutPage = () => {
 	const { data } = useShippingData();
 	const eurToIdrRate = data?.EUR_TO_IDR_RATE ?? 0;
 
-	const location = useLocation();
 	const invoiceProofFiles = location.state?.invoiceProofFiles || {};
 
 	// =========================
@@ -69,20 +84,28 @@ const CheckoutPage = () => {
 	// =========================
 	// Derived pricing
 	// =========================
-	const totalAmountEUR = useMemo(() => {
-		return getTotalAmountEUR(cartItems);
-	}, [cartItems]);
+	const totalAmountEUR = useMemo(
+		() => getTotalAmountEUR(cartItems),
+		[cartItems],
+	);
 
-	const totalAmountIDR = useMemo(() => {
-		return totalAmountEUR * eurToIdrRate;
-	}, [totalAmountEUR, eurToIdrRate]);
+	const totalAmountIDR = useMemo(
+		() => totalAmountEUR * eurToIdrRate,
+		[totalAmountEUR, eurToIdrRate],
+	);
 
 	const hasDutyItems = cartItems.some((item) => item?.duty === true);
 	const backTo = hasDutyItems ? "/invoices" : "/cart";
 	const backLabel = hasDutyItems ? "Back to Invoices" : "Back to Cart";
 
-	// Derived full name for downstream API calls
-	const fullName = `${firstName} ${lastName}`.trim();
+	// Derived names for downstream API calls
+	const buyerFullName = `${firstName} ${lastName}`.trim();
+	const deliveryRecipientFullName =
+		`${deliveryRecipientFirstName} ${deliveryRecipientLastName}`.trim();
+
+	const billingFullName = billingSameAsDelivery
+		? deliveryRecipientFullName
+		: `${billingFirstName} ${billingLastName}`.trim();
 
 	// =========================
 	// Form submission
@@ -105,9 +128,37 @@ const CheckoutPage = () => {
 				throw new Error("Invalid payment method.");
 			}
 
-			const billingAddress = [street, postalCode, country]
+			const deliveryAddress = [
+				deliveryRecipientFullName,
+				deliveryRecipientPhone,
+				deliveryStreet,
+				deliveryPostalCode,
+				deliveryCountry,
+			]
 				.filter(Boolean)
 				.join(", ");
+
+			const billingAddress = billingSameAsDelivery
+				? [
+						deliveryRecipientFullName,
+						deliveryStreet,
+						deliveryPostalCode,
+						deliveryCountry,
+					]
+						.filter(Boolean)
+						.join(", ")
+				: [
+						billingFullName,
+						billingStreet,
+						billingPostalCode,
+						billingCountry,
+					]
+						.filter(Boolean)
+						.join(", ");
+
+			setBillingPhone(
+				billingSameAsDelivery ? deliveryRecipientPhone : billingPhone,
+			);
 
 			const shipments = cartItems.map((item, index) => {
 				if (
@@ -148,13 +199,18 @@ const CheckoutPage = () => {
 			// one order and all shipments
 			await createOrderHistory({
 				orderId,
-				fullName,
-				email,
-				phone,
+				buyerFullName,
+				buyerPhone: phone,
+				buyerEmail: email,
+				deliveryRecipientFullName,
+				deliveryRecipientPhone,
+				deliveryAddress,
+				billingFullName,
+				billingPhone,
 				billingAddress,
 				totalAmountEUR,
 				totalAmountIDR,
-				paymentStatus: paymentStatus || "",
+				paymentStatus,
 				paymentProof,
 				submittedAt,
 				specialRequest: notes,
@@ -197,22 +253,21 @@ const CheckoutPage = () => {
 					);
 				}
 
-				// TODO: this needs to be handled differently for each route
-				/*await createPengirimanLokal({
-                    dataSourceId: pengirimanLokalDataSourceId,
-                    orderId,
-                    fullName,
-                    phone,
-                    email,
-                    address: billingAddress,
-                });*/
+				await createPengirimanLokal({
+					dataSourceId: pengirimanLokalDataSourceId,
+					orderId,
+					deliveryRecipientFullName:
+						deliveryRecipientFullName || buyerFullName,
+					deliveryRecipientPhone: deliveryRecipientPhone || phone,
+					deliveryAddress,
+				});
 
 				await createPenerimaanBarang({
 					dataSourceId: penerimaanBarangDataSourceId,
 					orderId,
-					fullName,
-					phone,
-					email,
+					buyerFullName,
+					buyerPhone: phone,
+					buyerEmail: email,
 					packageType,
 					quantity: Number(quantity),
 					request: notes,
@@ -221,12 +276,11 @@ const CheckoutPage = () => {
 				await createPembayaran({
 					dataSourceId: pembayaranDataSourceId,
 					orderId,
-					fullName,
-					phone,
-					email,
+					billingFullName: billingFullName || buyerFullName,
+					billingPhone: billingPhone || phone,
 					billingAddress,
 					packageType,
-					totalEUR: totalEUR,
+					totalEUR,
 					priceBreakdown,
 					quantity: Number(quantity),
 					paymentStatus,
@@ -240,9 +294,12 @@ const CheckoutPage = () => {
 
 			const successPayload = {
 				orderId,
-				fullName,
+				buyerFullName,
 				email,
 				phone,
+				deliveryRecipientFullName,
+				deliveryAddress,
+				billingFullName,
 				billingAddress,
 				totalAmountEUR,
 				totalAmountIDR,
@@ -320,16 +377,48 @@ const CheckoutPage = () => {
 								setFirstName={setFirstName}
 								lastName={lastName}
 								setLastName={setLastName}
-								street={street}
-								setStreet={setStreet}
-								postalCode={postalCode}
-								setPostalCode={setPostalCode}
-								country={country}
-								setCountry={setCountry}
-								email={email}
-								setEmail={setEmail}
 								phone={phone}
 								setPhone={setPhone}
+								email={email}
+								setEmail={setEmail}
+								deliveryRecipientFirstName={
+									deliveryRecipientFirstName
+								}
+								setDeliveryRecipientFirstName={
+									setDeliveryRecipientFirstName
+								}
+								deliveryRecipientLastName={
+									deliveryRecipientLastName
+								}
+								setDeliveryRecipientLastName={
+									setDeliveryRecipientLastName
+								}
+								deliveryRecipientPhone={deliveryRecipientPhone}
+								setDeliveryRecipientPhone={
+									setDeliveryRecipientPhone
+								}
+								deliveryStreet={deliveryStreet}
+								setDeliveryStreet={setDeliveryStreet}
+								deliveryPostalCode={deliveryPostalCode}
+								setDeliveryPostalCode={setDeliveryPostalCode}
+								deliveryCountry={deliveryCountry}
+								setDeliveryCountry={setDeliveryCountry}
+								billingSameAsDelivery={billingSameAsDelivery}
+								setBillingSameAsDelivery={
+									setBillingSameAsDelivery
+								}
+								billingFirstName={billingFirstName}
+								setBillingFirstName={setBillingFirstName}
+								billingLastName={billingLastName}
+								setBillingLastName={setBillingLastName}
+								billingPhone={billingPhone}
+								setBillingPhone={setBillingPhone}
+								billingStreet={billingStreet}
+								setBillingStreet={setBillingStreet}
+								billingPostalCode={billingPostalCode}
+								setBillingPostalCode={setBillingPostalCode}
+								billingCountry={billingCountry}
+								setBillingCountry={setBillingCountry}
 								paymentMethod={paymentMethod}
 								setPaymentMethod={setPaymentMethod}
 								setPaymentProof={setPaymentProof}

@@ -5,14 +5,31 @@ import { Link } from "react-router-dom";
  * CheckoutForm
  *
  * Props:
- * - handleSubmit: form submit handler for the checkout action
- * - firstName, lastName, street, postalCode, country, email, phone: billing address fields
- * - setFirstName, setLastName, setStreet, setPostalCode, setCountry, setEmail, setPhone: setters
- * - paymentMethod, paymentProof, notes: current payment / notes values
- * - setPaymentMethod, setPaymentProof, setNotes: setters for payment / notes fields
- * - termsAccepted: whether the user accepted the terms
- * - setTermsAccepted: setter for the term checkbox
- * - submitting: loading state while checkout is being processed
+ * - handleSubmit
+ * - buyer info:
+ *   firstName, setFirstName, lastName, setLastName, email, setEmail, phone, setPhone
+ * - delivery info:
+ *   deliveryRecipientFirstName, setDeliveryRecipientFirstName
+ *   deliveryRecipientLastName, setDeliveryRecipientLastName
+ *   deliveryRecipientPhone, setDeliveryRecipientPhone
+ *   deliveryStreet, setDeliveryStreet
+ *   deliveryPostalCode, setDeliveryPostalCode
+ *   deliveryCountry, setDeliveryCountry
+ * - billing info:
+ *   billingSameAsDelivery, setBillingSameAsDelivery
+ *   billingFirstName, setBillingFirstName
+ *   billingLastName, setBillingLastName
+ *   billingPhone, setBillingPhone
+ *   billingStreet, setBillingStreet
+ *   billingPostalCode, setBillingPostalCode
+ *   billingCountry, setBillingCountry
+ * - payment:
+ *   paymentMethod, setPaymentMethod, setPaymentProof
+ * - notes:
+ *   notes, setNotes
+ * - terms:
+ *   termsAccepted, setTermsAccepted
+ * - submitting
  */
 const CheckoutForm = ({
 	handleSubmit,
@@ -20,16 +37,39 @@ const CheckoutForm = ({
 	setFirstName,
 	lastName,
 	setLastName,
-	street,
-	setStreet,
-	postalCode,
-	setPostalCode,
-	country,
-	setCountry,
 	email,
 	setEmail,
 	phone,
 	setPhone,
+
+	deliveryRecipientFirstName,
+	setDeliveryRecipientFirstName,
+	deliveryRecipientLastName,
+	setDeliveryRecipientLastName,
+	deliveryRecipientPhone,
+	setDeliveryRecipientPhone,
+	deliveryStreet,
+	setDeliveryStreet,
+	deliveryPostalCode,
+	setDeliveryPostalCode,
+	deliveryCountry,
+	setDeliveryCountry,
+
+	billingSameAsDelivery,
+	setBillingSameAsDelivery,
+	billingFirstName,
+	setBillingFirstName,
+	billingLastName,
+	setBillingLastName,
+	billingPhone,
+	setBillingPhone,
+	billingStreet,
+	setBillingStreet,
+	billingPostalCode,
+	setBillingPostalCode,
+	billingCountry,
+	setBillingCountry,
+
 	paymentMethod,
 	setPaymentMethod,
 	setPaymentProof,
@@ -46,10 +86,10 @@ const CheckoutForm = ({
 					disabled={submitting}
 					className={submitting ? "opacity-70" : ""}
 				>
-					{/* Billing Address */}
+					{/* Buyer info */}
 					<div className="space-y-4">
 						<h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-							Billing Address
+							Buyer Information
 						</h3>
 
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -86,55 +126,6 @@ const CheckoutForm = ({
 							</div>
 						</div>
 
-						<div>
-							<label className="block text-sm font-semibold text-gray-800">
-								Street Address{" "}
-								<span className="text-red-500">*</span>
-							</label>
-							<input
-								type="text"
-								className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
-								placeholder="e.g. Musterstraße 12"
-								value={street}
-								onChange={(e) => setStreet(e.target.value)}
-								required
-							/>
-						</div>
-
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-							<div>
-								<label className="block text-sm font-semibold text-gray-800">
-									Postal Code{" "}
-									<span className="text-red-500">*</span>
-								</label>
-								<input
-									type="text"
-									className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
-									placeholder="e.g. 60311"
-									value={postalCode}
-									onChange={(e) =>
-										setPostalCode(e.target.value)
-									}
-									required
-								/>
-							</div>
-
-							<div>
-								<label className="block text-sm font-semibold text-gray-800">
-									Country{" "}
-									<span className="text-red-500">*</span>
-								</label>
-								<input
-									type="text"
-									className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
-									placeholder="e.g. Germany"
-									value={country}
-									onChange={(e) => setCountry(e.target.value)}
-									required
-								/>
-							</div>
-						</div>
-
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<div>
 								<label className="block text-sm font-semibold text-gray-800">
@@ -166,7 +157,269 @@ const CheckoutForm = ({
 						</div>
 					</div>
 
-					{/* Payment details */}
+					{/* Delivery */}
+					<div className="space-y-4 mt-8">
+						<h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+							Delivery Address
+						</h3>
+
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+							<div>
+								<label className="block text-sm font-semibold text-gray-800">
+									Recipient First Name{" "}
+									<span className="text-red-500">*</span>
+								</label>
+								<input
+									type="text"
+									className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+									value={deliveryRecipientFirstName}
+									onChange={(e) =>
+										setDeliveryRecipientFirstName(
+											e.target.value,
+										)
+									}
+									required
+								/>
+							</div>
+
+							<div>
+								<label className="block text-sm font-semibold text-gray-800">
+									Recipient Last Name{" "}
+									<span className="text-red-500">*</span>
+								</label>
+								<input
+									type="text"
+									className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+									value={deliveryRecipientLastName}
+									onChange={(e) =>
+										setDeliveryRecipientLastName(
+											e.target.value,
+										)
+									}
+									required
+								/>
+							</div>
+
+							<div>
+								<label className="block text-sm font-semibold text-gray-800">
+									Recipient Phone{" "}
+									<span className="text-red-500">*</span>
+								</label>
+								<input
+									type="tel"
+									className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+									value={deliveryRecipientPhone}
+									onChange={(e) =>
+										setDeliveryRecipientPhone(
+											e.target.value,
+										)
+									}
+									required
+								/>
+							</div>
+						</div>
+
+						<div>
+							<label className="block text-sm font-semibold text-gray-800">
+								Street Address{" "}
+								<span className="text-red-500">*</span>
+							</label>
+							<input
+								type="text"
+								className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+								placeholder="e.g. Musterstraße 12"
+								value={deliveryStreet}
+								onChange={(e) =>
+									setDeliveryStreet(e.target.value)
+								}
+								required
+							/>
+						</div>
+
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<div>
+								<label className="block text-sm font-semibold text-gray-800">
+									Postal Code{" "}
+									<span className="text-red-500">*</span>
+								</label>
+								<input
+									type="text"
+									className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+									placeholder="e.g. 60311"
+									value={deliveryPostalCode}
+									onChange={(e) =>
+										setDeliveryPostalCode(e.target.value)
+									}
+									required
+								/>
+							</div>
+
+							<div>
+								<label className="block text-sm font-semibold text-gray-800">
+									Country{" "}
+									<span className="text-red-500">*</span>
+								</label>
+								<input
+									type="text"
+									className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+									placeholder="e.g. Germany"
+									value={deliveryCountry}
+									onChange={(e) =>
+										setDeliveryCountry(e.target.value)
+									}
+									required
+								/>
+							</div>
+						</div>
+					</div>
+
+					{/* Billing */}
+					<div className="space-y-4 mt-8">
+						<h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+							Billing Address
+						</h3>
+
+						<label className="flex items-center gap-3">
+							<input
+								type="checkbox"
+								checked={billingSameAsDelivery}
+								onChange={(e) =>
+									setBillingSameAsDelivery(e.target.checked)
+								}
+								className="input-focus"
+							/>
+							<span className="text-sm text-gray-800">
+								Billing address is the same as delivery address
+							</span>
+						</label>
+
+						{!billingSameAsDelivery && (
+							<>
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+									<div>
+										<label className="block text-sm font-semibold text-gray-800">
+											Billing First Name{" "}
+											<span className="text-red-500">
+												*
+											</span>
+										</label>
+										<input
+											type="text"
+											className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+											value={billingFirstName}
+											onChange={(e) =>
+												setBillingFirstName(
+													e.target.value,
+												)
+											}
+											required
+										/>
+									</div>
+
+									<div>
+										<label className="block text-sm font-semibold text-gray-800">
+											Billing Last Name{" "}
+											<span className="text-red-500">
+												*
+											</span>
+										</label>
+										<input
+											type="text"
+											className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+											value={billingLastName}
+											onChange={(e) =>
+												setBillingLastName(
+													e.target.value,
+												)
+											}
+											required
+										/>
+									</div>
+
+									<div>
+										<label className="block text-sm font-semibold text-gray-800">
+											Billing Phone{" "}
+											<span className="text-red-500">
+												*
+											</span>
+										</label>
+										<input
+											type="tel"
+											className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+											value={billingPhone}
+											onChange={(e) =>
+												setBillingPhone(e.target.value)
+											}
+											required
+										/>
+									</div>
+								</div>
+
+								<div>
+									<label className="block text-sm font-semibold text-gray-800">
+										Street Address{" "}
+										<span className="text-red-500">*</span>
+									</label>
+									<input
+										type="text"
+										className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+										placeholder="e.g. Musterstraße 12"
+										value={billingStreet}
+										onChange={(e) =>
+											setBillingStreet(e.target.value)
+										}
+										required={!billingSameAsDelivery}
+									/>
+								</div>
+
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+									<div>
+										<label className="block text-sm font-semibold text-gray-800">
+											Postal Code{" "}
+											<span className="text-red-500">
+												*
+											</span>
+										</label>
+										<input
+											type="text"
+											className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+											placeholder="e.g. 60311"
+											value={billingPostalCode}
+											onChange={(e) =>
+												setBillingPostalCode(
+													e.target.value,
+												)
+											}
+											required={!billingSameAsDelivery}
+										/>
+									</div>
+
+									<div>
+										<label className="block text-sm font-semibold text-gray-800">
+											Country{" "}
+											<span className="text-red-500">
+												*
+											</span>
+										</label>
+										<input
+											type="text"
+											className="subtext w-full rounded-xl border border-gray-300 p-3 input-focus disabled:bg-gray-100 disabled:cursor-not-allowed"
+											placeholder="e.g. Germany"
+											value={billingCountry}
+											onChange={(e) =>
+												setBillingCountry(
+													e.target.value,
+												)
+											}
+											required={!billingSameAsDelivery}
+										/>
+									</div>
+								</div>
+							</>
+						)}
+					</div>
+
+					{/* Payment */}
 					<div className="space-y-4 mt-8">
 						<h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
 							Payment
@@ -245,7 +498,6 @@ const CheckoutForm = ({
 						<span className="ml-1 text-red-500">*</span>
 					</div>
 
-					{/* Submit */}
 					<button
 						type="submit"
 						disabled={submitting}

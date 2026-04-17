@@ -39,6 +39,9 @@ const CheckoutSuccessPage = () => {
 		fullName = "",
 		email = "",
 		phone = "",
+		deliveryRecipientFullName = "",
+		deliveryAddress = "",
+		billingFullName = "",
 		billingAddress = "",
 		fromCountry = "",
 		toCountry = "",
@@ -59,6 +62,9 @@ const CheckoutSuccessPage = () => {
 		fullName ||
 		email ||
 		phone ||
+		deliveryRecipientFullName ||
+		deliveryAddress ||
+		billingFullName ||
 		billingAddress ||
 		fromCountry ||
 		toCountry ||

@@ -41,10 +41,10 @@ const statusPembayaranOptions = [
 ]
 
 export const penerimaanBarangSchema = {
-    "Order ID (WEB)": { rich_text: {} },
-    "Nama Pembeli (WEB)": { title: {} },
-    "Telepon (WEB)": { phone_number: {} },
-    "Email (WEB)": { email: {} },
+    "Order ID (WEB)": { title: {} },
+    "Nama Pembeli (WEB)": { rich_text: {} },
+    "Telepon Pembeli (WEB)": { phone_number: {} },
+    "Email Pembeli (WEB)": { email: {} },
     "Jenis Item (WEB)": {
         select: {
             options: jenisItemOptions,
@@ -63,10 +63,9 @@ export const penerimaanBarangSchema = {
 };
 
 export const pembayaranSchema = {
-    "Order ID (WEB)": { rich_text: {} },
-    "Nama Pembeli (WEB)": { title: {} },
-    "Telepon (WEB)": { phone_number: {} },
-    "Email (WEB)": { email: {} },
+    "Order ID (WEB)": { title: {} },
+    "Nama Pembayar (WEB)": { rich_text: {} },
+    "Telepon Pembayar (WEB)": { phone_number: {} },
     "Alamat Tagihan (WEB)": { rich_text: {} },
     "Jenis Item (WEB)": {
         select: {
@@ -88,10 +87,9 @@ export const pembayaranSchema = {
 };
 
 export const pengirimanLokalSchema = {
-    "Order ID (WEB)": { rich_text: {} },
-    "Nama Pembeli (WEB)": { title: {} },
-    "Telepon (WEB)": { phone_number: {} },
-    "Email (WEB)": { email: {} },
+    "Order ID (WEB)": { title: {} },
+    "Nama Penerima (WEB)": { rich_text: {} },
+    "Telepon Penerima (WEB)": { phone_number: {} },
     "Alamat Tujuan (WEB)": { rich_text: {} },
     "Pengiriman di Indo (WEB)": {
         select: {

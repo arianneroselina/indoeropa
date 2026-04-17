@@ -44,44 +44,12 @@ export const createOrGetOrderRouteDatabases = async ({ datePageId }) => {
 	return data;
 };
 
-export const createPengirimanLokal = async ({
-	dataSourceId,
-	orderId,
-	fullName,
-	phone,
-	email,
-	address,
-}) => {
-	const res = await fetch(`${API_BASE}/api/notion/pengiriman-lokal`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			dataSourceId,
-			orderId,
-			fullName,
-			phone,
-			email,
-			address,
-		}),
-	});
-
-	const data = await res.json().catch(() => ({}));
-
-	if (!res.ok) {
-		throw new Error(
-			data?.message || data?.error || "Failed to save Pengiriman Lokal.",
-		);
-	}
-
-	return data;
-};
-
 export const createPenerimaanBarang = async ({
 	dataSourceId,
 	orderId,
-	fullName,
-	phone,
-	email,
+	buyerFullName,
+	buyerPhone,
+	buyerEmail,
 	packageType,
 	quantity,
 	request,
@@ -92,9 +60,9 @@ export const createPenerimaanBarang = async ({
 		body: JSON.stringify({
 			dataSourceId,
 			orderId,
-			fullName,
-			phone,
-			email,
+			buyerFullName,
+			buyerPhone,
+			buyerEmail,
 			packageType,
 			quantity,
 			request,
@@ -115,9 +83,8 @@ export const createPenerimaanBarang = async ({
 export const createPembayaran = async ({
 	dataSourceId,
 	orderId,
-	fullName,
-	phone,
-	email,
+	billingFullName,
+	billingPhone,
 	billingAddress,
 	packageType,
 	totalEUR,
@@ -130,9 +97,8 @@ export const createPembayaran = async ({
 	const formData = new FormData();
 	formData.append("dataSourceId", dataSourceId);
 	formData.append("orderId", orderId);
-	formData.append("fullName", fullName);
-	formData.append("phone", phone);
-	formData.append("email", email);
+	formData.append("billingFullName", billingFullName);
+	formData.append("billingPhone", billingPhone);
 	formData.append("billingAddress", billingAddress);
 	formData.append("packageType", packageType);
 	formData.append("totalEUR", totalEUR);
@@ -161,11 +127,46 @@ export const createPembayaran = async ({
 	return data;
 };
 
+export const createPengirimanLokal = async ({
+	dataSourceId,
+	orderId,
+	deliveryRecipientFullName,
+	deliveryRecipientPhone,
+	deliveryAddress,
+}) => {
+	const res = await fetch(`${API_BASE}/api/notion/pengiriman-lokal`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			dataSourceId,
+			orderId,
+			deliveryRecipientFullName,
+			deliveryRecipientPhone,
+			deliveryAddress,
+		}),
+	});
+
+	const data = await res.json().catch(() => ({}));
+
+	if (!res.ok) {
+		throw new Error(
+			data?.message || data?.error || "Failed to save Pengiriman Lokal.",
+		);
+	}
+
+	return data;
+};
+
 export const createOrderHistory = async ({
 	orderId,
-	fullName,
-	email,
-	phone,
+	buyerFullName,
+	buyerPhone,
+	buyerEmail,
+	deliveryRecipientFullName,
+	deliveryRecipientPhone,
+	deliveryAddress,
+	billingFullName,
+	billingPhone,
 	billingAddress,
 	totalAmountEUR,
 	totalAmountIDR,
@@ -179,9 +180,14 @@ export const createOrderHistory = async ({
 	const formData = new FormData();
 
 	formData.append("orderId", orderId);
-	formData.append("fullName", fullName);
-	formData.append("email", email);
-	formData.append("phone", phone);
+	formData.append("buyerFullName", buyerFullName);
+	formData.append("buyerEmail", buyerEmail);
+	formData.append("buyerPhone", buyerPhone);
+	formData.append("deliveryRecipientFullName", deliveryRecipientFullName);
+	formData.append("deliveryRecipientPhone", deliveryRecipientPhone);
+	formData.append("deliveryAddress", deliveryAddress);
+	formData.append("billingFullName", billingFullName);
+	formData.append("billingPhone", billingPhone);
 	formData.append("billingAddress", billingAddress);
 	formData.append("totalAmountEUR", totalAmountEUR);
 	formData.append("totalAmountIDR", totalAmountIDR);
