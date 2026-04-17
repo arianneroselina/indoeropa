@@ -214,7 +214,11 @@ app.post("/api/notion/penerimaan-barang", async (req, res) => {
     }
 });
 
-app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, res) => {
+app.post("/api/notion/pembayaran",
+    upload.fields([
+        { name: "paymentProof", maxCount: 1 },
+        { name: "invoiceProof", maxCount: 1 },
+    ]), async (req, res) => {
     try {
         const {
             dataSourceId,
@@ -230,7 +234,8 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
             paymentDate,
         } = req.body;
 
-        const paymentProof = req.file;
+        const paymentProof = req.files?.paymentProof?.[0];
+        const invoiceProof = req.files?.invoiceProof?.[0];
 
         if (!dataSourceId) {
             return res.status(400).json({ error: "dataSourceId is required" });
@@ -239,37 +244,40 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
             return res.status(400).json({ error: "billingFullName is required" });
         }
 
-        let buktiPembayaranFiles = [];
+        async function uploadNotionFile(file) {
+            if (!file) return [];
 
-        if (paymentProof) {
             const fileUpload = await notion.fileUploads.create({
                 mode: "single_part",
-                filename: paymentProof.originalname,
-                content_type: paymentProof.mimetype,
+                filename: file.originalname,
+                content_type: file.mimetype,
             });
 
             const uploadedFile = await notion.fileUploads.send({
                 file_upload_id: fileUpload.id,
                 file: {
-                    filename: paymentProof.originalname,
-                    data: new Blob([paymentProof.buffer], {
-                        type: paymentProof.mimetype,
+                    filename: file.originalname,
+                    data: new Blob([file.buffer], {
+                        type: file.mimetype,
                     }),
                 },
             });
 
             console.log("Uploaded file status:", uploadedFile.status);
 
-            buktiPembayaranFiles = [
+            return [
                 {
                     type: "file_upload",
                     file_upload: {
                         id: fileUpload.id,
                     },
-                    name: paymentProof.originalname,
+                    name: file.originalname,
                 },
             ];
         }
+
+        const buktiPembayaranFiles = await uploadNotionFile(paymentProof);
+        const buktiPembelianBarangFiles = await uploadNotionFile(invoiceProof);
 
         const created = await notion.pages.create({
             parent: {
@@ -301,6 +309,9 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
                 "Jumlah Pembelian per Unit (WEB)": {
                     number: Number(quantity) || 0,
                 },
+                "Bukti Pembelian Barang (WEB)": {
+                    files: buktiPembelianBarangFiles,
+                },
                 "Status Pembayaran (WEB)": {
                     select: paymentStatus ? { name: String(paymentStatus) } : null,
                 },
@@ -324,8 +335,8 @@ app.post("/api/notion/pembayaran", upload.single("paymentProof"), async (req, re
             code,
             message,
         });
-    }
-});
+    }},
+);
 
 app.post("/api/notion/pengiriman-lokal", async (req, res) => {
     try {

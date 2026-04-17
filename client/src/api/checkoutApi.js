@@ -93,8 +93,10 @@ export const createPembayaran = async ({
 	paymentStatus,
 	paymentDate,
 	paymentProof,
+	invoiceProof,
 }) => {
 	const formData = new FormData();
+
 	formData.append("dataSourceId", dataSourceId);
 	formData.append("orderId", orderId);
 	formData.append("billingFullName", billingFullName);
@@ -109,6 +111,10 @@ export const createPembayaran = async ({
 
 	if (paymentProof) {
 		formData.append("paymentProof", paymentProof);
+	}
+
+	if (invoiceProof) {
+		formData.append("invoiceProof", invoiceProof);
 	}
 
 	const res = await fetch(`${API_BASE}/api/notion/pembayaran`, {

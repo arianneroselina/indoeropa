@@ -286,6 +286,7 @@ const CheckoutPage = () => {
 					paymentStatus,
 					paymentDate: today,
 					paymentProof,
+					invoiceProof: invoiceProofFiles?.[shipment.itemKey] || null,
 				});
 			}
 
