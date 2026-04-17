@@ -371,7 +371,7 @@ app.post("/api/notion/pengiriman-lokal", async (req, res) => {
     }
 });
 
-app.post("/api/notion/order-history", upload.fields([{ name: "paymentProof", maxCount: 1 }]), async (req, res) => {
+app.post("/api/notion/order-history", upload.any(), async (req, res) => {
     try {
         const {
             orderId,
@@ -416,7 +416,13 @@ app.post("/api/notion/order-history", upload.fields([{ name: "paymentProof", max
             });
         }
 
-        const paymentProof = req.files?.paymentProof?.[0];
+        const paymentProof = req.files?.find((f) => f.fieldname === "paymentProof");
+
+        const invoiceProofFileMap = Object.fromEntries(
+            (req.files || [])
+                .filter((f) => f.fieldname.startsWith("invoiceProof:"))
+                .map((f) => [f.fieldname.replace("invoiceProof:", ""), f]),
+        );
 
         async function uploadNotionFile(file) {
             if (!file) return [];
@@ -448,20 +454,14 @@ app.post("/api/notion/order-history", upload.fields([{ name: "paymentProof", max
             ];
         }
 
-        function buildOrderProperties({
-                                          orderId,
-                                          submittedAt,
-                                          fullName,
-                                          email,
-                                          phone,
-                                          billingAddress,
-                                          totalAmountEUR,
-                                          totalAmountIDR,
-                                          paymentStatus,
-                                          paymentProofFiles,
-                                          specialRequest,
-                                      }) {
-            return {
+        const paymentProofFiles = await uploadNotionFile(paymentProof);
+
+        const createdOrder = await notion.pages.create({
+            parent: {
+                type: "data_source_id",
+                data_source_id: orderHistoryDataSourceId,
+            },
+            properties: {
                 "Order ID": {
                     title: [{ text: { content: String(orderId) } }],
                 },
@@ -495,74 +495,7 @@ app.post("/api/notion/order-history", upload.fields([{ name: "paymentProof", max
                 "Special Request": {
                     rich_text: [{ text: { content: String(specialRequest || "") } }],
                 },
-            };
-        }
-
-        function buildShipmentProperties(shipment, orderPageId) {
-            return {
-                "Shipment ID": {
-                    title: [
-                        {
-                            text: {
-                                content: String(
-                                    shipment.shipmentId || `${orderId}-1`,
-                                ),
-                            },
-                        },
-                    ],
-                },
-                "From Country": {
-                    select: shipment.fromCountry ? { name: String(shipment.fromCountry) } : null,
-                },
-                "To Country": {
-                    select: shipment.toCountry ? { name: String(shipment.toCountry) } : null,
-                },
-                "Shipment Date": {
-                    date: shipment.shipmentDate
-                        ? { start: String(shipment.shipmentDate) }
-                        : null,
-                },
-                "Package Type": {
-                    select: shipment.packageType ? { name: String(shipment.packageType) } : null,
-                },
-                "Quantity":  {
-                    number: Number(shipment.quantity) || 0,
-                },
-                "Unit": {
-                    select: shipment.unit ? { name: String(shipment.unit) } : null,
-                },
-                "Price (EUR)": {
-                    number: Number(shipment.priceEUR) || 0,
-                },
-                "Duty Price (EUR)": {
-                    number: Number(shipment.dutyPriceEUR) || 0,
-                },
-                "Order": {
-                    relation: [{ id: orderPageId }],
-                },
-            };
-        }
-
-        const paymentProofFiles = await uploadNotionFile(paymentProof);
-
-        const createdOrder = await notion.pages.create({
-            parent: {
-                type: "data_source_id",
-                data_source_id: orderHistoryDataSourceId,
             },
-            properties: buildOrderProperties({
-                orderId,
-                submittedAt,
-                fullName,
-                email,
-                phone,
-                billingAddress,
-                totalAmountEUR,
-                totalAmountIDR,
-                paymentStatus,
-                paymentProofFiles,
-                specialRequest,
-            }),
         });
 
         const orderPageId = createdOrder.id;
@@ -570,12 +503,59 @@ app.post("/api/notion/order-history", upload.fields([{ name: "paymentProof", max
         const createdShipments = [];
 
         for (const shipment of parsedShipments) {
+            const invoiceProofFile = invoiceProofFileMap[shipment.itemKey];
+            const invoiceProofFiles = await uploadNotionFile(invoiceProofFile);
+
             const createdShipment = await notion.pages.create({
                 parent: {
                     type: "data_source_id",
                     data_source_id: shipmentsDataSourceId,
                 },
-                properties: buildShipmentProperties(shipment, orderPageId),
+                properties: {
+                    "Shipment ID": {
+                        title: [
+                            {
+                                text: {
+                                    content: String(
+                                        shipment.shipmentId || `${orderId}-1`,
+                                    ),
+                                },
+                            },
+                        ],
+                    },
+                    "From Country": {
+                        select: shipment.fromCountry ? { name: String(shipment.fromCountry) } : null,
+                    },
+                    "To Country": {
+                        select: shipment.toCountry ? { name: String(shipment.toCountry) } : null,
+                    },
+                    "Shipment Date": {
+                        date: shipment.shipmentDate
+                            ? { start: String(shipment.shipmentDate) }
+                            : null,
+                    },
+                    "Package Type": {
+                        select: shipment.packageType ? { name: String(shipment.packageType) } : null,
+                    },
+                    "Quantity":  {
+                        number: Number(shipment.quantity) || 0,
+                    },
+                    "Unit": {
+                        select: shipment.unit ? { name: String(shipment.unit) } : null,
+                    },
+                    "Price (EUR)": {
+                        number: Number(shipment.priceEUR) || 0,
+                    },
+                    "Duty Price (EUR)": {
+                        number: Number(shipment.dutyPriceEUR) || 0,
+                    },
+                    "Invoice Proof": {
+                        files: invoiceProofFiles,
+                    },
+                    "Order": {
+                        relation: [{ id: orderPageId }],
+                    },
+                },
             });
 
             createdShipments.push({

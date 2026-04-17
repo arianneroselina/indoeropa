@@ -174,6 +174,7 @@ export const createOrderHistory = async ({
 	submittedAt,
 	specialRequest,
 	shipments,
+	invoiceProofFiles,
 }) => {
 	const formData = new FormData();
 
@@ -192,6 +193,13 @@ export const createOrderHistory = async ({
 	if (paymentProof) {
 		formData.append("paymentProof", paymentProof);
 	}
+
+	(shipments || []).forEach((shipment) => {
+		const file = invoiceProofFiles?.[shipment.itemKey];
+		if (file) {
+			formData.append(`invoiceProof:${shipment.itemKey}`, file);
+		}
+	});
 
 	const res = await fetch(`${API_BASE}/api/notion/order-history`, {
 		method: "POST",

@@ -20,6 +20,7 @@ import {
 	createOrderHistory,
 } from "../api/checkoutApi";
 import { useShippingData } from "../hooks/useShippingData";
+import { useLocation } from "react-router-dom";
 
 const CheckoutPage = () => {
 	const navigate = useNavigate();
@@ -48,6 +49,9 @@ const CheckoutPage = () => {
 
 	const { data } = useShippingData();
 	const eurToIdrRate = data?.EUR_TO_IDR_RATE ?? 0;
+
+	const location = useLocation();
+	const invoiceProofFiles = location.state?.invoiceProofFiles || {};
 
 	// =========================
 	// Load persisted checkout data
@@ -114,8 +118,6 @@ const CheckoutPage = () => {
 					throw new Error("Missing route information for checkout.");
 				}
 
-				const packageType = item.packageTypeLabel ?? "-";
-
 				const itemQuantity = getItemQuantity(item);
 				const quantity = String(itemQuantity.value ?? "");
 				const unit = String(itemQuantity.unit ?? "");
@@ -125,16 +127,18 @@ const CheckoutPage = () => {
 
 				return {
 					shipmentId: `${orderId}-S${index + 1}`,
+					itemKey: item.key,
 					fromCountry: item.fromCountry,
 					toCountry: item.toCountry,
 					shipmentDate: item.shipmentDate,
-					packageType,
+					packageType: item.packageTypeLabel ?? "-",
 					quantity,
 					unit,
 					priceEUR: item.priceEUR,
 					dutyPriceEUR: item.duty
 						? Number(item.customsFeeEUR || 0)
 						: 0,
+					invoiceRequired: item.invoiceRequired === true,
 					totalEUR: itemTotalEUR,
 					priceBreakdown,
 					item,
@@ -158,6 +162,7 @@ const CheckoutPage = () => {
 					({ priceBreakdown, item, ...shipmentPayload }) =>
 						shipmentPayload,
 				),
+				invoiceProofFiles,
 			});
 
 			// route-specific records

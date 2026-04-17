@@ -20,8 +20,8 @@ const InvoiceUploadsPage = () => {
 	const [cartItems, setCartItems] = useState([]);
 
 	// session-only upload state (NOT persisted)
-	// TODO: upload to Notion
 	const [proofUploaded, setProofUploaded] = useState({});
+	const [invoiceProofFiles, setInvoiceProofFiles] = useState({});
 	const [errorMessage, setErrorMessage] = useState("");
 
 	useEffect(() => {
@@ -30,7 +30,6 @@ const InvoiceUploadsPage = () => {
 
 		const parsed = JSON.parse(savedCartItems);
 
-		// keep only shipment-owned invoice/customs fields on the cart item itself
 		const cleaned = parsed.map((item) => ({
 			...item,
 			invoiceRequired:
@@ -50,9 +49,16 @@ const InvoiceUploadsPage = () => {
 				item?.customsFeeEUR !== null
 					? Number(item.customsFeeEUR)
 					: undefined,
+			hasInvoiceProof: Boolean(item?.hasInvoiceProof),
+			invoiceProofName: item?.invoiceProofName || undefined,
 		}));
 
 		setCartItems(cleaned);
+		setProofUploaded(
+			Object.fromEntries(
+				cleaned.map((item) => [item.key, !!item.hasInvoiceProof]),
+			),
+		);
 		localStorage.setItem(CART_KEY, JSON.stringify(cleaned));
 	}, []);
 
@@ -129,7 +135,18 @@ const InvoiceUploadsPage = () => {
 	};
 
 	const setProofFile = (itemKey, file) => {
+		setInvoiceProofFiles((prev) => ({
+			...prev,
+			[itemKey]: file || null,
+		}));
+
 		setProofUploaded((prev) => ({ ...prev, [itemKey]: !!file }));
+
+		updateCartItem(itemKey, (item) => ({
+			...item,
+			hasInvoiceProof: !!file,
+			invoiceProofName: file?.name || undefined,
+		}));
 	};
 
 	const isInvoiceComplete = relevant.every((item) => {
@@ -175,7 +192,11 @@ const InvoiceUploadsPage = () => {
 			}
 		}
 
-		navigate("/checkout");
+		navigate("/checkout", {
+			state: {
+				invoiceProofFiles,
+			},
+		});
 	};
 
 	return (
