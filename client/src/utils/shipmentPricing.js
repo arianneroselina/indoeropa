@@ -1,9 +1,3 @@
-export function snapToHalf(value) {
-	const n = Number(value);
-	if (!Number.isFinite(n)) return 0;
-	return Math.round(n * 2) / 2;
-}
-
 export function roundUpToHalf(value) {
 	const n = Number(value);
 	if (!Number.isFinite(n)) return 0;
@@ -16,9 +10,9 @@ export function roundUpToKg(value) {
 	return Math.ceil(n);
 }
 
-export function getBilledWeight(rawWeight, isVolumeLike) {
+export function getBilledWeight(rawWeight, isVolume) {
 	if (!rawWeight) return 0;
-	return isVolumeLike ? roundUpToKg(rawWeight) : roundUpToHalf(rawWeight);
+	return isVolume ? roundUpToKg(rawWeight) : roundUpToHalf(rawWeight);
 }
 
 const perKg = 15;

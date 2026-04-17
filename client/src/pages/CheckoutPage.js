@@ -9,7 +9,7 @@ import {
 	totalPriceWithCustoms,
 	getItemQuantity,
 	getItemQuantityLabel,
-	getTotalAmountEUR,
+	getRecommendedDhlAddon,
 } from "../utils/checkoutHelper";
 import {
 	createOrGetOrderRoutePage,
@@ -55,6 +55,7 @@ const CheckoutPage = () => {
 	const [billingPostalCode, setBillingPostalCode] = useState("");
 	const [billingCountry, setBillingCountry] = useState("");
 
+	const [dhlAddon, setDhlAddon] = useState("");
 	const [paymentMethod, setPaymentMethod] = useState("");
 	const [paymentProof, setPaymentProof] = useState(null);
 	const [notes, setNotes] = useState("");
@@ -64,7 +65,8 @@ const CheckoutPage = () => {
 	const [errorMessage, setErrorMessage] = useState("");
 
 	const { data } = useShippingData();
-	const eurToIdrRate = data?.EUR_TO_IDR_RATE ?? 0;
+	const eurToIdrRate = useMemo(() => data?.EUR_TO_IDR_RATE ?? 0, [data]);
+	const dhlTiers = useMemo(() => data?.DHL_TIERS ?? [], [data]);
 
 	const invoiceProofFiles = location.state?.invoiceProofFiles || {};
 
@@ -82,12 +84,59 @@ const CheckoutPage = () => {
 	}, []);
 
 	// =========================
+	// Germany DHL Addon
+	// =========================
+	const dhlAddonEnabled = cartItems[0]?.toCountry === "DE";
+
+	const totalWeightKg = useMemo(() => {
+		return cartItems.reduce(
+			(sum, item) => sum + Number(item?.weightKg || 0),
+			0,
+		);
+	}, [cartItems]);
+
+	const recommendedDhlAddon = useMemo(() => {
+		return getRecommendedDhlAddon(totalWeightKg, dhlTiers);
+	}, [totalWeightKg, dhlTiers]);
+
+	const selectedDhlAddon = dhlTiers.find((option) => option.id === dhlAddon);
+
+	const dhlAddonPriceEUR = dhlAddonEnabled
+		? Number(selectedDhlAddon?.price || 0)
+		: 0;
+
+	useEffect(() => {
+		if (!dhlAddonEnabled) {
+			setDhlAddon("");
+			return;
+		}
+
+		if (!dhlTiers.length) {
+			setDhlAddon("");
+			return;
+		}
+
+		if (!dhlTiers.some((option) => option.id === dhlAddon)) {
+			setDhlAddon(recommendedDhlAddon);
+			return;
+		}
+
+		if (!dhlAddon) {
+			setDhlAddon(recommendedDhlAddon);
+		}
+	}, [dhlAddonEnabled, dhlAddon, dhlTiers, recommendedDhlAddon]);
+
+	// =========================
 	// Derived pricing
 	// =========================
-	const totalAmountEUR = useMemo(
-		() => getTotalAmountEUR(cartItems),
-		[cartItems],
-	);
+	const totalAmountEUR = useMemo(() => {
+		return (
+			cartItems.reduce(
+				(sum, item) => sum + totalPriceWithCustoms(item).itemTotalEUR,
+				0,
+			) + dhlAddonPriceEUR
+		);
+	}, [cartItems, dhlAddonPriceEUR]);
 
 	const totalAmountIDR = useMemo(
 		() => totalAmountEUR * eurToIdrRate,
@@ -208,6 +257,8 @@ const CheckoutPage = () => {
 				billingFullName,
 				billingPhone,
 				billingAddress,
+				selectedDhlAddon: selectedDhlAddon.id,
+				dhlAddonPriceEUR,
 				totalAmountEUR,
 				totalAmountIDR,
 				paymentStatus,
@@ -420,6 +471,12 @@ const CheckoutPage = () => {
 								setBillingPostalCode={setBillingPostalCode}
 								billingCountry={billingCountry}
 								setBillingCountry={setBillingCountry}
+								dhlTiers={dhlTiers}
+								dhlAddonEnabled={dhlAddonEnabled}
+								recommendedDhlAddon={recommendedDhlAddon}
+								dhlAddon={dhlAddon}
+								setDhlAddon={setDhlAddon}
+								totalWeightKg={totalWeightKg}
 								paymentMethod={paymentMethod}
 								setPaymentMethod={setPaymentMethod}
 								setPaymentProof={setPaymentProof}
@@ -436,6 +493,9 @@ const CheckoutPage = () => {
 									totalAmountEUR={totalAmountEUR}
 									totalAmountIDR={totalAmountIDR}
 									eurToIdrRate={eurToIdrRate}
+									dhlAddonEnabled={dhlAddonEnabled}
+									selectedDhlAddon={selectedDhlAddon}
+									dhlAddonPriceEUR={dhlAddonPriceEUR}
 								/>
 							</aside>
 

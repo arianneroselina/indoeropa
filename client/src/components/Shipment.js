@@ -7,11 +7,7 @@ import {
 } from "react-icons/fa";
 import { CART_KEY } from "../utils/constants";
 
-import {
-	snapToHalf,
-	getBilledWeight,
-	calcPrice,
-} from "../utils/shipmentPricing";
+import { getBilledWeight, calcPrice } from "../utils/shipmentPricing";
 
 import Calendar from "../components/shipping/Calendar";
 import PackageTypePicker from "../components/shipping/PackageTypePicker";
@@ -157,12 +153,6 @@ export default function Shipment({ variant = "default" }) {
 	// =========================================================
 	// Weights / dimensions
 	// =========================================================
-	// stored weight for cart
-	const actualWeight = useMemo(() => {
-		if (weight === "") return 0;
-		return snapToHalf(weight);
-	}, [weight]);
-
 	// billed weight for pricing + summary display (volume-like rounds to full kg)
 	const billedWeight = useMemo(() => {
 		return getBilledWeight(weight, isVolume);
@@ -197,8 +187,8 @@ export default function Shipment({ variant = "default" }) {
 	// Recommendation logic
 	// =========================================================
 	const needsVolumePackage = useMemo(() => {
-		return actualWeight > 0 && volumetricWeight > actualWeight;
-	}, [actualWeight, volumetricWeight]);
+		return Number(weight) > 0 && volumetricWeight > Number(weight);
+	}, [weight, volumetricWeight]);
 
 	const recommendedPackageTypeId = useMemo(() => {
 		if (!needsVolumePackage) return "";
@@ -271,7 +261,7 @@ export default function Shipment({ variant = "default" }) {
 		// show modal only when user has entered dims + weight
 		const hasDims =
 			Number(lengthCm) > 0 && Number(widthCm) > 0 && Number(heightCm) > 0;
-		const hasWeight = actualWeight > 0;
+		const hasWeight = Number(weight) > 0;
 
 		if (!hasDims || !hasWeight) return;
 
@@ -290,7 +280,7 @@ export default function Shipment({ variant = "default" }) {
 		lengthCm,
 		widthCm,
 		heightCm,
-		actualWeight,
+		weight,
 	]);
 
 	// Progressive reveal
@@ -432,7 +422,7 @@ export default function Shipment({ variant = "default" }) {
 			fromCountry,
 			toCountry,
 			shipmentDate,
-			weightKg: actualWeight,
+			weightKg: Number(weight),
 			billedWeightKg: roundedWeight,
 			dimensionsCm: { ...dims },
 			packageTypeId: selectedPackageTypeId,
@@ -997,7 +987,8 @@ export default function Shipment({ variant = "default" }) {
 											<div className="subtext text-xs text-amber-900/80 mt-1">
 												Entered weight:{" "}
 												<span className="font-semibold">
-													{actualWeight.toFixed(1)} kg
+													{Number(weight).toFixed(1)}{" "}
+													kg
 												</span>
 												{" • "}
 												Volumetric weight:{" "}

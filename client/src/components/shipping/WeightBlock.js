@@ -4,7 +4,7 @@ export default function WeightBlock({
 	weight,
 	handleWeightChange,
 	willBeRounded,
-	isVolumeLike,
+	isVolume,
 }) {
 	return (
 		<div className="rounded-2xl border bg-white p-4">
@@ -30,7 +30,7 @@ export default function WeightBlock({
 				{willBeRounded && (
 					<p className="subtext mt-2 text-xs text-gray-700">
 						Your entered weight will be rounded <b>up</b> to the
-						next {isVolumeLike ? "1.0" : "0.5"} kg tier.
+						next {isVolume ? "1.0" : "0.5"} kg tier.
 					</p>
 				)}
 			</div>

@@ -394,6 +394,8 @@ app.post("/api/notion/order-history", upload.any(), async (req, res) => {
             billingFullName,
             billingPhone,
             billingAddress,
+            selectedDhlAddon,
+            dhlAddonPriceEUR,
             totalAmountEUR,
             totalAmountIDR,
             paymentStatus,
@@ -509,6 +511,12 @@ app.post("/api/notion/order-history", upload.any(), async (req, res) => {
                 },
                 "Billing Address": {
                     rich_text: [{ text: { content: String(billingAddress || "") } }],
+                },
+                "Selected DHL Addon": {
+                    select: selectedDhlAddon ? { name: String(selectedDhlAddon) } : null,
+                },
+                "DHL Addon Price (EUR)": {
+                    number: Number(dhlAddonPriceEUR) || 0,
                 },
                 "Total (EUR)": {
                     number: Number(totalAmountEUR) || 0,

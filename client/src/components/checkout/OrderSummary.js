@@ -7,15 +7,21 @@ import { totalPriceWithCustoms } from "../../utils/checkoutHelper";
  *
  * Props:
  * - cartItems: array of cart/shipment items shown in the summary
- * - totalAmountEUR: final total in EUR (including customs)
+ * - totalAmountEUR: final total in EUR (including customs / addons)
  * - totalAmountIDR: final total in IDR
  * - eurToIdrRate: exchange rate used for conversion
+ * - dhlAddonEnabled: whether Germany DHL addon section is active
+ * - selectedDhlAddon: selected DHL addon tier
+ * - dhlAddonPriceEUR: selected DHL addon price in EUR
  */
 const OrderSummary = ({
 	cartItems,
 	totalAmountEUR,
 	totalAmountIDR,
 	eurToIdrRate,
+	dhlAddonEnabled = false,
+	selectedDhlAddon = null,
+	dhlAddonPriceEUR = 0,
 }) => {
 	return (
 		<aside className="rounded-2xl border bg-white p-5 shadow-lg">
@@ -44,7 +50,10 @@ const OrderSummary = ({
 						totalPriceWithCustoms(item);
 
 					return (
-						<div className="rounded-xl border bg-gray-50/60 p-3">
+						<div
+							key={item.key}
+							className="rounded-xl border bg-gray-50/60 p-3"
+						>
 							<div className="flex items-start justify-between gap-3">
 								<ShipmentMeta
 									item={item}
@@ -71,11 +80,29 @@ const OrderSummary = ({
 				})}
 			</div>
 
-			{/* Totals */}
+			{dhlAddonEnabled && selectedDhlAddon && (
+				<div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50/70 p-3">
+					<div className="flex items-center justify-between gap-3">
+						<div>
+							<div className="text-sm font-semibold text-gray-900">
+								Germany DHL delivery
+							</div>
+							<div className="subtext mt-0.5 text-xs text-gray-600">
+								{selectedDhlAddon.label}
+							</div>
+						</div>
+
+						<div className="text-sm font-semibold text-gray-900">
+							€{Number(dhlAddonPriceEUR).toFixed(2)}
+						</div>
+					</div>
+				</div>
+			)}
+
 			<div className="mt-5 border-t pt-4">
 				<div className="flex items-center justify-between">
 					<div className="text-sm font-semibold text-gray-900">
-						Total (incl. customs)
+						Total
 					</div>
 					<div className="text-lg font-bold text-gray-900">
 						€{totalAmountEUR.toFixed(2)}
@@ -92,7 +119,7 @@ const OrderSummary = ({
 				</div>
 
 				<div className="mt-3 flex justify-end">
-					<p className="subtext text-xs text-gray-500">
+					<p className="subtext text-xs text-gray-500 text-right">
 						Calculated using fixed exchange rate:{" "}
 						<span className="font-semibold text-gray-700">
 							1 EUR = {(eurToIdrRate ?? 0).toLocaleString()} IDR

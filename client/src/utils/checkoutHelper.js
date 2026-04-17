@@ -23,12 +23,6 @@ export const totalPriceWithCustoms = (item) => {
 	};
 };
 
-export const getTotalAmountEUR = (cartItems) => {
-	return cartItems.reduce((sum, item) => {
-		return sum + totalPriceWithCustoms(item).itemTotalEUR;
-	}, 0);
-};
-
 export const getItemQuantity = (item) => {
 	if (Number(item.billedWeightKg) > 0) {
 		return { value: Number(item.billedWeightKg), unit: "kg" };
@@ -53,4 +47,20 @@ export const getItemQuantityLabel = (item) => {
 		return `${Number(item.documentPages)} pages`;
 	}
 	return "1 item";
+};
+
+export const getRecommendedDhlAddon = (totalWeightKg, dhlTiers) => {
+	if (!Number.isFinite(totalWeightKg) || totalWeightKg <= 0) {
+		return dhlTiers?.[0]?.id || ""; // cod
+	}
+
+	const sortedTiers = [...(dhlTiers || [])].sort(
+		(a, b) => Number(a.maxKg) - Number(b.maxKg),
+	);
+
+	const recommendedTier = sortedTiers.find(
+		(tier) => totalWeightKg <= Number(tier.maxKg),
+	);
+
+	return recommendedTier?.id || sortedTiers[sortedTiers.length - 1]?.id || "";
 };
