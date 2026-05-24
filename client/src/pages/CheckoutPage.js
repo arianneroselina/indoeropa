@@ -257,7 +257,7 @@ const CheckoutPage = () => {
 				billingFullName,
 				billingPhone,
 				billingAddress,
-				selectedDhlAddon: selectedDhlAddon.id,
+				selectedDhlAddon: selectedDhlAddon?.id,
 				dhlAddonPriceEUR,
 				totalAmountEUR,
 				totalAmountIDR,
@@ -346,7 +346,7 @@ const CheckoutPage = () => {
 
 			const successPayload = {
 				orderId,
-				buyerFullName,
+				fullName: buyerFullName,
 				email,
 				phone,
 				deliveryRecipientFullName,

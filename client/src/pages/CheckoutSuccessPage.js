@@ -36,7 +36,7 @@ const CheckoutSuccessPage = () => {
 	const successData = location.state || fallbackState || {};
 	const {
 		orderId = "",
-		fullName = "",
+        fullName = "",
 		email = "",
 		phone = "",
 		deliveryRecipientFullName = "",
