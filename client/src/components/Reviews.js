@@ -14,7 +14,7 @@ const Review = () => {
 					<div className="relative w-full overflow-hidden rounded-xl shadow-lg">
 						<iframe
 							title="Customer reviews"
-							src="https://widgets.sociablekit.com/google-reviews/iframe/25634778"
+							src="https://widgets.sociablekit.com/google-reviews/iframe/25683276"
 							frameBorder="0"
 							width="100%"
 							height="400px"
