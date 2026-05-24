@@ -1,11 +1,33 @@
 import fs from "fs/promises";
 import path from "path";
-import puppeteer from "puppeteer";
 import { fileURLToPath } from "url";
 import { renderOrderConfirmationHtml } from "./orderConfirmationTemplate.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const isProduction = process.env.NODE_ENV === "production";
+
+const launchBrowser = async () => {
+    if (isProduction) {
+        const puppeteer = (await import("puppeteer-core")).default;
+        const chromium = (await import("@sparticuz/chromium")).default;
+
+        return puppeteer.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+            defaultViewport: chromium.defaultViewport,
+        });
+    }
+
+    const puppeteer = (await import("puppeteer")).default;
+
+    return puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+};
 
 const getLogoDataUrl = async () => {
     try {
@@ -19,11 +41,7 @@ const getLogoDataUrl = async () => {
 };
 
 export const generateOrderConfirmationPdf = async (data) => {
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
-
+    const browser = await launchBrowser();
     try {
         const page = await browser.newPage();
 
