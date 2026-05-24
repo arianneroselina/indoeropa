@@ -52,7 +52,9 @@ const renderShipmentCards = (items = []) => {
 
 						<div class="shipment-field">
 							<div class="field-label">Route</div>
-							<div class="field-value">${escapeHtml(item.fromCountry || "-")} → ${escapeHtml(item.toCountry || "-")}</div>
+							<div class="field-value">
+                              ${escapeHtml(item.fromCountry || "-")} -&gt; ${escapeHtml(item.toCountry || "-")}
+                            </div>
 						</div>
 					</div>
 
