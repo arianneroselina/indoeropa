@@ -16,11 +16,8 @@ export default function WeightBlock({
 				</label>
 
 				<input
-					type="number"
+					type="text"
 					inputMode="decimal"
-					step="0.1"
-					min="0.1"
-					max="20"
 					value={weight}
 					onChange={handleWeightChange}
 					placeholder="e.g. 2.3"

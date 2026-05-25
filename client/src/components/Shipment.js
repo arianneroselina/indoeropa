@@ -380,9 +380,10 @@ export default function Shipment({ variant = "default" }) {
 			setWeight("");
 			return;
 		}
-		// 1 decimal place max
-		if (/^\d*\.?\d?$/.test(raw)) {
-			setWeight(raw);
+
+		// allow 1 decimal using . or ,
+		if (/^\d*[.,]?\d?$/.test(raw)) {
+			setWeight(raw.replace(",", "."));
 		}
 	};
 
