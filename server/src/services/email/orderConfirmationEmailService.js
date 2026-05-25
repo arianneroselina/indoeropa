@@ -1,5 +1,15 @@
-import { mailTransport } from "./mailTransport.js";
+import { Resend } from "resend";
 import { formatEUR, formatIDR } from "../utils.js";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const escapeHtml = (value = "") =>
+    String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 
 export const sendOrderConfirmationEmail = async ({
                                                      to,
@@ -10,9 +20,12 @@ export const sendOrderConfirmationEmail = async ({
                                                      totalAmountEUR,
                                                      totalAmountIDR,
                                                  }) => {
-    await mailTransport.sendMail({
-        from: process.env.SERVICE_MAIL,
+    const safeCustomerName = escapeHtml(customerName || "");
+
+    await resend.emails.send({
+        from: process.env.MAIL_FROM,
         to,
+        replyTo: process.env.SERVICE_MAIL,
         subject: `Your Order Confirmation #${orderId}`,
         text: `
 Hello${customerName ? ` ${customerName}` : ""},
@@ -37,6 +50,7 @@ If you have any questions, contact us at diontransport@hotmail.com.
 
 Thank you for choosing us.
         `.trim(),
+
         html: `
 <!DOCTYPE html>
 <html>
@@ -49,9 +63,9 @@ Thank you for choosing us.
     <tr>
       <td align="center">
         <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="max-width:640px; width:100%; background:#ffffff; border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(15, 33, 55, 0.12);">
-          
+
           <tr>
-            <td style="background:linear-gradient(135deg, #20487a, #1a3b64); padding:28px 32px; text-align:center;">
+            <td style="background:#20487a; padding:28px 32px; text-align:center;">
               <h1 style="margin:0; font-size:28px; line-height:1.2; color:#ffffff;">Order Confirmed</h1>
               <p style="margin:10px 0 0; font-size:15px; color:#e6edf5;">
                 Thank you for your order. We’ve received it successfully.
@@ -62,7 +76,7 @@ Thank you for choosing us.
           <tr>
             <td style="padding:32px;">
               <p style="margin:0 0 16px; font-size:16px; color:#111111;">
-                Hello${customerName ? ` <strong style="color:#111111;">${customerName}</strong>` : ""},
+                Hello${customerName ? ` <strong style="color:#111111;">${safeCustomerName}</strong>` : ""},
               </p>
 
               <p style="margin:0 0 20px; font-size:15px; line-height:1.7; color:#222222;">
@@ -76,10 +90,12 @@ Thank you for choosing us.
                     Order Summary
                   </td>
                 </tr>
+
                 <tr>
                   <td style="padding:12px 20px; font-size:14px; color:#444444;">Order ID</td>
                   <td style="padding:12px 20px; font-size:14px; color:#111111; font-weight:bold;">${orderId}</td>
                 </tr>
+
                 ${
             itemsCount !== undefined && itemsCount !== null
                 ? `
@@ -89,6 +105,7 @@ Thank you for choosing us.
                 </tr>`
                 : ""
         }
+
                 ${
             totalAmountEUR
                 ? `
@@ -98,6 +115,7 @@ Thank you for choosing us.
                 </tr>`
                 : ""
         }
+
                 ${
             totalAmountIDR
                 ? `
@@ -119,13 +137,11 @@ Thank you for choosing us.
                 </ol>
               </div>
 
-              <p style="margin:0 0 14px; font-size:14px; line-height:1.7; color:#222222;">
-                If you notice anything incorrect in your order details, please contact us as soon as possible.
-              </p>
-
               <p style="margin:0; font-size:14px; color:#222222;">
                 Need help? Reach us at
-                <a href="mailto:diontransport@hotmail.com" style="color:#991b1b; text-decoration:none; font-weight:bold;">diontransport@hotmail.com</a>.
+                <a href="mailto:diontransport@hotmail.com" style="color:#991b1b; text-decoration:none; font-weight:bold;">
+                  diontransport@hotmail.com
+                </a>
               </p>
             </td>
           </tr>
@@ -145,11 +161,11 @@ Thank you for choosing us.
 </body>
 </html>
         `,
+
         attachments: [
             {
                 filename: `INDOEROPA-order-confirmation-${orderId}.pdf`,
-                content: pdfBuffer,
-                contentType: "application/pdf",
+                content: pdfBuffer.toString("base64"),
             },
         ],
     });
