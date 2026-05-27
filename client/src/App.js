@@ -12,6 +12,7 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import InvoiceUploadsPage from "./pages/InvoiceUploadsPage";
 import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 const App = () => {
 	return (
@@ -44,6 +45,7 @@ const App = () => {
 				</main>
 
 				<Footer />
+                <SpeedInsights />
 			</div>
 		</Router>
 	);
