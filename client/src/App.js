@@ -13,6 +13,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import InvoiceUploadsPage from "./pages/InvoiceUploadsPage";
 import CheckoutSuccessPage from "./pages/CheckoutSuccessPage";
 import { SpeedInsights } from "@vercel/speed-insights/react"
+import { Analytics } from "@vercel/analytics/react"
 
 const App = () => {
 	return (
@@ -46,6 +47,7 @@ const App = () => {
 
 				<Footer />
                 <SpeedInsights />
+                <Analytics />
 			</div>
 		</Router>
 	);
