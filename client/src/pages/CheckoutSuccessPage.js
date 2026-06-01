@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
 	FaCheckCircle,
 	FaArrowRight,
-	FaEnvelope,
 	FaReceipt,
 	FaDownload,
 } from "react-icons/fa";
@@ -23,6 +22,8 @@ const CheckoutSuccessPage = () => {
 	const [downloadingPdf, setDownloadingPdf] = useState(false);
 	const [emailSent, setEmailSent] = useState(false);
 	const [actionError, setActionError] = useState("");
+
+	const hasAutoSentEmailRef = useRef(false);
 
 	const fallbackState = useMemo(() => {
 		try {
@@ -75,7 +76,7 @@ const CheckoutSuccessPage = () => {
 
 	const nextSteps = useMemo(
 		() => [
-			"Download or send the order confirmation via email.",
+			"You'll receive your order confirmation per email in a few minutes.",
 			"Our team will review your payment details.",
 			"We’ll confirm your shipment schedule as we process your order.",
 			"We’ll send the warehouse address and delivery instructions via WhatsApp.",
@@ -97,21 +98,42 @@ const CheckoutSuccessPage = () => {
 		}
 	};
 
-	const handleSendEmail = async () => {
-		try {
-			setSendingEmail(true);
-			setEmailSent(false);
-			setActionError("");
+	useEffect(() => {
+		if (!hasSummary || !email || hasAutoSentEmailRef.current) return;
 
-			await sendOrderConfirmationEmail(successData);
+		const emailSentKey = orderId
+			? `order-confirmation-email-sent-${orderId}`
+			: "order-confirmation-email-sent-current";
+
+		if (sessionStorage.getItem(emailSentKey) === "true") {
 			setEmailSent(true);
-		} catch (err) {
-			console.error(err);
-			setActionError(err.message || "Failed to send confirmation email.");
-		} finally {
-			setSendingEmail(false);
+			return;
 		}
-	};
+
+		hasAutoSentEmailRef.current = true;
+
+		const sendEmailAutomatically = async () => {
+			try {
+				setSendingEmail(true);
+				setEmailSent(false);
+				setActionError("");
+
+				await sendOrderConfirmationEmail(successData);
+
+				sessionStorage.setItem(emailSentKey, "true");
+				setEmailSent(true);
+			} catch (err) {
+				console.error(err);
+				setActionError(
+					err.message || "Failed to send confirmation email.",
+				);
+			} finally {
+				setSendingEmail(false);
+			}
+		};
+
+		sendEmailAutomatically();
+	}, [email, hasSummary, orderId, successData]);
 
 	return (
 		<section className="py-24 bg-gray-100">
@@ -245,15 +267,14 @@ const CheckoutSuccessPage = () => {
 
 							<div className="text-center">
 								<p className="text-sm text-gray-600">
-									Download your order confirmation as a PDF or
-									send it to{" "}
+									We’ll send the confirmation automatically to{" "}
 									<span className="font-semibold text-gray-800">
 										{email || "your email"}
 									</span>
-									.
+									. You can also download it as a PDF.
 								</p>
 
-								<div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+								<div className="mt-4 flex justify-center">
 									<button
 										type="button"
 										onClick={handleDownloadPdf}
@@ -265,19 +286,13 @@ const CheckoutSuccessPage = () => {
 											? "Downloading..."
 											: "Download PDF"}
 									</button>
-
-									<button
-										type="button"
-										onClick={handleSendEmail}
-										disabled={sendingEmail}
-										className="button-primary inline-flex items-center justify-center"
-									>
-										<FaEnvelope className="mr-2 text-sm" />
-										{sendingEmail
-											? "Sending..."
-											: "Send per email"}
-									</button>
 								</div>
+
+								{sendingEmail && (
+									<p className="mt-3 text-sm text-gray-600">
+										Sending confirmation email...
+									</p>
+								)}
 
 								{emailSent && (
 									<p className="mt-3 text-sm text-green-700">
