@@ -83,7 +83,6 @@ export const pembayaranSchema = {
     },
     "Tanggal Pembayaran (WEB)": { date: {} },
     "Bukti Pembayaran (WEB)": { files: {} },
-    "Confirmasi Pembayaran (WEB)": { checkbox: {} },
 };
 
 export const pengirimanLokalSchema = {
