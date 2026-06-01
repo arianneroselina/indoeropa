@@ -268,12 +268,7 @@ export default function Shipment({ variant = "default" }) {
 		}
 
 		setDimensionAccepted(false);
-	}, [
-		isDocument,
-		isHat,
-		selectedPackageTypeId,
-		recommendedPackageTypeId,
-	]);
+	}, [isDocument, isHat, selectedPackageTypeId, recommendedPackageTypeId]);
 
 	// Recommendation modal
 	useEffect(() => {

@@ -340,11 +340,11 @@ app.post("/api/notion/pembayaran",
 
 app.post("/api/notion/pengiriman-lokal", async (req, res) => {
     try {
-        const { dataSourceId, orderId, deliveryRecipientFullName, deliveryRecipientPhone, deliveryAddress } = req.body;
+        const { dataSourceId, orderId, deliveryFullName, deliveryEmail, deliveryPhone, deliveryAddress } = req.body;
         if (!dataSourceId) {
             return res.status(400).json({ error: "dataSourceId is required" });
         }
-        if (!deliveryRecipientFullName) return res.status(400).json({ error: "deliveryRecipientFullName is required" });
+        if (!deliveryFullName) return res.status(400).json({ error: "deliveryFullName is required" });
 
         const created = await notion.pages.create({
             parent: {
@@ -356,10 +356,13 @@ app.post("/api/notion/pengiriman-lokal", async (req, res) => {
                     title: [{ text: { content: String(orderId) } }],
                 },
                 "Nama Penerima (WEB)": {
-                    rich_text: [{ text: { content: String(deliveryRecipientFullName || "") } }],
+                    rich_text: [{ text: { content: String(deliveryFullName || "") } }],
+                },
+                "Email Penerima (WEB)": {
+                    email: deliveryEmail ? String(deliveryEmail) : null,
                 },
                 "Telepon Penerima (WEB)": {
-                    phone_number: deliveryRecipientPhone ? String(deliveryRecipientPhone) : null,
+                    phone_number: deliveryPhone ? String(deliveryPhone) : null,
                 },
                 "Alamat Tujuan (WEB)": {
                     rich_text: [{ text: { content: String(deliveryAddress || "") } }],
@@ -388,8 +391,9 @@ app.post("/api/notion/order-history", upload.any(), async (req, res) => {
             buyerFullName,
             buyerPhone,
             buyerEmail,
-            deliveryRecipientFullName,
-            deliveryRecipientPhone,
+            deliveryFullName,
+            deliveryEmail,
+            deliveryPhone,
             deliveryAddress,
             billingFullName,
             billingPhone,
@@ -494,11 +498,14 @@ app.post("/api/notion/order-history", upload.any(), async (req, res) => {
                 "Buyer Phone": {
                     phone_number: buyerPhone ? String(buyerPhone) : null,
                 },
-                "Delivery Recipient Full Name": {
-                    rich_text: [{ text: { content: String(deliveryRecipientFullName || "") } }],
+                "Delivery Full Name": {
+                    rich_text: [{ text: { content: String(deliveryFullName || "") } }],
                 },
-                "Delivery Recipient Phone": {
-                    phone_number: deliveryRecipientPhone ? String(deliveryRecipientPhone) : null,
+                "Delivery Email": {
+                    email: deliveryEmail ? String(deliveryEmail) : null,
+                },
+                "Delivery Phone": {
+                    phone_number: deliveryPhone ? String(deliveryPhone) : null,
                 },
                 "Delivery Address": {
                     rich_text: [{ text: { content: String(deliveryAddress || "") } }],

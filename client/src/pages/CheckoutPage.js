@@ -37,11 +37,10 @@ const CheckoutPage = () => {
 	const [phone, setPhone] = useState("");
 
 	// Delivery info
-	const [deliveryRecipientFirstName, setDeliveryRecipientFirstName] =
-		useState("");
-	const [deliveryRecipientLastName, setDeliveryRecipientLastName] =
-		useState("");
-	const [deliveryRecipientPhone, setDeliveryRecipientPhone] = useState("");
+	const [deliveryFirstName, setDeliveryFirstName] = useState("");
+	const [deliveryLastName, setDeliveryLastName] = useState("");
+	const [deliveryEmail, setDeliveryEmail] = useState("");
+	const [deliveryPhone, setDeliveryPhone] = useState("");
 	const [deliveryStreet, setDeliveryStreet] = useState("");
 	const [deliveryPostalCode, setDeliveryPostalCode] = useState("");
 	const [deliveryCity, setDeliveryCity] = useState("");
@@ -151,11 +150,10 @@ const CheckoutPage = () => {
 
 	// Derived names for downstream API calls
 	const buyerFullName = `${firstName} ${lastName}`.trim();
-	const deliveryRecipientFullName =
-		`${deliveryRecipientFirstName} ${deliveryRecipientLastName}`.trim();
+	const deliveryFullName = `${deliveryFirstName} ${deliveryLastName}`.trim();
 
 	const billingFullName = billingSameAsDelivery
-		? deliveryRecipientFullName
+		? deliveryFullName
 		: `${billingFirstName} ${billingLastName}`.trim();
 
 	// =========================
@@ -180,12 +178,13 @@ const CheckoutPage = () => {
 			}
 
 			setBillingPhone(
-				billingSameAsDelivery ? deliveryRecipientPhone : billingPhone,
+				billingSameAsDelivery ? deliveryPhone : billingPhone,
 			);
 
 			const deliveryAddress = [
-				deliveryRecipientFullName,
-				deliveryRecipientPhone,
+				deliveryFullName,
+				deliveryEmail,
+				deliveryPhone,
 				deliveryStreet,
 				deliveryPostalCode,
 				deliveryCity,
@@ -196,7 +195,9 @@ const CheckoutPage = () => {
 
 			const billingAddress = billingSameAsDelivery
 				? [
-						deliveryRecipientFullName,
+						deliveryFullName,
+						deliveryEmail,
+						deliveryPhone,
 						deliveryStreet,
 						deliveryPostalCode,
 						deliveryCity,
@@ -206,6 +207,7 @@ const CheckoutPage = () => {
 						.join(", ")
 				: [
 						billingFullName,
+						billingPhone,
 						billingStreet,
 						billingPostalCode,
 						billingCity,
@@ -256,8 +258,9 @@ const CheckoutPage = () => {
 				buyerFullName,
 				buyerPhone: phone,
 				buyerEmail: email,
-				deliveryRecipientFullName,
-				deliveryRecipientPhone,
+				deliveryFullName,
+				deliveryEmail,
+				deliveryPhone,
 				deliveryAddress,
 				billingFullName,
 				billingPhone,
@@ -312,9 +315,9 @@ const CheckoutPage = () => {
 				await createPengirimanLokal({
 					dataSourceId: pengirimanLokalDataSourceId,
 					orderId,
-					deliveryRecipientFullName:
-						deliveryRecipientFullName || buyerFullName,
-					deliveryRecipientPhone: deliveryRecipientPhone || phone,
+					deliveryFullName: deliveryFullName || buyerFullName,
+					deliveryEmail: deliveryEmail || email,
+					deliveryPhone: deliveryPhone || phone,
 					deliveryAddress,
 				});
 
@@ -354,10 +357,13 @@ const CheckoutPage = () => {
 				fullName: buyerFullName,
 				email,
 				phone,
-				deliveryRecipientFullName,
+				deliveryFullName,
 				deliveryAddress,
+				deliveryEmail,
+				deliveryPhone,
 				billingFullName,
 				billingAddress,
+				billingPhone,
 				totalAmountEUR,
 				totalAmountIDR,
 				itemsCount: cartItems.length,
@@ -438,22 +444,14 @@ const CheckoutPage = () => {
 								setPhone={setPhone}
 								email={email}
 								setEmail={setEmail}
-								deliveryRecipientFirstName={
-									deliveryRecipientFirstName
-								}
-								setDeliveryRecipientFirstName={
-									setDeliveryRecipientFirstName
-								}
-								deliveryRecipientLastName={
-									deliveryRecipientLastName
-								}
-								setDeliveryRecipientLastName={
-									setDeliveryRecipientLastName
-								}
-								deliveryRecipientPhone={deliveryRecipientPhone}
-								setDeliveryRecipientPhone={
-									setDeliveryRecipientPhone
-								}
+								deliveryFirstName={deliveryFirstName}
+								setDeliveryFirstName={setDeliveryFirstName}
+								deliveryLastName={deliveryLastName}
+								setDeliveryLastName={setDeliveryLastName}
+								deliveryEmail={deliveryEmail}
+								setDeliveryEmail={setDeliveryEmail}
+								deliveryPhone={deliveryPhone}
+								setDeliveryPhone={setDeliveryPhone}
 								deliveryStreet={deliveryStreet}
 								setDeliveryStreet={setDeliveryStreet}
 								deliveryPostalCode={deliveryPostalCode}

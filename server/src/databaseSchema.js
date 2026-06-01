@@ -89,6 +89,7 @@ export const pengirimanLokalSchema = {
     "Order ID (WEB)": { title: {} },
     "Nama Penerima (WEB)": { rich_text: {} },
     "Telepon Penerima (WEB)": { phone_number: {} },
+    "Email Penerima (WEB)": { email: {} },
     "Alamat Tujuan (WEB)": { rich_text: {} },
     "Pengiriman di Indo (WEB)": {
         select: {

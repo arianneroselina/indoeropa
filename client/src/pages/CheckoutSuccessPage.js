@@ -34,16 +34,16 @@ const CheckoutSuccessPage = () => {
 		}
 	}, []);
 
-    const successData = useMemo(() => {
-        return location.state || fallbackState || {};
-    }, [location.state, fallbackState]);
+	const successData = useMemo(() => {
+		return location.state || fallbackState || {};
+	}, [location.state, fallbackState]);
 
 	const {
 		orderId = "",
 		fullName = "",
 		email = "",
 		phone = "",
-		deliveryRecipientFullName = "",
+		deliveryFullName = "",
 		deliveryAddress = "",
 		billingFullName = "",
 		billingAddress = "",
@@ -66,7 +66,7 @@ const CheckoutSuccessPage = () => {
 		fullName ||
 		email ||
 		phone ||
-		deliveryRecipientFullName ||
+		deliveryFullName ||
 		deliveryAddress ||
 		billingFullName ||
 		billingAddress ||

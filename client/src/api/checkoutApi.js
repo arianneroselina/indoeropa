@@ -136,8 +136,9 @@ export const createPembayaran = async ({
 export const createPengirimanLokal = async ({
 	dataSourceId,
 	orderId,
-	deliveryRecipientFullName,
-	deliveryRecipientPhone,
+	deliveryFullName,
+	deliveryEmail,
+	deliveryPhone,
 	deliveryAddress,
 }) => {
 	const res = await fetch(`${API_BASE}/api/notion/pengiriman-lokal`, {
@@ -146,8 +147,9 @@ export const createPengirimanLokal = async ({
 		body: JSON.stringify({
 			dataSourceId,
 			orderId,
-			deliveryRecipientFullName,
-			deliveryRecipientPhone,
+			deliveryFullName,
+			deliveryEmail,
+			deliveryPhone,
 			deliveryAddress,
 		}),
 	});
@@ -168,8 +170,9 @@ export const createOrderHistory = async ({
 	buyerFullName,
 	buyerPhone,
 	buyerEmail,
-	deliveryRecipientFullName,
-	deliveryRecipientPhone,
+	deliveryFullName,
+	deliveryEmail,
+	deliveryPhone,
 	deliveryAddress,
 	billingFullName,
 	billingPhone,
@@ -191,8 +194,9 @@ export const createOrderHistory = async ({
 	formData.append("buyerFullName", buyerFullName);
 	formData.append("buyerEmail", buyerEmail);
 	formData.append("buyerPhone", buyerPhone);
-	formData.append("deliveryRecipientFullName", deliveryRecipientFullName);
-	formData.append("deliveryRecipientPhone", deliveryRecipientPhone);
+	formData.append("deliveryFullName", deliveryFullName);
+	formData.append("deliveryEmail", deliveryEmail);
+	formData.append("deliveryPhone", deliveryPhone);
 	formData.append("deliveryAddress", deliveryAddress);
 	formData.append("billingFullName", billingFullName);
 	formData.append("billingPhone", billingPhone);

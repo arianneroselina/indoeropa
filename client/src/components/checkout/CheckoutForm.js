@@ -95,9 +95,10 @@ const PhoneInputField = ({
  * - buyer info:
  *   firstName, setFirstName, lastName, setLastName, email, setEmail, phone, setPhone
  * - delivery info:
- *   deliveryRecipientFirstName, setDeliveryRecipientFirstName
- *   deliveryRecipientLastName, setDeliveryRecipientLastName
- *   deliveryRecipientPhone, setDeliveryRecipientPhone
+ *   deliveryFirstName, setDeliveryFirstName
+ *   deliveryLastName, setDeliveryLastName
+ *   deliveryEmail, setDeliveryEmail
+ *   deliveryPhone, setDeliveryPhone
  *   deliveryStreet, setDeliveryStreet
  *   deliveryPostalCode, setDeliveryPostalCode
  *   deliveryCity, setDeliveryCity
@@ -136,12 +137,14 @@ const CheckoutForm = ({
 	phone,
 	setPhone,
 
-	deliveryRecipientFirstName,
-	setDeliveryRecipientFirstName,
-	deliveryRecipientLastName,
-	setDeliveryRecipientLastName,
-	deliveryRecipientPhone,
-	setDeliveryRecipientPhone,
+	deliveryFirstName,
+	setDeliveryFirstName,
+	deliveryLastName,
+	setDeliveryLastName,
+	deliveryEmail,
+	setDeliveryEmail,
+	deliveryPhone,
+	setDeliveryPhone,
 	deliveryStreet,
 	setDeliveryStreet,
 	deliveryPostalCode,
@@ -242,32 +245,41 @@ const CheckoutForm = ({
 						title="Delivery Address"
 						tooltip="Recipient details and final delivery destination."
 					>
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<Input
 								label="Recipient First Name"
 								required
 								type="text"
-								value={deliveryRecipientFirstName}
+								value={deliveryFirstName}
 								onChange={(e) =>
-									setDeliveryRecipientFirstName(
-										e.target.value,
-									)
+									setDeliveryFirstName(e.target.value)
 								}
 							/>
 							<Input
 								label="Recipient Last Name"
 								required
 								type="text"
-								value={deliveryRecipientLastName}
+								value={deliveryLastName}
 								onChange={(e) =>
-									setDeliveryRecipientLastName(e.target.value)
+									setDeliveryLastName(e.target.value)
+								}
+							/>
+						</div>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<Input
+								label="Recipient Email"
+								required
+								type="email"
+								value={deliveryEmail}
+								onChange={(e) =>
+									setDeliveryEmail(e.target.value)
 								}
 							/>
 							<PhoneInputField
 								label="Recipient Phone"
 								required
-								value={deliveryRecipientPhone}
-								onChange={setDeliveryRecipientPhone}
+								value={deliveryPhone}
+								onChange={setDeliveryPhone}
 							/>
 						</div>
 
