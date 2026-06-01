@@ -34,7 +34,10 @@ const CheckoutSuccessPage = () => {
 		}
 	}, []);
 
-	const successData = location.state || fallbackState || {};
+    const successData = useMemo(() => {
+        return location.state || fallbackState || {};
+    }, [location.state, fallbackState]);
+
 	const {
 		orderId = "",
 		fullName = "",
