@@ -51,7 +51,7 @@ const CartPage = () => {
 		<section className="py-24 bg-white">
 			<div className="max-w-screen-xl mx-auto px-4">
 				<h2 className="text-4xl font-semibold text-center mb-6">
-					Your Cart
+					YOUR CART
 				</h2>
 
 				{!cartItems.length ? (

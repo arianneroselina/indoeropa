@@ -6,7 +6,7 @@ const Review = () => {
 			<div className="max-w-screen-xl mx-auto px-4">
 				<div className="text-center mb-12">
 					<h2 className="text-4xl font-semibold text-gray-800 mb-4">
-						What Our Customers Say
+						WHAT OUR CUSTOMERS SAY
 					</h2>
 				</div>
 

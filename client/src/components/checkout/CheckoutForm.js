@@ -1,7 +1,91 @@
 import React from "react";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { Link } from "react-router-dom";
 import SectionCard from "./SectionCard";
 import Input from "./InputField";
+
+const PAYMENT_DETAILS = {
+	paypal: {
+		title: "PayPal",
+		rows: [
+			["PayPal Email", "DionTransportPembayaran@gmail.com"],
+			["Username", "@DTPembayaran"],
+		],
+		note: "Please send the payment as Friends & Family if applicable, then upload the payment proof below.",
+	},
+	/*iban: {
+        title: "IBAN Bank Transfer",
+        rows: [
+            ["Account Holder", "Your Name / Business Name"],
+            ["IBAN", "DE00 0000 0000 0000 0000 00"],
+            ["BIC", "BANKDEFFXXX"],
+            ["Reference", "Your full name"],
+        ],
+        note: "Please include your full name as the transfer reference.",
+    },
+    n26: {
+        title: "N26",
+        rows: [
+            ["Account Holder", "Your Name"],
+            ["IBAN", "DE00 0000 0000 0000 0000 00"],
+            ["Reference", "Your full name"],
+        ],
+        note: "Please upload a screenshot or PDF confirmation after payment.",
+    },
+    bca: {
+        title: "Bank BCA (Rupiah)",
+        rows: [
+            ["Account Holder", "Your Name"],
+            ["Account Number", "0000000000"],
+            ["Bank", "BCA"],
+        ],
+        note: "Please upload the transfer proof after payment.",
+    },
+    revolut: {
+        title: "Revolut",
+        rows: [
+            ["Recipient", "Your Name"],
+            ["Revolut Tag", "@yourtag"],
+            ["Phone / Email", "+49 xxx / your@email.com"],
+        ],
+        note: "Please upload a screenshot or PDF confirmation after payment.",
+    },*/
+	jenius: {
+		title: "Bank Jenius/SMBC (Rupiah)",
+		rows: [
+			["Account Holder", "Dionisius Velma"],
+			["Account Number", "90160105717"],
+		],
+		note: "Please upload the transfer proof after payment.",
+	},
+};
+
+const PhoneInputField = ({
+	label,
+	value,
+	onChange,
+	required = false,
+	defaultCountry = "DE",
+}) => {
+	return (
+		<div>
+			<label className="mb-1.5 block text-sm font-semibold text-gray-800">
+				{label} {required && <span className="text-secondary">*</span>}
+			</label>
+
+			<PhoneInput
+				international
+				defaultCountry={defaultCountry}
+				value={value || undefined}
+				onChange={(nextValue) => onChange(nextValue || "")}
+				placeholder="Enter phone number"
+				required={required}
+				className="subtext w-full rounded-xl border border-gray-300 bg-white p-3 text-gray-900 input-focus disabled:cursor-not-allowed disabled:bg-gray-100"
+			/>
+		</div>
+	);
+};
 
 /**
  * CheckoutForm
@@ -16,6 +100,7 @@ import Input from "./InputField";
  *   deliveryRecipientPhone, setDeliveryRecipientPhone
  *   deliveryStreet, setDeliveryStreet
  *   deliveryPostalCode, setDeliveryPostalCode
+ *   deliveryCity, setDeliveryCity
  *   deliveryCountry, setDeliveryCountry
  * - billing info:
  *   billingSameAsDelivery, setBillingSameAsDelivery
@@ -24,6 +109,7 @@ import Input from "./InputField";
  *   billingPhone, setBillingPhone
  *   billingStreet, setBillingStreet
  *   billingPostalCode, setBillingPostalCode
+ *   billingCity, setBillingCity
  *   billingCountry, setBillingCountry
  * - dhl germany addon:
  *   dhlTiers,
@@ -60,6 +146,8 @@ const CheckoutForm = ({
 	setDeliveryStreet,
 	deliveryPostalCode,
 	setDeliveryPostalCode,
+	deliveryCity,
+	setDeliveryCity,
 	deliveryCountry,
 	setDeliveryCountry,
 
@@ -75,6 +163,8 @@ const CheckoutForm = ({
 	setBillingStreet,
 	billingPostalCode,
 	setBillingPostalCode,
+	billingCity,
+	setBillingCity,
 	billingCountry,
 	setBillingCountry,
 
@@ -99,6 +189,7 @@ const CheckoutForm = ({
 		"-";
 
 	const paymentStep = dhlAddonEnabled ? 5 : 4;
+	const selectedPaymentDetails = PAYMENT_DETAILS[paymentMethod];
 
 	return (
 		<div>
@@ -137,12 +228,11 @@ const CheckoutForm = ({
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 							/>
-							<Input
+							<PhoneInputField
 								label="Phone Number"
 								required
-								type="tel"
 								value={phone}
-								onChange={(e) => setPhone(e.target.value)}
+								onChange={setPhone}
 							/>
 						</div>
 					</SectionCard>
@@ -173,14 +263,11 @@ const CheckoutForm = ({
 									setDeliveryRecipientLastName(e.target.value)
 								}
 							/>
-							<Input
+							<PhoneInputField
 								label="Recipient Phone"
 								required
-								type="tel"
 								value={deliveryRecipientPhone}
-								onChange={(e) =>
-									setDeliveryRecipientPhone(e.target.value)
-								}
+								onChange={setDeliveryRecipientPhone}
 							/>
 						</div>
 
@@ -193,7 +280,7 @@ const CheckoutForm = ({
 							onChange={(e) => setDeliveryStreet(e.target.value)}
 						/>
 
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 							<Input
 								label="Postal Code"
 								required
@@ -202,6 +289,16 @@ const CheckoutForm = ({
 								value={deliveryPostalCode}
 								onChange={(e) =>
 									setDeliveryPostalCode(e.target.value)
+								}
+							/>
+							<Input
+								label="City"
+								required
+								type="text"
+								placeholder="e.g. Frankfurt am Main"
+								value={deliveryCity}
+								onChange={(e) =>
+									setDeliveryCity(e.target.value)
 								}
 							/>
 							<Input
@@ -257,14 +354,11 @@ const CheckoutForm = ({
 											setBillingLastName(e.target.value)
 										}
 									/>
-									<Input
+									<PhoneInputField
 										label="Billing Phone"
 										required
-										type="tel"
 										value={billingPhone}
-										onChange={(e) =>
-											setBillingPhone(e.target.value)
-										}
+										onChange={setBillingPhone}
 									/>
 								</div>
 
@@ -279,7 +373,7 @@ const CheckoutForm = ({
 									}
 								/>
 
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 									<Input
 										label="Postal Code"
 										required
@@ -288,6 +382,16 @@ const CheckoutForm = ({
 										value={billingPostalCode}
 										onChange={(e) =>
 											setBillingPostalCode(e.target.value)
+										}
+									/>
+									<Input
+										label="City"
+										required
+										type="text"
+										placeholder="e.g. Frankfurt am Main"
+										value={billingCity}
+										onChange={(e) =>
+											setBillingCity(e.target.value)
 										}
 									/>
 									<Input
@@ -379,13 +483,44 @@ const CheckoutForm = ({
 							>
 								<option value="">Select Payment Method</option>
 								<option value="paypal">PayPal</option>
-								<option value="iban">IBAN</option>
+								{/*<option value="iban">IBAN</option>
 								<option value="n26">N26</option>
 								<option value="bca">Bank BCA</option>
-								<option value="revolut">Bank Revolut</option>
-								<option value="jenius">Bank Jenius</option>
+								<option value="revolut">Bank Revolut</option>*/}
+								<option value="jenius">Bank Jenius/SMBC</option>
 							</select>
 						</div>
+
+						{selectedPaymentDetails && (
+							<div className="rounded-2xl border border-primary-200 bg-primary-50 p-5 text-sm text-gray-800 shadow-sm">
+								<p className="subtext text-xs mb-4 font-semibold uppercase tracking-wide text-primary-600">
+									Transfer your payment to:
+								</p>
+
+								<div className="space-y-3 rounded-xl bg-white p-4">
+									{selectedPaymentDetails.rows.map(
+										([label, value]) => (
+											<div
+												key={label}
+												className="grid grid-cols-1 gap-1 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0 sm:grid-cols-[140px_1fr]"
+											>
+												<span className="text-xs uppercase tracking-wide text-gray-500">
+													{label}
+												</span>
+
+												<span className="subtext font-semibold text-gray-900">
+													{value}
+												</span>
+											</div>
+										),
+									)}
+								</div>
+
+								<p className="subtext mt-4 rounded-xl text-xs text-gray-700">
+									{selectedPaymentDetails.note}
+								</p>
+							</div>
+						)}
 
 						<div>
 							<label className="mb-1.5 block text-sm font-semibold text-gray-800">

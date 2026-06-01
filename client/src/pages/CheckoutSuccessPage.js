@@ -78,7 +78,7 @@ const CheckoutSuccessPage = () => {
 			"Download or send the order confirmation via email.",
 			"Our team will review your payment details.",
 			"We’ll confirm your shipment schedule as we process your order.",
-			"You’ll receive updates if we need additional information or when your order status changes.",
+			"We’ll send the warehouse address and delivery instructions via WhatsApp.",
 		],
 		[],
 	);

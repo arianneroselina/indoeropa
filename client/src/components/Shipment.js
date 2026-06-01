@@ -513,7 +513,7 @@ export default function Shipment({ variant = "default" }) {
 							variant === "home" ? "text-white" : "text-gray-900",
 						].join(" ")}
 					>
-						Shipping
+						SHIPPING
 					</h2>
 
 					<p

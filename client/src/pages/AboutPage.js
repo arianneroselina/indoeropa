@@ -7,7 +7,7 @@ const AboutUsPage = () => {
 			<div className="max-w-screen-xl mx-auto px-4">
 				<div className="text-center mb-12 animate__animated animate__fadeIn animate__delay-1s">
 					<h2 className="text-4xl font-bold text-gray-800">
-						About <span className="text-secondary">INDO EROPA</span>
+						ABOUT <span className="text-secondary">INDO EROPA</span>
 					</h2>
 					<p className="subtext mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
 						INDO EROPA is the largest hand-carry luggage delivery

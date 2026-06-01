@@ -53,7 +53,7 @@ const ContactPage = () => {
 			<div className="max-w-screen-xl mx-auto px-4">
 				<div className="text-center mb-12">
 					<h2 className="text-4xl font-semibold text-gray-800">
-						Contact Us
+						CONTACT US
 					</h2>
 					<p className="subtext text-lg text-gray-600 mt-2 max-w-2xl mx-auto">
 						Discuss your shipping needs or ask any questions. We are

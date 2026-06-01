@@ -16,8 +16,7 @@ const Hero = () => {
 					{/* Slogan */}
 					<div className="text-2xl sm:text-3xl md:text-4xl text-white space-y-1 sm:space-y-2">
 						<p>PAY.</p>
-						<p>DROP YOUR</p>
-						<p>PACKAGE.</p>
+						<p>DROP.</p>
 						<p>RECEIVE.</p>
 					</div>
 
@@ -29,7 +28,7 @@ const Hero = () => {
 					{/* Shop Button */}
 					<div className="flex justify-center sm:justify-start">
 						<a href="/shipment" className="button-primary">
-							Shop All
+							Ship now
 							<FaArrowRight className="ml-2 text-sm" />
 						</a>
 					</div>

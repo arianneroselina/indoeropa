@@ -12,7 +12,7 @@ const Contact = () => {
 			<div className="absolute inset-0 bg-black opacity-50"></div>
 			<div className="max-w-screen-xl mx-auto px-4 text-center relative z-10">
 				<h2 className="text-4xl font-semibold text-white mb-12">
-					Have Any Questions?
+					ANY QUESTIONS?
 				</h2>
 				<p className="subtext text-lg text-white mb-8 max-w-3xl mx-auto">
 					We’re here to help! If you have any questions, need further

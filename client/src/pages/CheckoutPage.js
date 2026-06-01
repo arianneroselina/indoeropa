@@ -44,6 +44,7 @@ const CheckoutPage = () => {
 	const [deliveryRecipientPhone, setDeliveryRecipientPhone] = useState("");
 	const [deliveryStreet, setDeliveryStreet] = useState("");
 	const [deliveryPostalCode, setDeliveryPostalCode] = useState("");
+	const [deliveryCity, setDeliveryCity] = useState("");
 	const [deliveryCountry, setDeliveryCountry] = useState("");
 
 	// Billing info
@@ -53,6 +54,7 @@ const CheckoutPage = () => {
 	const [billingPhone, setBillingPhone] = useState("");
 	const [billingStreet, setBillingStreet] = useState("");
 	const [billingPostalCode, setBillingPostalCode] = useState("");
+	const [billingCity, setBillingCity] = useState("");
 	const [billingCountry, setBillingCountry] = useState("");
 
 	const [dhlAddon, setDhlAddon] = useState("");
@@ -177,11 +179,16 @@ const CheckoutPage = () => {
 				throw new Error("Invalid payment method.");
 			}
 
+			setBillingPhone(
+				billingSameAsDelivery ? deliveryRecipientPhone : billingPhone,
+			);
+
 			const deliveryAddress = [
 				deliveryRecipientFullName,
 				deliveryRecipientPhone,
 				deliveryStreet,
 				deliveryPostalCode,
+				deliveryCity,
 				deliveryCountry,
 			]
 				.filter(Boolean)
@@ -192,6 +199,7 @@ const CheckoutPage = () => {
 						deliveryRecipientFullName,
 						deliveryStreet,
 						deliveryPostalCode,
+						deliveryCity,
 						deliveryCountry,
 					]
 						.filter(Boolean)
@@ -200,14 +208,11 @@ const CheckoutPage = () => {
 						billingFullName,
 						billingStreet,
 						billingPostalCode,
+						billingCity,
 						billingCountry,
 					]
 						.filter(Boolean)
 						.join(", ");
-
-			setBillingPhone(
-				billingSameAsDelivery ? deliveryRecipientPhone : billingPhone,
-			);
 
 			const shipments = cartItems.map((item, index) => {
 				if (
@@ -327,8 +332,8 @@ const CheckoutPage = () => {
 				await createPembayaran({
 					dataSourceId: pembayaranDataSourceId,
 					orderId,
-					billingFullName: billingFullName || buyerFullName,
-					billingPhone: billingPhone || phone,
+					billingFullName,
+					billingPhone,
 					billingAddress,
 					packageType,
 					totalEUR,
@@ -405,7 +410,7 @@ const CheckoutPage = () => {
 					</Link>
 
 					<h2 className="text-center text-4xl font-semibold">
-						Checkout
+						CHECKOUT
 					</h2>
 				</div>
 
@@ -453,6 +458,8 @@ const CheckoutPage = () => {
 								setDeliveryStreet={setDeliveryStreet}
 								deliveryPostalCode={deliveryPostalCode}
 								setDeliveryPostalCode={setDeliveryPostalCode}
+								deliveryCity={deliveryCity}
+								setDeliveryCity={setDeliveryCity}
 								deliveryCountry={deliveryCountry}
 								setDeliveryCountry={setDeliveryCountry}
 								billingSameAsDelivery={billingSameAsDelivery}
@@ -469,6 +476,8 @@ const CheckoutPage = () => {
 								setBillingStreet={setBillingStreet}
 								billingPostalCode={billingPostalCode}
 								setBillingPostalCode={setBillingPostalCode}
+								billingCity={billingCity}
+								setBillingCity={setBillingCity}
 								billingCountry={billingCountry}
 								setBillingCountry={setBillingCountry}
 								dhlTiers={dhlTiers}

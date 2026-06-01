@@ -20,6 +20,7 @@ const InvoiceUploadsPage = () => {
 	const [cartItems, setCartItems] = useState([]);
 
 	// session-only upload state (NOT persisted)
+	const [originalValueInputs, setOriginalValueInputs] = useState({});
 	const [proofUploaded, setProofUploaded] = useState({});
 	const [invoiceProofFiles, setInvoiceProofFiles] = useState({});
 	const [errorMessage, setErrorMessage] = useState("");
@@ -54,6 +55,18 @@ const InvoiceUploadsPage = () => {
 		}));
 
 		setCartItems(cleaned);
+
+		setOriginalValueInputs(
+			Object.fromEntries(
+				cleaned.map((item) => [
+					item.key,
+					item.originalValueEUR !== undefined
+						? String(item.originalValueEUR)
+						: "",
+				]),
+			),
+		);
+
 		setProofUploaded(
 			Object.fromEntries(
 				cleaned.map((item) => [item.key, !!item.hasInvoiceProof]),
@@ -120,15 +133,24 @@ const InvoiceUploadsPage = () => {
 	 * @param {string | undefined} rawValue
 	 */
 	const updateOriginalValueEUR = (itemKey, rawValue) => {
+		const displayValue = rawValue.replace(",", ".");
+
+		setOriginalValueInputs((prev) => ({
+			...prev,
+			[itemKey]: displayValue,
+		}));
+
 		updateCartItem(itemKey, (item) => {
 			const originalValueEUR =
-				rawValue === undefined || rawValue === ""
+				displayValue === "" || displayValue === "."
 					? undefined
-					: Number(rawValue);
+					: Number(displayValue);
 
 			return {
 				...item,
-				originalValueEUR,
+				originalValueEUR: Number.isFinite(originalValueEUR)
+					? originalValueEUR
+					: undefined,
 				customsFeeEUR: calculateCustomsFee(originalValueEUR),
 			};
 		});
@@ -212,7 +234,7 @@ const InvoiceUploadsPage = () => {
 					</Link>
 
 					<h2 className="text-4xl font-semibold text-center">
-						Invoices Upload
+						INVOICES UPLOAD
 					</h2>
 				</div>
 
@@ -342,10 +364,8 @@ const InvoiceUploadsPage = () => {
 												</label>
 
 												<input
-													type="number"
+													type="text"
 													inputMode="decimal"
-													min="0"
-													step="0.01"
 													placeholder="e.g. 150.00"
 													className={[
 														"subtext w-full p-3 border rounded-xl transition",
@@ -354,22 +374,39 @@ const InvoiceUploadsPage = () => {
 															: "border-gray-300 input-focus",
 													].join(" ")}
 													value={
-														item.originalValueEUR ??
-														""
+														originalValueInputs[
+															item.key
+														] ?? ""
 													}
-													onChange={(e) =>
-														updateOriginalValueEUR(
-															item.key,
-															e.target.value.trim() ===
-																""
-																? undefined
-																: e.target
-																		.value,
-														)
-													}
-													required={
-														item.invoiceRequired
-													}
+													onChange={(e) => {
+														const raw =
+															e.target.value;
+														const normalized =
+															raw.replace(
+																",",
+																".",
+															);
+
+														if (raw === "") {
+															updateOriginalValueEUR(
+																item.key,
+																"",
+															);
+															return;
+														}
+
+														// allow 2 decimals using . or ,
+														if (
+															/^\d*\.?\d{0,2}$/.test(
+																normalized,
+															)
+														) {
+															updateOriginalValueEUR(
+																item.key,
+																normalized,
+															);
+														}
+													}}
 												/>
 
 												{isValueInvalid && (
