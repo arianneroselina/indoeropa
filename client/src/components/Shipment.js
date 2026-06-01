@@ -186,17 +186,42 @@ export default function Shipment({ variant = "default" }) {
 	// =========================================================
 	// Recommendation logic
 	// =========================================================
-	const needsVolumePackage = useMemo(() => {
-		return Number(weight) > 0 && volumetricWeight > Number(weight);
+	const volumeDifferenceKg = useMemo(() => {
+		const actualWeight = Number(weight);
+
+		if (!Number.isFinite(actualWeight) || actualWeight <= 0) return 0;
+		if (!Number.isFinite(volumetricWeight) || volumetricWeight <= 0)
+			return 0;
+
+		return volumetricWeight - actualWeight;
 	}, [weight, volumetricWeight]);
 
 	const recommendedPackageTypeId = useMemo(() => {
-		if (!needsVolumePackage) return "";
-		// TODO: adjust this
-		if (volumetricWeight <= 10) return "standard";
-		if (volumetricWeight <= 20) return "pkg_1_vol";
-		return "pkg_1_super";
-	}, [needsVolumePackage, volumetricWeight]);
+		if (volumeDifferenceKg <= 0) return "";
+		if (!selectedPackageTypeId) return "";
+
+		// 0 kg < volumetric weight - real weight <= 2 kg
+		// If user selected Standard, recommend Volume.
+		if (volumeDifferenceKg <= 2) {
+			if (selectedPackageTypeId === "standard") {
+				return "pkg_1_vol";
+			}
+
+			return "";
+		}
+
+		// volumetric weight - real weight > 2 kg
+		// Recommend Super Volume unless already selected.
+		if (volumeDifferenceKg > 2) {
+			if (selectedPackageTypeId !== "pkg_1_super") {
+				return "pkg_1_super";
+			}
+
+			return "";
+		}
+
+		return "";
+	}, [selectedPackageTypeId, volumeDifferenceKg]);
 
 	const recommendedLabel = useMemo(() => {
 		if (!recommendedPackageTypeId) return "";
@@ -237,18 +262,15 @@ export default function Shipment({ variant = "default" }) {
 			return;
 		}
 
-		if (!needsVolumePackage) {
+		if (!recommendedPackageTypeId) {
 			setDimensionAccepted(true);
 			return;
 		}
 
-		setDimensionAccepted(
-			selectedPackageTypeId === recommendedPackageTypeId,
-		);
+		setDimensionAccepted(false);
 	}, [
 		isDocument,
 		isHat,
-		needsVolumePackage,
 		selectedPackageTypeId,
 		recommendedPackageTypeId,
 	]);
@@ -671,7 +693,7 @@ export default function Shipment({ variant = "default" }) {
 								</div>
 
 								{/* Keep subtle inline note (still useful) */}
-								{needsVolumePackage && (
+								{recommendedPackageTypeId && (
 									<div className="hidden sm:block mb-4 rounded-xl border bg-amber-50 px-4 py-3">
 										<div className="text-sm font-semibold text-secondary">
 											Recommendation available
