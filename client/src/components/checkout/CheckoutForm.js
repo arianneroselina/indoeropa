@@ -54,7 +54,7 @@ const PAYMENT_DETAILS = {
 	jenius: {
 		title: "Bank Jenius/SMBC (Rupiah)",
 		rows: [
-			["Account Holder", "Dionisius Velma"],
+			["Account Holder", "Andika Putra"],
 			["Account Number", "90160105717"],
 		],
 		note: "Please upload the transfer proof after payment.",
