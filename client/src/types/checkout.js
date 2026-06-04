@@ -35,4 +35,33 @@
  * @property {SuccessPayloadItem[]} items
  */
 
-export {};
+/** @type {SuccessPayload} */
+const EMPTY_SUCCESS_PAYLOAD = {
+    orderId: "",
+    buyerFullName: "",
+    buyerEmail: "",
+    buyerPhone: "",
+    buyerAddress: "",
+    deliveryFullName: "",
+    deliveryAddress: "",
+    deliveryEmail: "",
+    deliveryPhone: "",
+
+    dhlAddonEnabled: false,
+    dhlAddonId: "",
+    dhlAddonLabel: "",
+    dhlAddonPriceEUR: 0,
+    dhlAddonPriceIDR: 0,
+    totalWeightKg: 0,
+
+    totalAmountEUR: 0,
+    totalAmountIDR: 0,
+    itemsCount: 0,
+    paidViaLabel: "",
+    hasPaymentProof: false,
+    submittedAt: "",
+    status: "",
+    items: [],
+};
+
+export { EMPTY_SUCCESS_PAYLOAD };

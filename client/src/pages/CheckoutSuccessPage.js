@@ -18,6 +18,7 @@ import {
 	downloadOrderConfirmationPdf,
 	sendOrderConfirmationEmail,
 } from "../api/orderConfirmationApi";
+import { EMPTY_SUCCESS_PAYLOAD } from "../types/checkout";
 
 const CheckoutSuccessPage = () => {
 	const navigate = useNavigate();
@@ -39,29 +40,8 @@ const CheckoutSuccessPage = () => {
 		}
 	}, []);
 
-	/** @type {SuccessPayload} */
-	const emptySuccessPayload = {
-		orderId: "",
-		buyerFullName: "",
-		buyerEmail: "",
-		buyerPhone: "",
-		buyerAddress: "",
-		deliveryFullName: "",
-		deliveryAddress: "",
-		deliveryEmail: "",
-		deliveryPhone: "",
-		totalAmountEUR: 0,
-		totalAmountIDR: 0,
-		itemsCount: 0,
-		paidViaLabel: "",
-		hasPaymentProof: false,
-		submittedAt: "",
-		status: "",
-		items: [],
-	};
-
 	const successPayload = useMemo(() => {
-		return location.state || fallbackState || emptySuccessPayload;
+		return location.state || fallbackState || EMPTY_SUCCESS_PAYLOAD;
 	}, [location.state, fallbackState]);
 
 	useEffect(() => {
