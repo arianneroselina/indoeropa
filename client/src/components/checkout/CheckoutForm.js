@@ -4,62 +4,7 @@ import "react-phone-number-input/style.css";
 import { Link } from "react-router-dom";
 import SectionCard from "./SectionCard";
 import Input from "./InputField";
-
-const PAYMENT_DETAILS = {
-	paypal: {
-		title: "PayPal",
-		rows: [
-			["PayPal Email", "DionTransportPembayaran@gmail.com"],
-			["Username", "@DTPembayaran"],
-		],
-		note: "Please send the payment as Friends & Family if applicable, then upload the payment proof below.",
-	},
-	/*iban: {
-        title: "IBAN Bank Transfer",
-        rows: [
-            ["Account Holder", "Your Name / Business Name"],
-            ["IBAN", "DE00 0000 0000 0000 0000 00"],
-            ["BIC", "BANKDEFFXXX"],
-            ["Reference", "Your full name"],
-        ],
-        note: "Please include your full name as the transfer reference.",
-    },
-    n26: {
-        title: "N26",
-        rows: [
-            ["Account Holder", "Your Name"],
-            ["IBAN", "DE00 0000 0000 0000 0000 00"],
-            ["Reference", "Your full name"],
-        ],
-        note: "Please upload a screenshot or PDF confirmation after payment.",
-    },
-    bca: {
-        title: "Bank BCA (Rupiah)",
-        rows: [
-            ["Account Holder", "Your Name"],
-            ["Account Number", "0000000000"],
-            ["Bank", "BCA"],
-        ],
-        note: "Please upload the transfer proof after payment.",
-    },
-    revolut: {
-        title: "Revolut",
-        rows: [
-            ["Recipient", "Your Name"],
-            ["Revolut Tag", "@yourtag"],
-            ["Phone / Email", "+49 xxx / your@email.com"],
-        ],
-        note: "Please upload a screenshot or PDF confirmation after payment.",
-    },*/
-	jenius: {
-		title: "Bank Jenius/SMBC (Rupiah)",
-		rows: [
-			["Account Holder", "Andika Putra"],
-			["Account Number", "90160105717"],
-		],
-		note: "Please upload the transfer proof after payment.",
-	},
-};
+import { PAYMENT_DETAILS } from "../../utils/constants";
 
 const PhoneInputField = ({
 	label,
@@ -92,8 +37,15 @@ const PhoneInputField = ({
  *
  * Props:
  * - handleSubmit
- * - buyer info:
- *   firstName, setFirstName, lastName, setLastName, email, setEmail, phone, setPhone
+ * - buyer / billing info:
+ *   buyerFirstName, setBuyerFirstName,
+ *   buyerLastName, setBuyerLastName,
+ *   buyerEmail, setBuyerEmail,
+ *   buyerPhone, setBuyerPhone,
+ *   buyerStreet, setBuyerStreet,
+ *   buyerPostalCode, setBuyerPostalCode,
+ *   buyerCity, setBuyerCity,
+ *   buyerCountry, setBuyerCountry
  * - delivery info:
  *   deliveryFirstName, setDeliveryFirstName
  *   deliveryLastName, setDeliveryLastName
@@ -103,15 +55,6 @@ const PhoneInputField = ({
  *   deliveryPostalCode, setDeliveryPostalCode
  *   deliveryCity, setDeliveryCity
  *   deliveryCountry, setDeliveryCountry
- * - billing info:
- *   billingSameAsDelivery, setBillingSameAsDelivery
- *   billingFirstName, setBillingFirstName
- *   billingLastName, setBillingLastName
- *   billingPhone, setBillingPhone
- *   billingStreet, setBillingStreet
- *   billingPostalCode, setBillingPostalCode
- *   billingCity, setBillingCity
- *   billingCountry, setBillingCountry
  * - dhl germany addon:
  *   dhlTiers,
  *   dhlAddonEnabled,
@@ -128,14 +71,22 @@ const PhoneInputField = ({
  */
 const CheckoutForm = ({
 	handleSubmit,
-	firstName,
-	setFirstName,
-	lastName,
-	setLastName,
-	email,
-	setEmail,
-	phone,
-	setPhone,
+	buyerFirstName,
+	setBuyerFirstName,
+	buyerLastName,
+	setBuyerLastName,
+	buyerEmail,
+	setBuyerEmail,
+	buyerPhone,
+	setBuyerPhone,
+	buyerStreet,
+	setBuyerStreet,
+	buyerPostalCode,
+	setBuyerPostalCode,
+	buyerCity,
+	setBuyerCity,
+	buyerCountry,
+	setBuyerCountry,
 
 	deliveryFirstName,
 	setDeliveryFirstName,
@@ -153,23 +104,6 @@ const CheckoutForm = ({
 	setDeliveryCity,
 	deliveryCountry,
 	setDeliveryCountry,
-
-	billingSameAsDelivery,
-	setBillingSameAsDelivery,
-	billingFirstName,
-	setBillingFirstName,
-	billingLastName,
-	setBillingLastName,
-	billingPhone,
-	setBillingPhone,
-	billingStreet,
-	setBillingStreet,
-	billingPostalCode,
-	setBillingPostalCode,
-	billingCity,
-	setBillingCity,
-	billingCountry,
-	setBillingCountry,
 
 	dhlTiers,
 	dhlAddonEnabled,
@@ -191,7 +125,7 @@ const CheckoutForm = ({
 		dhlTiers.find((option) => option.id === recommendedDhlAddon)?.label ||
 		"-";
 
-	const paymentStep = dhlAddonEnabled ? 5 : 4;
+	const paymentStep = dhlAddonEnabled ? 4 : 3;
 	const selectedPaymentDetails = PAYMENT_DETAILS[paymentMethod];
 
 	return (
@@ -203,23 +137,27 @@ const CheckoutForm = ({
 				>
 					<SectionCard
 						step={1}
-						title="Buyer Information"
-						tooltip="Details of the person placing the order."
+						title="Buyer / Billing Information"
+						tooltip="Details of the person placing the order and the billing address."
 					>
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<Input
 								label="First Name"
 								required
 								type="text"
-								value={firstName}
-								onChange={(e) => setFirstName(e.target.value)}
+								value={buyerFirstName}
+								onChange={(e) =>
+									setBuyerFirstName(e.target.value)
+								}
 							/>
 							<Input
 								label="Last Name"
 								required
 								type="text"
-								value={lastName}
-								onChange={(e) => setLastName(e.target.value)}
+								value={buyerLastName}
+								onChange={(e) =>
+									setBuyerLastName(e.target.value)
+								}
 							/>
 						</div>
 
@@ -228,21 +166,61 @@ const CheckoutForm = ({
 								label="Email"
 								required
 								type="email"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								value={buyerEmail}
+								onChange={(e) => setBuyerEmail(e.target.value)}
 							/>
 							<PhoneInputField
 								label="Phone Number"
 								required
-								value={phone}
-								onChange={setPhone}
+								value={buyerPhone}
+								onChange={setBuyerPhone}
+							/>
+						</div>
+
+						<Input
+							label="Street Address"
+							required
+							type="text"
+							placeholder="e.g. Musterstraße 12"
+							value={buyerStreet}
+							onChange={(e) => setBuyerStreet(e.target.value)}
+						/>
+
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+							<Input
+								label="Postal Code"
+								required
+								type="text"
+								placeholder="e.g. 60311"
+								value={buyerPostalCode}
+								onChange={(e) =>
+									setBuyerPostalCode(e.target.value)
+								}
+							/>
+							<Input
+								label="City"
+								required
+								type="text"
+								placeholder="e.g. Frankfurt am Main"
+								value={buyerCity}
+								onChange={(e) => setBuyerCity(e.target.value)}
+							/>
+							<Input
+								label="Country"
+								required
+								type="text"
+								placeholder="e.g. Germany"
+								value={buyerCountry}
+								onChange={(e) =>
+									setBuyerCountry(e.target.value)
+								}
 							/>
 						</div>
 					</SectionCard>
 
 					<SectionCard
 						step={2}
-						title="Delivery Address"
+						title="Delivery Information"
 						tooltip="Recipient details and final delivery destination."
 					>
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -265,6 +243,7 @@ const CheckoutForm = ({
 								}
 							/>
 						</div>
+
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<Input
 								label="Recipient Email"
@@ -326,104 +305,9 @@ const CheckoutForm = ({
 						</div>
 					</SectionCard>
 
-					<SectionCard
-						step={3}
-						title="Billing Address"
-						tooltip="Invoice details and billing recipient."
-					>
-						<label className="flex items-center gap-3 rounded-xl border border-primary-100 bg-primary-50 px-4 py-3">
-							<input
-								type="checkbox"
-								checked={billingSameAsDelivery}
-								onChange={(e) =>
-									setBillingSameAsDelivery(e.target.checked)
-								}
-								className="input-focus"
-							/>
-							<span className="text-sm font-medium text-primary-700">
-								Billing address is the same as delivery address
-							</span>
-						</label>
-
-						{!billingSameAsDelivery && (
-							<>
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-									<Input
-										label="Billing First Name"
-										required
-										type="text"
-										value={billingFirstName}
-										onChange={(e) =>
-											setBillingFirstName(e.target.value)
-										}
-									/>
-									<Input
-										label="Billing Last Name"
-										required
-										type="text"
-										value={billingLastName}
-										onChange={(e) =>
-											setBillingLastName(e.target.value)
-										}
-									/>
-									<PhoneInputField
-										label="Billing Phone"
-										required
-										value={billingPhone}
-										onChange={setBillingPhone}
-									/>
-								</div>
-
-								<Input
-									label="Street Address"
-									required
-									type="text"
-									placeholder="e.g. Musterstraße 12"
-									value={billingStreet}
-									onChange={(e) =>
-										setBillingStreet(e.target.value)
-									}
-								/>
-
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-									<Input
-										label="Postal Code"
-										required
-										type="text"
-										placeholder="e.g. 60311"
-										value={billingPostalCode}
-										onChange={(e) =>
-											setBillingPostalCode(e.target.value)
-										}
-									/>
-									<Input
-										label="City"
-										required
-										type="text"
-										placeholder="e.g. Frankfurt am Main"
-										value={billingCity}
-										onChange={(e) =>
-											setBillingCity(e.target.value)
-										}
-									/>
-									<Input
-										label="Country"
-										required
-										type="text"
-										placeholder="e.g. Germany"
-										value={billingCountry}
-										onChange={(e) =>
-											setBillingCountry(e.target.value)
-										}
-									/>
-								</div>
-							</>
-						)}
-					</SectionCard>
-
 					{dhlAddonEnabled && (
 						<SectionCard
-							step={4}
+							step={3}
 							title="Germany DHL Delivery Option"
 							tooltip="Choose the DHL tier for local delivery in Germany."
 							logo="/dhl.png"

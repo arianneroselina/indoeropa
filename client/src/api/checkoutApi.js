@@ -48,8 +48,8 @@ export const createPenerimaanBarang = async ({
 	dataSourceId,
 	orderId,
 	buyerFullName,
-	buyerPhone,
 	buyerEmail,
+	buyerPhone,
 	packageType,
 	quantity,
 	request,
@@ -61,8 +61,8 @@ export const createPenerimaanBarang = async ({
 			dataSourceId,
 			orderId,
 			buyerFullName,
-			buyerPhone,
 			buyerEmail,
+			buyerPhone,
 			packageType,
 			quantity,
 			request,
@@ -83,9 +83,10 @@ export const createPenerimaanBarang = async ({
 export const createPembayaran = async ({
 	dataSourceId,
 	orderId,
-	billingFullName,
-	billingPhone,
-	billingAddress,
+	buyerFullName,
+	buyerEmail,
+	buyerPhone,
+	buyerAddress,
 	packageType,
 	totalEUR,
 	priceBreakdown,
@@ -99,9 +100,10 @@ export const createPembayaran = async ({
 
 	formData.append("dataSourceId", dataSourceId);
 	formData.append("orderId", orderId);
-	formData.append("billingFullName", billingFullName);
-	formData.append("billingPhone", billingPhone);
-	formData.append("billingAddress", billingAddress);
+	formData.append("buyerFullName", buyerFullName);
+	formData.append("buyerEmail", buyerEmail);
+	formData.append("buyerPhone", buyerPhone);
+	formData.append("buyerAddress", buyerAddress);
 	formData.append("packageType", packageType);
 	formData.append("totalEUR", totalEUR);
 	formData.append("priceBreakdown", priceBreakdown);
@@ -168,15 +170,13 @@ export const createPengirimanLokal = async ({
 export const createOrderHistory = async ({
 	orderId,
 	buyerFullName,
-	buyerPhone,
 	buyerEmail,
+	buyerPhone,
+	buyerAddress,
 	deliveryFullName,
 	deliveryEmail,
 	deliveryPhone,
 	deliveryAddress,
-	billingFullName,
-	billingPhone,
-	billingAddress,
 	selectedDhlAddon,
 	dhlAddonPriceEUR,
 	totalAmountEUR,
@@ -194,13 +194,11 @@ export const createOrderHistory = async ({
 	formData.append("buyerFullName", buyerFullName);
 	formData.append("buyerEmail", buyerEmail);
 	formData.append("buyerPhone", buyerPhone);
+	formData.append("buyerAddress", buyerAddress);
 	formData.append("deliveryFullName", deliveryFullName);
 	formData.append("deliveryEmail", deliveryEmail);
 	formData.append("deliveryPhone", deliveryPhone);
 	formData.append("deliveryAddress", deliveryAddress);
-	formData.append("billingFullName", billingFullName);
-	formData.append("billingPhone", billingPhone);
-	formData.append("billingAddress", billingAddress);
 	formData.append("selectedDhlAddon", selectedDhlAddon);
 	formData.append("dhlAddonPriceEUR", dhlAddonPriceEUR);
 	formData.append("totalAmountEUR", totalAmountEUR);

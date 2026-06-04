@@ -169,7 +169,7 @@ app.post("/api/notion/order-route-databases", async (req, res) => {
  */
 app.post("/api/notion/penerimaan-barang", async (req, res) => {
     try {
-        const { dataSourceId, orderId, buyerFullName, buyerPhone, buyerEmail, packageType, quantity, request } = req.body;
+        const { dataSourceId, orderId, buyerFullName, buyerEmail, buyerPhone, packageType, quantity, request } = req.body;
         if (!dataSourceId) {
             return res.status(400).json({ error: "dataSourceId is required" });
         }
@@ -187,11 +187,11 @@ app.post("/api/notion/penerimaan-barang", async (req, res) => {
                 "Nama Pembeli (WEB)": {
                     rich_text: [{ text: { content: String(buyerFullName || "") } }],
                 },
-                "Telepon Pembeli (WEB)": {
-                    phone_number: buyerPhone ? String(buyerPhone) : null,
-                },
                 "Email Pembeli (WEB)": {
                     email: buyerEmail ? String(buyerEmail) : null,
+                },
+                "Telepon Pembeli (WEB)": {
+                    phone_number: buyerPhone ? String(buyerPhone) : null,
                 },
                 "Jenis Item (WEB)": {
                     select: packageType ? { name: String(packageType) } : null,
@@ -223,9 +223,10 @@ app.post("/api/notion/pembayaran",
         const {
             dataSourceId,
             orderId,
-            billingFullName,
-            billingPhone,
-            billingAddress,
+            buyerFullName,
+            buyerEmail,
+            buyerPhone,
+            buyerAddress,
             packageType,
             totalEUR,
             priceBreakdown,
@@ -240,8 +241,8 @@ app.post("/api/notion/pembayaran",
         if (!dataSourceId) {
             return res.status(400).json({ error: "dataSourceId is required" });
         }
-        if (!billingFullName) {
-            return res.status(400).json({ error: "billingFullName is required" });
+        if (!buyerFullName) {
+            return res.status(400).json({ error: "buyerFullName is required" });
         }
 
         async function uploadNotionFile(file) {
@@ -289,13 +290,16 @@ app.post("/api/notion/pembayaran",
                     title: [{ text: { content: String(orderId) } }],
                 },
                 "Nama Pembayar (WEB)": {
-                    rich_text: [{ text: { content: String(billingFullName || "") } }],
+                    rich_text: [{ text: { content: String(buyerFullName || "") } }],
+                },
+                "Email Pembayar (WEB)": {
+                    email: buyerEmail ? String(buyerEmail) : null,
                 },
                 "Telepon Pembayar (WEB)": {
-                    phone_number: billingPhone ? String(billingPhone) : null,
+                    phone_number: buyerPhone ? String(buyerPhone) : null,
                 },
                 "Alamat Tagihan (WEB)": {
-                    rich_text: [{ text: { content: String(billingAddress || "") } }],
+                    rich_text: [{ text: { content: String(buyerAddress || "") } }],
                 },
                 "Jenis Item (WEB)": {
                     select: packageType ? { name: String(packageType) } : null,
@@ -389,15 +393,13 @@ app.post("/api/notion/order-history", upload.any(), async (req, res) => {
         const {
             orderId,
             buyerFullName,
-            buyerPhone,
             buyerEmail,
+            buyerPhone,
+            buyerAddress,
             deliveryFullName,
             deliveryEmail,
             deliveryPhone,
             deliveryAddress,
-            billingFullName,
-            billingPhone,
-            billingAddress,
             selectedDhlAddon,
             dhlAddonPriceEUR,
             totalAmountEUR,
@@ -498,6 +500,9 @@ app.post("/api/notion/order-history", upload.any(), async (req, res) => {
                 "Buyer Phone": {
                     phone_number: buyerPhone ? String(buyerPhone) : null,
                 },
+                "Buyer Address": {
+                    rich_text: [{ text: { content: String(buyerAddress || "") } }],
+                },
                 "Delivery Full Name": {
                     rich_text: [{ text: { content: String(deliveryFullName || "") } }],
                 },
@@ -509,15 +514,6 @@ app.post("/api/notion/order-history", upload.any(), async (req, res) => {
                 },
                 "Delivery Address": {
                     rich_text: [{ text: { content: String(deliveryAddress || "") } }],
-                },
-                "Billing Full Name": {
-                    rich_text: [{ text: { content: String(billingFullName || "") } }],
-                },
-                "Billing Phone": {
-                    phone_number: billingPhone ? String(billingPhone) : null,
-                },
-                "Billing Address": {
-                    rich_text: [{ text: { content: String(billingAddress || "") } }],
                 },
                 "Selected DHL Addon": {
                     select: selectedDhlAddon ? { name: String(selectedDhlAddon) } : null,

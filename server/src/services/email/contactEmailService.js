@@ -1,14 +1,7 @@
 import { Resend } from "resend";
+import { escapeHtml } from "../utils.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-const escapeHtml = (value = "") =>
-    String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
 
 export const sendContactEmail = async ({
                                            name,

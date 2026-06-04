@@ -1,4 +1,32 @@
-import { escapeHtml, formatDisplayDate, formatEUR, formatIDR, formatWeight } from "../utils.js";
+import {
+    escapeHtml,
+    formatDisplayDate,
+    formatEUR,
+    formatIDR,
+    formatWeight,
+} from "../utils.js";
+
+/**
+ * @typedef {SuccessPayload & {
+ *   logoDataUrl?: string
+ * }} OrderConfirmationTemplateData
+ */
+
+const formatPdfDate = (value, options) => {
+    if (!value || value === "-") return "-";
+
+    try {
+        return formatDisplayDate(value, options);
+    } catch {
+        return value;
+    }
+};
+
+const renderInfoLine = (label, value) => `
+	<p class="info-line">
+		<span class="label">${escapeHtml(label)}:</span> ${escapeHtml(value || "-")}
+	</p>
+`;
 
 const renderShipmentCards = (items = []) => {
     if (!Array.isArray(items) || items.length === 0) {
@@ -11,7 +39,7 @@ const renderShipmentCards = (items = []) => {
 
     return items
         .map((item) => {
-            const shipmentDate = formatDisplayDate(item.shipmentDate, {
+            const shipmentDate = formatPdfDate(item.shipmentDate, {
                 weekday: "short",
                 day: "2-digit",
                 month: "long",
@@ -46,6 +74,11 @@ const renderShipmentCards = (items = []) => {
 						</div>
 
 						<div class="shipment-field">
+							<div class="field-label">Billed Weight</div>
+							<div class="field-value">${formatWeight(item.billedWeightKg)}</div>
+						</div>
+
+						<div class="shipment-field">
 							<div class="field-label">Shipment Date</div>
 							<div class="field-value">${escapeHtml(shipmentDate)}</div>
 						</div>
@@ -53,22 +86,22 @@ const renderShipmentCards = (items = []) => {
 						<div class="shipment-field">
 							<div class="field-label">Route</div>
 							<div class="field-value">
-                              ${escapeHtml(item.fromCountry || "-")} -&gt; ${escapeHtml(item.toCountry || "-")}
-                            </div>
+								${escapeHtml(item.fromCountry || "-")} -&gt; ${escapeHtml(item.toCountry || "-")}
+							</div>
 						</div>
 					</div>
 
 					${
                 item?.priceBreakdown
                     ? `
-						<div class="breakdown">
-							<div class="breakdown-title">Price Breakdown</div>
-							<div class="breakdown-line">
-								<span>Total</span>
-								<span>${item.priceBreakdown}</span>
-							</div>
-						</div>
-					`
+								<div class="breakdown">
+									<div class="breakdown-title">Price Breakdown</div>
+									<div class="breakdown-line">
+										<span>Total</span>
+										<span>${escapeHtml(item.priceBreakdown)}</span>
+									</div>
+								</div>
+							`
                     : ""
             }
 				</div>
@@ -77,14 +110,20 @@ const renderShipmentCards = (items = []) => {
         .join("");
 };
 
-export const renderOrderConfirmationHtml = (data) => {
-    const submitDate = formatDisplayDate(data.submittedAt, {
+/**
+ * @param {OrderConfirmationTemplateData} successPayload
+ * @returns {string}
+ */
+export const renderOrderConfirmationHtml = (successPayload) => {
+    const submitDate = formatPdfDate(successPayload.submittedAt, {
         day: "2-digit",
         month: "long",
         year: "numeric",
     });
 
-    const shipmentCards = renderShipmentCards(data.items || []);
+    const items = successPayload.items || [];
+    const itemsCount = successPayload.itemsCount ?? items.length;
+    const shipmentCards = renderShipmentCards(items);
 
     return `
 		<!doctype html>
@@ -226,6 +265,12 @@ export const renderOrderConfirmationHtml = (data) => {
 						margin: 0 0 10px;
 						padding-bottom: 5px;
 						border-bottom: 2px solid #e5e7eb;
+					}
+
+					.info-grid {
+						display: grid;
+						grid-template-columns: 1fr 1fr;
+						gap: 14px;
 					}
 
 					.info-block {
@@ -406,15 +451,17 @@ export const renderOrderConfirmationHtml = (data) => {
 					}
 				</style>
 			</head>
+
 			<body>
 				<div class="page">
 					<div class="topbar">
 						<div class="brand-left">
 							${
-        data.logoDataUrl
-            ? `<img src="${data.logoDataUrl}" alt="Indoeropa Logo" class="logo" />`
+        successPayload.logoDataUrl
+            ? `<img src="${successPayload.logoDataUrl}" alt="Indoeropa Logo" class="logo" />`
             : ""
     }
+
 							<div class="brand-copy">
 								<h1 class="title">Order Confirmation</h1>
 							</div>
@@ -425,35 +472,53 @@ export const renderOrderConfirmationHtml = (data) => {
 								<div class="meta-label">Submit Date</div>
 								<div class="meta-value">${escapeHtml(submitDate)}</div>
 							</div>
+
 							<div class="meta-row">
 								<div class="meta-label">Order ID</div>
-								<div class="meta-value">${escapeHtml(data.orderId || "-")}</div>
+								<div class="meta-value">${escapeHtml(successPayload.orderId || "-")}</div>
 							</div>
 						</div>
 					</div>
 
 					<div class="status-banner">
 						<div class="status-label">Status</div>
-						<div class="status-value">${escapeHtml(data.status || "Order request received")}</div>
+						<div class="status-value">
+							${escapeHtml(successPayload.status || "Order request received")}
+						</div>
 					</div>
 
 					<div class="section">
-						<h2 class="section-title">Buyer Information</h2>
-						<div class="info-block">
-							<p class="info-line"><span class="label">Name:</span> ${escapeHtml(data.fullName || "-")}</p>
-							<p class="info-line"><span class="label">Number:</span> ${escapeHtml(data.phone || "-")}</p>
-							<p class="info-line"><span class="label">Email:</span> ${escapeHtml(data.email || "-")}</p>
-							<p class="info-line"><span class="label">Address:</span> ${escapeHtml(data.billingAddress || "-")}</p>
+						<h2 class="section-title">Customer Information</h2>
+
+						<div class="info-grid">
+							<div class="info-block">
+								<h3 class="section-title">Buyer / Billing Information</h3>
+								${renderInfoLine("Name", successPayload.buyerFullName)}
+								${renderInfoLine("Email", successPayload.buyerEmail)}
+								${renderInfoLine("Phone", successPayload.buyerPhone)}
+								${renderInfoLine("Address", successPayload.buyerAddress)}
+							</div>
+
+							<div class="info-block">
+								<h3 class="section-title">Delivery Information</h3>
+								${renderInfoLine("Name", successPayload.deliveryFullName)}
+								${renderInfoLine("Email", successPayload.deliveryEmail)}
+								${renderInfoLine("Phone", successPayload.deliveryPhone)}
+								${renderInfoLine("Address", successPayload.deliveryAddress)}
+							</div>
 						</div>
 					</div>
 
 					<div class="section">
 						<h2 class="section-title">Service Information</h2>
 						<div class="info-block">
-							<p class="info-line"><span class="label">Email:</span> diontransport@hotmail.com</p>
-							<p class="info-line"><span class="label">Phone:</span> +49 175 4513280</p>
-							<p class="info-line"><span class="label">Instagram:</span> @indoeropa_com</p>
-							<p class="info-line"><span class="label">Address:</span> Jl. Utama 2 No.14-15 Komp. Perumahan Dasana Indah, Bojong Nangka, Kecamatan Kelapa Dua, Kabupaten Tangerang, Banten 15810</p>
+							${renderInfoLine("Email", "diontransport@hotmail.com")}
+							${renderInfoLine("Phone", "+49 175 4513280")}
+							${renderInfoLine("Instagram", "@indoeropa_com")}
+							${renderInfoLine(
+        "Address",
+        "Jl. Utama 2 No.14-15 Komp. Perumahan Dasana Indah, Bojong Nangka, Kecamatan Kelapa Dua, Kabupaten Tangerang, Banten 15810",
+    )}
 						</div>
 					</div>
 
@@ -467,19 +532,27 @@ export const renderOrderConfirmationHtml = (data) => {
 							<div class="total-box">
 								<div class="total-line grand">
 									<span>Total Euro</span>
-									<span>${formatEUR(data.totalAmountEUR)}</span>
+									<span>${formatEUR(successPayload.totalAmountEUR)}</span>
 								</div>
+
 								<div class="total-line">
 									<span>Total Rupiah</span>
-									<span>${formatIDR(data.totalAmountIDR)}</span>
+									<span>${formatIDR(successPayload.totalAmountIDR)}</span>
 								</div>
+
 								<div class="total-line">
 									<span>Total Shipments</span>
-									<span>${escapeHtml(data.itemsCount ?? "-")}</span>
+									<span>${escapeHtml(itemsCount ?? "-")}</span>
 								</div>
+
 								<div class="total-line">
 									<span>Payment Method</span>
-									<span>${escapeHtml(data.paidViaLabel || "-")}</span>
+									<span>${escapeHtml(successPayload.paidViaLabel || "-")}</span>
+								</div>
+
+								<div class="total-line">
+									<span>Payment Proof</span>
+									<span>${successPayload.hasPaymentProof ? "Uploaded" : "Not uploaded"}</span>
 								</div>
 							</div>
 						</div>

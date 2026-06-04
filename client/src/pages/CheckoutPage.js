@@ -31,10 +31,14 @@ const CheckoutPage = () => {
 	const [cartItems, setCartItems] = useState([]);
 
 	// Buyer info
-	const [firstName, setFirstName] = useState("");
-	const [lastName, setLastName] = useState("");
-	const [email, setEmail] = useState("");
-	const [phone, setPhone] = useState("");
+	const [buyerFirstName, setBuyerFirstName] = useState("");
+	const [buyerLastName, setBuyerLastName] = useState("");
+	const [buyerEmail, setBuyerEmail] = useState("");
+	const [buyerPhone, setBuyerPhone] = useState("");
+	const [buyerStreet, setBuyerStreet] = useState("");
+	const [buyerPostalCode, setBuyerPostalCode] = useState("");
+	const [buyerCity, setBuyerCity] = useState("");
+	const [buyerCountry, setBuyerCountry] = useState("");
 
 	// Delivery info
 	const [deliveryFirstName, setDeliveryFirstName] = useState("");
@@ -45,16 +49,6 @@ const CheckoutPage = () => {
 	const [deliveryPostalCode, setDeliveryPostalCode] = useState("");
 	const [deliveryCity, setDeliveryCity] = useState("");
 	const [deliveryCountry, setDeliveryCountry] = useState("");
-
-	// Billing info
-	const [billingSameAsDelivery, setBillingSameAsDelivery] = useState(true);
-	const [billingFirstName, setBillingFirstName] = useState("");
-	const [billingLastName, setBillingLastName] = useState("");
-	const [billingPhone, setBillingPhone] = useState("");
-	const [billingStreet, setBillingStreet] = useState("");
-	const [billingPostalCode, setBillingPostalCode] = useState("");
-	const [billingCity, setBillingCity] = useState("");
-	const [billingCountry, setBillingCountry] = useState("");
 
 	const [dhlAddon, setDhlAddon] = useState("");
 	const [paymentMethod, setPaymentMethod] = useState("");
@@ -149,12 +143,8 @@ const CheckoutPage = () => {
 	const backLabel = hasDutyItems ? "Back to Invoices" : "Back to Cart";
 
 	// Derived names for downstream API calls
-	const buyerFullName = `${firstName} ${lastName}`.trim();
+	const buyerFullName = `${buyerFirstName} ${buyerLastName}`.trim();
 	const deliveryFullName = `${deliveryFirstName} ${deliveryLastName}`.trim();
-
-	const billingFullName = billingSameAsDelivery
-		? deliveryFullName
-		: `${billingFirstName} ${billingLastName}`.trim();
 
 	// =========================
 	// Form submission
@@ -177,14 +167,7 @@ const CheckoutPage = () => {
 				throw new Error("Invalid payment method.");
 			}
 
-			setBillingPhone(
-				billingSameAsDelivery ? deliveryPhone : billingPhone,
-			);
-
 			const deliveryAddress = [
-				deliveryFullName,
-				deliveryEmail,
-				deliveryPhone,
 				deliveryStreet,
 				deliveryPostalCode,
 				deliveryCity,
@@ -193,28 +176,14 @@ const CheckoutPage = () => {
 				.filter(Boolean)
 				.join(", ");
 
-			const billingAddress = billingSameAsDelivery
-				? [
-						deliveryFullName,
-						deliveryEmail,
-						deliveryPhone,
-						deliveryStreet,
-						deliveryPostalCode,
-						deliveryCity,
-						deliveryCountry,
-					]
-						.filter(Boolean)
-						.join(", ")
-				: [
-						billingFullName,
-						billingPhone,
-						billingStreet,
-						billingPostalCode,
-						billingCity,
-						billingCountry,
-					]
-						.filter(Boolean)
-						.join(", ");
+			const buyerAddress = [
+				buyerStreet,
+				buyerPostalCode,
+				buyerCity,
+				buyerCountry,
+			]
+				.filter(Boolean)
+				.join(", ");
 
 			const shipments = cartItems.map((item, index) => {
 				if (
@@ -256,15 +225,13 @@ const CheckoutPage = () => {
 			await createOrderHistory({
 				orderId,
 				buyerFullName,
-				buyerPhone: phone,
-				buyerEmail: email,
+                buyerEmail,
+				buyerPhone,
+				buyerAddress,
 				deliveryFullName,
 				deliveryEmail,
 				deliveryPhone,
 				deliveryAddress,
-				billingFullName,
-				billingPhone,
-				billingAddress,
 				selectedDhlAddon: selectedDhlAddon?.id,
 				dhlAddonPriceEUR,
 				totalAmountEUR,
@@ -315,9 +282,9 @@ const CheckoutPage = () => {
 				await createPengirimanLokal({
 					dataSourceId: pengirimanLokalDataSourceId,
 					orderId,
-					deliveryFullName: deliveryFullName || buyerFullName,
-					deliveryEmail: deliveryEmail || email,
-					deliveryPhone: deliveryPhone || phone,
+					deliveryFullName,
+					deliveryEmail,
+					deliveryPhone,
 					deliveryAddress,
 				});
 
@@ -325,8 +292,8 @@ const CheckoutPage = () => {
 					dataSourceId: penerimaanBarangDataSourceId,
 					orderId,
 					buyerFullName,
-					buyerPhone: phone,
-					buyerEmail: email,
+					buyerEmail,
+					buyerPhone,
 					packageType,
 					quantity: Number(quantity),
 					request: notes,
@@ -335,9 +302,10 @@ const CheckoutPage = () => {
 				await createPembayaran({
 					dataSourceId: pembayaranDataSourceId,
 					orderId,
-					billingFullName,
-					billingPhone,
-					billingAddress,
+					buyerFullName,
+					buyerEmail,
+					buyerPhone,
+					buyerAddress,
 					packageType,
 					totalEUR,
 					priceBreakdown,
@@ -352,18 +320,17 @@ const CheckoutPage = () => {
 			localStorage.removeItem(CART_KEY);
 			setCartItems([]);
 
+			/** @type {SuccessPayload} */
 			const successPayload = {
 				orderId,
-				fullName: buyerFullName,
-				email,
-				phone,
+				buyerFullName,
+				buyerEmail,
+				buyerPhone,
+				buyerAddress,
 				deliveryFullName,
 				deliveryAddress,
 				deliveryEmail,
 				deliveryPhone,
-				billingFullName,
-				billingAddress,
-				billingPhone,
 				totalAmountEUR,
 				totalAmountIDR,
 				itemsCount: cartItems.length,
@@ -436,14 +403,22 @@ const CheckoutPage = () => {
 						<div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
 							<CheckoutForm
 								handleSubmit={handleSubmit}
-								firstName={firstName}
-								setFirstName={setFirstName}
-								lastName={lastName}
-								setLastName={setLastName}
-								phone={phone}
-								setPhone={setPhone}
-								email={email}
-								setEmail={setEmail}
+								buyerFirstName={buyerFirstName}
+								setBuyerFirstName={setBuyerFirstName}
+								buyerLastName={buyerLastName}
+								setBuyerLastName={setBuyerLastName}
+								buyerEmail={buyerEmail}
+								setBuyerEmail={setBuyerEmail}
+								buyerPhone={buyerPhone}
+								setBuyerPhone={setBuyerPhone}
+								buyerStreet={buyerStreet}
+								setBuyerStreet={setBuyerStreet}
+								buyerPostalCode={buyerPostalCode}
+								setBuyerPostalCode={setBuyerPostalCode}
+								buyerCity={buyerCity}
+								setBuyerCity={setBuyerCity}
+								buyerCountry={buyerCountry}
+								setBuyerCountry={setBuyerCountry}
 								deliveryFirstName={deliveryFirstName}
 								setDeliveryFirstName={setDeliveryFirstName}
 								deliveryLastName={deliveryLastName}
@@ -460,24 +435,6 @@ const CheckoutPage = () => {
 								setDeliveryCity={setDeliveryCity}
 								deliveryCountry={deliveryCountry}
 								setDeliveryCountry={setDeliveryCountry}
-								billingSameAsDelivery={billingSameAsDelivery}
-								setBillingSameAsDelivery={
-									setBillingSameAsDelivery
-								}
-								billingFirstName={billingFirstName}
-								setBillingFirstName={setBillingFirstName}
-								billingLastName={billingLastName}
-								setBillingLastName={setBillingLastName}
-								billingPhone={billingPhone}
-								setBillingPhone={setBillingPhone}
-								billingStreet={billingStreet}
-								setBillingStreet={setBillingStreet}
-								billingPostalCode={billingPostalCode}
-								setBillingPostalCode={setBillingPostalCode}
-								billingCity={billingCity}
-								setBillingCity={setBillingCity}
-								billingCountry={billingCountry}
-								setBillingCountry={setBillingCountry}
 								dhlTiers={dhlTiers}
 								dhlAddonEnabled={dhlAddonEnabled}
 								recommendedDhlAddon={recommendedDhlAddon}

@@ -2,28 +2,39 @@ import { generateOrderConfirmationPdf } from "../services/pdf/orderConfirmationP
 import { sendOrderConfirmationEmail } from "../services/email/orderConfirmationEmailService.js";
 
 const validatePayload = (data) => {
-    if (!data?.orderId) {
+    if (!data || typeof data !== "object") {
+        throw new Error("Missing order confirmation payload.");
+    }
+
+    if (!data.orderId) {
         throw new Error("Missing orderId.");
     }
-    if (!data?.fullName) {
-        throw new Error("Missing fullName.");
+
+    if (!data.buyerFullName) {
+        throw new Error("Missing buyerFullName.");
     }
-    if (!data?.email) {
-        throw new Error("Missing email.");
+
+    if (!data.buyerEmail) {
+        throw new Error("Missing buyerEmail.");
     }
+};
+
+const getSafeFileNamePart = (value) => {
+    return String(value || "order").replace(/[^a-zA-Z0-9-_]/g, "-");
 };
 
 export const downloadOrderConfirmationPdfController = async (req, res) => {
     try {
-        const data = req.body;
-        validatePayload(data);
+        const successPayload = req.body;
+        validatePayload(successPayload);
 
-        const pdfBuffer = await generateOrderConfirmationPdf(data);
+        const pdfBuffer = await generateOrderConfirmationPdf(successPayload);
+        const safeOrderId = getSafeFileNamePart(successPayload.orderId);
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
             "Content-Disposition",
-            `attachment; filename="INDOEROPA-order-confirmation-${data.orderId}.pdf"`,
+            `attachment; filename="INDOEROPA-order-confirmation-${safeOrderId}.pdf"`,
         );
 
         return res.send(pdfBuffer);
@@ -35,19 +46,15 @@ export const downloadOrderConfirmationPdfController = async (req, res) => {
 
 export const sendOrderConfirmationEmailController = async (req, res) => {
     try {
-        const data = req.body;
-        validatePayload(data);
+        const successPayload = req.body;
+        validatePayload(successPayload);
 
-        const pdfBuffer = await generateOrderConfirmationPdf(data);
+        const pdfBuffer = await generateOrderConfirmationPdf(successPayload);
 
         await sendOrderConfirmationEmail({
-            to: data.email,
-            orderId: data.orderId,
+            to: successPayload.buyerEmail,
             pdfBuffer,
-            customerName: data.fullName,
-            itemsCount: data.itemsCount,
-            totalAmountEUR: data.totalAmountEUR,
-            totalAmountIDR: data.totalAmountIDR
+            successPayload,
         });
 
         return res.json({
@@ -56,6 +63,8 @@ export const sendOrderConfirmationEmailController = async (req, res) => {
         });
     } catch (err) {
         console.error("Confirmation email failed:", err);
-        return res.status(400).send(err.message || "Failed to send confirmation email.");
+        return res
+            .status(400)
+            .send(err.message || "Failed to send confirmation email.");
     }
 };

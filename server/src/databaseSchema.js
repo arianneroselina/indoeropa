@@ -43,8 +43,8 @@ const statusPembayaranOptions = [
 export const penerimaanBarangSchema = {
     "Order ID (WEB)": { title: {} },
     "Nama Pembeli (WEB)": { rich_text: {} },
-    "Telepon Pembeli (WEB)": { phone_number: {} },
     "Email Pembeli (WEB)": { email: {} },
+    "Telepon Pembeli (WEB)": { phone_number: {} },
     "Jenis Item (WEB)": {
         select: {
             options: jenisItemOptions,
@@ -65,6 +65,7 @@ export const penerimaanBarangSchema = {
 export const pembayaranSchema = {
     "Order ID (WEB)": { title: {} },
     "Nama Pembayar (WEB)": { rich_text: {} },
+    "Email Pembayar (WEB)": { email: {} },
     "Telepon Pembayar (WEB)": { phone_number: {} },
     "Alamat Tagihan (WEB)": { rich_text: {} },
     "Jenis Item (WEB)": {
