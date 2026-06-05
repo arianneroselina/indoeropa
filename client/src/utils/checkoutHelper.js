@@ -2,12 +2,11 @@ export const totalPriceWithCustoms = (item) => {
 	const transportAmountEUR = Number(item.priceEUR) || 0;
 	const customsAmountEUR =
 		item.duty && item.invoiceRequired ? Number(item.customsFeeEUR) || 0 : 0;
-	const key = item.key;
 
 	const itemTotalEUR = transportAmountEUR + customsAmountEUR;
 
-	const quantityLabel = getItemQuantityLabel(item);
-	const baseBreakdown = `${quantityLabel} × ${transportAmountEUR.toFixed(2)}€`;
+	const baseBreakdown =
+		item.priceBreakdown || `Shipping ${transportAmountEUR.toFixed(2)}€`;
 
 	const priceBreakdown =
 		customsAmountEUR > 0
@@ -15,7 +14,6 @@ export const totalPriceWithCustoms = (item) => {
 			: baseBreakdown;
 
 	return {
-		key,
 		transportAmountEUR,
 		customsAmountEUR,
 		itemTotalEUR,
