@@ -99,4 +99,5 @@ export const pengirimanLokalSchema = {
     },
     "Status Pengiriman (M)": { status: {} },
     "Pembayaran Ongkir (M)": { checkbox: {} },
+    "Total Ongkir (M)": { number: { format: "rupiah" } },
 };
