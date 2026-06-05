@@ -10,7 +10,7 @@ export const totalPriceWithCustoms = (item) => {
 
 	const priceBreakdown =
 		customsAmountEUR > 0
-			? `${baseBreakdown} + customs ${customsAmountEUR.toFixed(2)}€ = ${itemTotalEUR.toFixed(2)}€`
+			? `${baseBreakdown} + customs ${customsAmountEUR.toFixed(2)}€`
 			: baseBreakdown;
 
 	return {
