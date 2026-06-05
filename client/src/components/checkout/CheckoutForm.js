@@ -56,11 +56,9 @@ const PhoneInputField = ({
  *   deliveryCity, setDeliveryCity
  *   deliveryCountry, setDeliveryCountry
  * - dhl germany addon:
- *   dhlTiers,
  *   dhlAddonEnabled,
- *   recommendedDhlAddon,
+ *   availableDhlAddons,
  *   dhlAddon, setDhlAddon,
- *   totalWeightKg,
  * - payment:
  *   paymentMethod, setPaymentMethod, setPaymentProof
  * - notes:
@@ -105,12 +103,10 @@ const CheckoutForm = ({
 	deliveryCountry,
 	setDeliveryCountry,
 
-	dhlTiers,
 	dhlAddonEnabled,
-	recommendedDhlAddon,
+	availableDhlAddons,
 	dhlAddon,
 	setDhlAddon,
-	totalWeightKg,
 
 	paymentMethod,
 	setPaymentMethod,
@@ -121,10 +117,6 @@ const CheckoutForm = ({
 	setTermsAccepted,
 	submitting,
 }) => {
-	const recommendedDhlLabel =
-		dhlTiers.find((option) => option.id === recommendedDhlAddon)?.label ||
-		"-";
-
 	const paymentStep = dhlAddonEnabled ? 4 : 3;
 	const selectedPaymentDetails = PAYMENT_DETAILS[paymentMethod];
 
@@ -308,53 +300,79 @@ const CheckoutForm = ({
 					{dhlAddonEnabled && (
 						<SectionCard
 							step={3}
-							title="Germany DHL Delivery Option"
-							tooltip="Choose the DHL tier for local delivery in Germany."
+							title="Germany Local Delivery"
+							tooltip="Choose COD or the recommended DHL option for local delivery in Germany."
 							logo="/dhl.png"
 						>
-							<div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
-								<div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-									<div>
-										<span className="font-semibold text-gray-900">
-											Total weight:
-										</span>{" "}
-										{Number(totalWeightKg).toFixed(2)} kg
-									</div>
-									<div>
-										<span className="font-semibold text-gray-900">
-											Recommended:
-										</span>{" "}
-										{recommendedDhlLabel}
-									</div>
-								</div>
-							</div>
-
 							<div>
 								<label className="mb-1.5 block text-sm font-semibold text-gray-800">
-									DHL option{" "}
+									Local delivery option{" "}
 									<span className="text-secondary">*</span>
 								</label>
-								<select
-									className="subtext w-full rounded-xl border border-gray-300 bg-white p-3 text-gray-900 input-focus disabled:cursor-not-allowed disabled:bg-gray-100"
-									value={dhlAddon}
-									onChange={(e) =>
-										setDhlAddon(e.target.value)
-									}
-									required
-								>
-									<option value="">Select option</option>
-									{dhlTiers.map((option) => (
-										<option
-											key={option.id}
-											value={option.id}
-										>
-											{option.label}
-											{Number(option.price) > 0
-												? ` - €${Number(option.price).toFixed(2)}`
-												: ""}
-										</option>
-									))}
-								</select>
+
+								<div className="space-y-3">
+									{availableDhlAddons.length === 0 ? (
+										<div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500">
+											No delivery option available
+										</div>
+									) : (
+										availableDhlAddons.map((option) => {
+											const price = Number(
+												option.price || 0,
+											);
+											const label =
+												option.label ||
+												option.name ||
+												option.id;
+											const isSelected =
+												dhlAddon === option.id;
+
+											return (
+												<label
+													key={option.id}
+													className={`flex cursor-pointer items-start gap-3 rounded-xl border bg-white p-4 transition ${
+														isSelected
+															? "border-primary ring-1 ring-primary"
+															: "border-gray-200 hover:border-gray-400"
+													}`}
+												>
+													<input
+														type="radio"
+														name="dhlAddon"
+														value={option.id}
+														checked={isSelected}
+														onChange={() =>
+															setDhlAddon(
+																option.id,
+															)
+														}
+														required
+														className="mt-1"
+													/>
+
+													<div className="flex-1">
+														<div className="flex items-start justify-between gap-4">
+															<div>
+																<div className="flex flex-wrap items-center gap-2">
+																	<span className="subtext text-sm text-gray-900">
+																		{label}
+																	</span>
+																</div>
+															</div>
+
+															<span className="subtext whitespace-nowrap text-sm text-gray-900">
+																€
+																{price.toFixed(
+																	2,
+																)}
+															</span>
+														</div>
+													</div>
+												</label>
+											);
+										})
+									)}
+								</div>
 							</div>
 						</SectionCard>
 					)}

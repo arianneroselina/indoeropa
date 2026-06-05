@@ -7,8 +7,6 @@ import {
     formatWeight,
 } from "../utils.js";
 
-/** @typedef {import("../../types/checkout.js").SuccessPayload} SuccessPayload */
-
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const formatEmailDate = (value) => {
@@ -110,6 +108,9 @@ const renderEmailShipmentItems = (items = []) => {
 const renderEmailOrderSummary = (successPayload) => {
     const items = successPayload.items || [];
     const itemTotal = items.length || successPayload.itemsCount || 0;
+    const dhlAddonPriceEUR = Number(successPayload.dhlAddon?.priceEUR || 0);
+    const totalAmountEUR = Number(successPayload.totalAmountEUR || 0);
+    const shipmentSubtotalEUR = Math.max(totalAmountEUR - dhlAddonPriceEUR, 0);
 
     return `
 		<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse; margin:24px 0; background:#fafafa; border:1px solid #d9e2ec; border-radius:12px;">
@@ -162,23 +163,91 @@ const renderEmailOrderSummary = (successPayload) => {
 			<tr>
 				<td style="padding:0 20px 20px;">
 					<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #e5e7eb; padding-top:12px;">
-						<tr>
-							<td style="padding:4px 24px 4px 0; font-size:13px; color:#555555;">Total EUR</td>
-							<td style="padding:4px 0; font-size:13px; font-weight:bold; color:#111111;">${formatEUR(successPayload.totalAmountEUR)}</td>
-						</tr>
-						<tr>
-							<td style="padding:4px 24px 4px 0; font-size:13px; color:#555555;">Total IDR</td>
-							<td style="padding:4px 0; font-size:13px; font-weight:bold; color:#111111;">${formatIDR(successPayload.totalAmountIDR)}</td>
-						</tr>
-						<tr>
-							<td style="padding:4px 24px 4px 0; font-size:13px; color:#555555;">Payment Method</td>
-							<td style="padding:4px 0; font-size:13px; font-weight:bold; color:#111111;">${escapeHtml(successPayload.paidViaLabel || "-")}</td>
-						</tr>
-						<tr>
-							<td style="padding:4px 24px 4px 0; font-size:13px; color:#555555;">Payment Proof</td>
-							<td style="padding:4px 0; font-size:13px; font-weight:bold; color:#111111;">${successPayload.hasPaymentProof ? "Uploaded" : "Not uploaded"}</td>
-						</tr>
-					</table>
+                        <tr>
+                            <td colspan="2" style="padding:0 0 8px; font-size:14px; font-weight:bold; color:#20487a; text-transform:uppercase; letter-spacing:0.4px;">
+                                Payment Summary
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td style="padding:4px 24px 4px 0; font-size:13px; color:#555555;">
+                                Shipment Subtotal
+                            </td>
+                            <td align="right" style="padding:4px 0; font-size:13px; font-weight:bold; color:#111111; white-space:nowrap;">
+                                ${formatEUR(shipmentSubtotalEUR)}
+                            </td>
+                        </tr>
+                    
+                        ${
+                            successPayload.dhlAddon
+                                ? `
+                                    <tr>
+                                        <td style="padding:4px 24px 4px 0; font-size:13px; color:#555555;">
+                                            ${escapeHtml(successPayload.dhlAddon.label)}
+                                        </td>
+                                        <td align="right" style="padding:4px 0; font-size:13px; font-weight:bold; color:#111111; white-space:nowrap;">
+                                            ${formatEUR(dhlAddonPriceEUR)}
+                                        </td>
+                                    </tr>
+                                `
+                                : ""
+                        }
+                    
+                        <tr>
+                            <td colspan="2" style="padding:8px 0 4px;">
+                                <div style="height:1px; background:#e5e7eb;"></div>
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td style="padding:6px 24px 2px 0; font-size:15px; font-weight:bold; color:#991b1b;">
+                                Total EUR
+                            </td>
+                            <td align="right" style="padding:6px 0 2px; font-size:15px; font-weight:bold; color:#991b1b; white-space:nowrap;">
+                                ${formatEUR(successPayload.totalAmountEUR)}
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td style="padding:2px 24px 10px 0; font-size:12px; color:#777777;">
+                                Total IDR
+                            </td>
+                            <td align="right" style="padding:2px 0 10px; font-size:12px; font-weight:bold; color:#555555; white-space:nowrap;">
+                                ${formatIDR(successPayload.totalAmountIDR)}
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td colspan="2" style="padding:8px 0 4px; border-top:1px dashed #d1d5db;"></td>
+                        </tr>
+                    
+                        <tr>
+                            <td style="padding:3px 24px 3px 0; font-size:12px; color:#777777;">
+                                Total Shipments
+                            </td>
+                            <td align="right" style="padding:3px 0; font-size:12px; font-weight:bold; color:#555555;">
+                                ${escapeHtml(itemTotal)}
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td style="padding:3px 24px 3px 0; font-size:12px; color:#777777;">
+                                Payment Method
+                            </td>
+                            <td align="right" style="padding:3px 0; font-size:12px; font-weight:bold; color:#555555;">
+                                ${escapeHtml(successPayload.paidViaLabel || "-")}
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td style="padding:3px 24px 3px 0; font-size:12px; color:#777777;">
+                                Payment Proof
+                            </td>
+                            <td align="right" style="padding:3px 0; font-size:12px; font-weight:bold; color:#555555;">
+                                ${successPayload.hasPaymentProof ? "Uploaded" : "Not uploaded"}
+                            </td>
+                        </tr>
+                    </table>
 				</td>
 			</tr>
 		</table>
@@ -201,6 +270,7 @@ export const sendOrderConfirmationEmail = async ({
         orderId,
         buyerFullName,
         itemsCount,
+        dhlAddon,
         totalAmountEUR,
         totalAmountIDR,
     } = successPayload;
@@ -213,6 +283,7 @@ export const sendOrderConfirmationEmail = async ({
     await resend.emails.send({
         from: process.env.MAIL_FROM,
         to,
+        bcc: process.env.SERVICE_MAIL,
         replyTo: process.env.SERVICE_MAIL,
         subject: `Your Order Confirmation #${orderId}`,
         text: `
@@ -225,6 +296,9 @@ Your order confirmation PDF is attached to this email.
 Order details:
 - Order ID: ${orderId}
 - Total shipments: ${itemsCount}
+${dhlAddon
+            ? `- Local delivery: ${dhlAddon.label || "-"} (${formatEUR(dhlAddon.priceEUR || 0)})`
+            : ""}
 ${totalAmountEUR ? `- Total amount (EUR): ${formatEUR(totalAmountEUR)}` : ""}
 ${totalAmountIDR ? `- Total amount (IDR): ${formatIDR(totalAmountIDR)}` : ""}
 

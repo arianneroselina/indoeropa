@@ -97,45 +97,54 @@ const CheckoutPage = () => {
 	// =========================
 	// Germany DHL Addon
 	// =========================
+	const COD_DHL_ADDON_ID = "cod";
+
 	const dhlAddonEnabled = cartItems[0]?.toCountry === "DE";
 
-	const totalWeightKg = useMemo(() => {
+	const totalBilledWeightKg = useMemo(() => {
 		return cartItems.reduce(
-			(sum, item) => sum + Number(item?.weightKg || 0),
+			(sum, item) => sum + Number(item?.billedWeightKg || 0),
 			0,
 		);
 	}, [cartItems]);
 
-	const recommendedDhlAddon = useMemo(() => {
-		return getRecommendedDhlAddon(totalWeightKg, dhlTiers);
-	}, [totalWeightKg, dhlTiers]);
+	const recommendedDhlAddonId = useMemo(() => {
+		if (!dhlAddonEnabled || !dhlTiers.length) return "";
 
-	const selectedDhlAddon = dhlTiers.find((option) => option.id === dhlAddon);
+		return getRecommendedDhlAddon(totalBilledWeightKg, dhlTiers);
+	}, [dhlAddonEnabled, totalBilledWeightKg, dhlTiers]);
 
-	const dhlAddonPriceEUR = dhlAddonEnabled
-		? Number(selectedDhlAddon?.price || 0)
-		: 0;
+	const availableDhlAddons = useMemo(() => {
+		if (!dhlAddonEnabled || !recommendedDhlAddonId) return [];
+
+		const allowedIds =
+			recommendedDhlAddonId === COD_DHL_ADDON_ID
+				? [COD_DHL_ADDON_ID]
+				: [recommendedDhlAddonId, COD_DHL_ADDON_ID];
+
+		return allowedIds
+			.map((id) => dhlTiers.find((option) => option.id === id))
+			.filter(Boolean);
+	}, [dhlAddonEnabled, dhlTiers, recommendedDhlAddonId]);
+
+	const dhlAddonObject = useMemo(() => {
+		if (!dhlAddonEnabled) return null;
+
+		return (
+			availableDhlAddons.find((option) => option.id === dhlAddon) || null
+		);
+	}, [dhlAddonEnabled, availableDhlAddons, dhlAddon]);
+
+	const dhlAddonPriceEUR = Number(dhlAddonObject?.price || 0);
 
 	useEffect(() => {
-		if (!dhlAddonEnabled) {
+		if (!dhlAddonEnabled || !recommendedDhlAddonId) {
 			setDhlAddon("");
 			return;
 		}
 
-		if (!dhlTiers.length) {
-			setDhlAddon("");
-			return;
-		}
-
-		if (!dhlTiers.some((option) => option.id === dhlAddon)) {
-			setDhlAddon(recommendedDhlAddon);
-			return;
-		}
-
-		if (!dhlAddon) {
-			setDhlAddon(recommendedDhlAddon);
-		}
-	}, [dhlAddonEnabled, dhlAddon, dhlTiers, recommendedDhlAddon]);
+		setDhlAddon(recommendedDhlAddonId);
+	}, [dhlAddonEnabled, recommendedDhlAddonId]);
 
 	// =========================
 	// Derived pricing
@@ -248,7 +257,7 @@ const CheckoutPage = () => {
 				deliveryEmail,
 				deliveryPhone,
 				deliveryAddress,
-				selectedDhlAddon: selectedDhlAddon?.id,
+				dhlAddon: dhlAddonObject?.id,
 				dhlAddonPriceEUR,
 				totalAmountEUR,
 				totalAmountIDR,
@@ -355,6 +364,13 @@ const CheckoutPage = () => {
 				hasPaymentProof: Boolean(paymentProof),
 				submittedAt,
 				status: "Order request received",
+				dhlAddon:
+					dhlAddonEnabled && dhlAddonObject
+						? {
+								label: dhlAddonObject.label || "",
+								priceEUR: dhlAddonPriceEUR,
+							}
+						: null,
 				items: shipments.map((shipment, index) => ({
 					lineNumber: index + 1,
 					description: shipment.packageType || "Shipment",
@@ -452,12 +468,10 @@ const CheckoutPage = () => {
 								setDeliveryCity={setDeliveryCity}
 								deliveryCountry={deliveryCountry}
 								setDeliveryCountry={setDeliveryCountry}
-								dhlTiers={dhlTiers}
 								dhlAddonEnabled={dhlAddonEnabled}
-								recommendedDhlAddon={recommendedDhlAddon}
+								availableDhlAddons={availableDhlAddons}
 								dhlAddon={dhlAddon}
 								setDhlAddon={setDhlAddon}
-								totalWeightKg={totalWeightKg}
 								paymentMethod={paymentMethod}
 								setPaymentMethod={setPaymentMethod}
 								setPaymentProof={setPaymentProof}
@@ -475,7 +489,7 @@ const CheckoutPage = () => {
 									totalAmountIDR={totalAmountIDR}
 									eurToIdrRate={eurToIdrRate}
 									dhlAddonEnabled={dhlAddonEnabled}
-									selectedDhlAddon={selectedDhlAddon}
+									dhlAddonObject={dhlAddonObject}
 									dhlAddonPriceEUR={dhlAddonPriceEUR}
 								/>
 							</aside>

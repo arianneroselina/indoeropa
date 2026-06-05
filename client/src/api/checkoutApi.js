@@ -177,7 +177,7 @@ export const createOrderHistory = async ({
 	deliveryEmail,
 	deliveryPhone,
 	deliveryAddress,
-	selectedDhlAddon,
+	dhlAddon,
 	dhlAddonPriceEUR,
 	totalAmountEUR,
 	totalAmountIDR,
@@ -199,7 +199,7 @@ export const createOrderHistory = async ({
 	formData.append("deliveryEmail", deliveryEmail);
 	formData.append("deliveryPhone", deliveryPhone);
 	formData.append("deliveryAddress", deliveryAddress);
-	formData.append("selectedDhlAddon", selectedDhlAddon);
+	formData.append("dhlAddon", dhlAddon);
 	formData.append("dhlAddonPriceEUR", dhlAddonPriceEUR);
 	formData.append("totalAmountEUR", totalAmountEUR);
 	formData.append("totalAmountIDR", totalAmountIDR);

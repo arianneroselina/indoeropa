@@ -32,6 +32,7 @@
  * @property {boolean} hasPaymentProof
  * @property {string} submittedAt
  * @property {string} status
+ * @property {Object} dhlAddon
  * @property {SuccessPayloadItem[]} items
  */
 
@@ -47,13 +48,6 @@ const EMPTY_SUCCESS_PAYLOAD = {
 	deliveryEmail: "",
 	deliveryPhone: "",
 
-	dhlAddonEnabled: false,
-	dhlAddonId: "",
-	dhlAddonLabel: "",
-	dhlAddonPriceEUR: 0,
-	dhlAddonPriceIDR: 0,
-	totalWeightKg: 0,
-
 	totalAmountEUR: 0,
 	totalAmountIDR: 0,
 	itemsCount: 0,
@@ -61,6 +55,7 @@ const EMPTY_SUCCESS_PAYLOAD = {
 	hasPaymentProof: false,
 	submittedAt: "",
 	status: "",
+	dhlAddon: null,
 	items: [],
 };
 

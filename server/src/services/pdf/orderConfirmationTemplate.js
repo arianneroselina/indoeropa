@@ -125,6 +125,10 @@ export const renderOrderConfirmationHtml = (successPayload) => {
     const itemsCount = successPayload.itemsCount ?? items.length;
     const shipmentCards = renderShipmentCards(items);
 
+    const dhlAddonPriceEUR = Number(successPayload.dhlAddon?.priceEUR || 0);
+    const totalAmountEUR = Number(successPayload.totalAmountEUR || 0);
+    const shipmentSubtotalEUR = Math.max(totalAmountEUR - dhlAddonPriceEUR, 0);
+
     return `
 		<!doctype html>
 		<html>
@@ -392,24 +396,70 @@ export const renderOrderConfirmationHtml = (successPayload) => {
 					}
 
 					.total-box {
-						min-width: 280px;
-						border-top: 3px solid #991b1b;
-						padding-top: 10px;
-					}
-
-					.total-line {
-						display: flex;
-						justify-content: space-between;
-						gap: 18px;
-						margin: 6px 0;
-						font-size: 14px;
-					}
-
-					.total-line.grand {
-						font-size: 16px;
-						font-weight: 800;
-						color: #991b1b;
-					}
+                        min-width: 320px;
+                        border: 1px solid #dbe1e8;
+                        border-top: 4px solid #991b1b;
+                        border-radius: 12px;
+                        padding: 14px 16px;
+                        background: #ffffff;
+                    }
+                        
+                    .total-box-title {
+                        font-family: "Roboto Condensed", Arial, sans-serif;
+                        font-size: 14px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.4px;
+                        color: #20487a;
+                        margin-bottom: 10px;
+                    }
+                        
+                    .total-line {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 18px;
+                        margin: 6px 0;
+                        font-size: 13px;
+                        color: #374151;
+                    }
+                        
+                    .total-line span:last-child {
+                        font-weight: 700;
+                        color: #111827;
+                        text-align: right;
+                    }
+                        
+                    .total-divider {
+                        height: 1px;
+                        background: #e5e7eb;
+                        margin: 10px 0;
+                    }
+                        
+                    .total-line.grand {
+                        font-size: 17px;
+                        font-weight: 800;
+                        color: #991b1b;
+                    }
+                        
+                    .total-line.grand span {
+                        color: #991b1b;
+                    }
+                        
+                    .secondary-total {
+                        font-size: 13px;
+                        color: #4b5563;
+                    }
+                        
+                    .total-meta {
+                        margin-top: 10px;
+                        padding-top: 10px;
+                        border-top: 1px dashed #d1d5db;
+                    }
+                        
+                    .total-line.small {
+                        font-size: 12px;
+                        color: #6b7280;
+                    }
 
 					.note {
 						margin-top: 24px;
@@ -529,33 +579,55 @@ export const renderOrderConfirmationHtml = (successPayload) => {
 						</div>
 
 						<div class="total-wrap">
-							<div class="total-box">
-								<div class="total-line grand">
-									<span>Total Euro</span>
-									<span>${formatEUR(successPayload.totalAmountEUR)}</span>
-								</div>
-
-								<div class="total-line">
-									<span>Total Rupiah</span>
-									<span>${formatIDR(successPayload.totalAmountIDR)}</span>
-								</div>
-
-								<div class="total-line">
-									<span>Total Shipments</span>
-									<span>${escapeHtml(itemsCount ?? "-")}</span>
-								</div>
-
-								<div class="total-line">
-									<span>Payment Method</span>
-									<span>${escapeHtml(successPayload.paidViaLabel || "-")}</span>
-								</div>
-
-								<div class="total-line">
-									<span>Payment Proof</span>
-									<span>${successPayload.hasPaymentProof ? "Uploaded" : "Not uploaded"}</span>
-								</div>
-							</div>
-						</div>
+                            <div class="total-box">
+                                <div class="total-box-title">Payment Summary</div>
+                        
+                                <div class="total-line">
+                                    <span>Shipment Subtotal</span>
+                                    <span>${formatEUR(shipmentSubtotalEUR)}</span>
+                                </div>
+                        
+                                ${
+                                successPayload.dhlAddon
+                                    ? `
+                                            <div class="total-line">
+                                                <span>${escapeHtml(successPayload.dhlAddon.label)}</span>
+                                                <span>${formatEUR(dhlAddonPriceEUR)}</span>
+                                            </div>
+                                        `
+                                    : ""
+                            }
+                        
+                                <div class="total-divider"></div>
+                        
+                                <div class="total-line grand">
+                                    <span>Total Euro</span>
+                                    <span>${formatEUR(successPayload.totalAmountEUR)}</span>
+                                </div>
+                        
+                                <div class="total-line secondary-total">
+                                    <span>Total Rupiah</span>
+                                    <span>${formatIDR(successPayload.totalAmountIDR)}</span>
+                                </div>
+                        
+                                <div class="total-meta">
+                                    <div class="total-line small">
+                                        <span>Total Shipments</span>
+                                        <span>${escapeHtml(itemsCount ?? "-")}</span>
+                                    </div>
+                        
+                                    <div class="total-line small">
+                                        <span>Payment Method</span>
+                                        <span>${escapeHtml(successPayload.paidViaLabel || "-")}</span>
+                                    </div>
+                        
+                                    <div class="total-line small">
+                                        <span>Payment Proof</span>
+                                        <span>${successPayload.hasPaymentProof ? "Uploaded" : "Not uploaded"}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 					</div>
 
 					<div class="note">

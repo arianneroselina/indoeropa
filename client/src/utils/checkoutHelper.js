@@ -49,18 +49,42 @@ export const getItemQuantityLabel = (item) => {
 	return "1 item";
 };
 
+const BOX_WEIGHT_BY_LABEL_KG = {
+	2: 0.3,
+	5: 0.4,
+	10: 0.55,
+	20: 0.7,
+};
+
+const getBoxWeightForTier = (tier) => {
+	const maxKg = Number(tier.maxKg);
+	return BOX_WEIGHT_BY_LABEL_KG[maxKg] ?? 0;
+};
+
 export const getRecommendedDhlAddon = (totalWeightKg, dhlTiers) => {
 	if (!Number.isFinite(totalWeightKg) || totalWeightKg <= 0) {
-		return dhlTiers?.[0]?.id || ""; // cod
+		return dhlTiers?.find((tier) => tier.id === "cod")?.id || "";
 	}
 
-	const sortedTiers = [...(dhlTiers || [])].sort(
-		(a, b) => Number(a.maxKg) - Number(b.maxKg),
-	);
+	const codTier = dhlTiers?.find((tier) => tier.id === "cod");
 
-	const recommendedTier = sortedTiers.find(
-		(tier) => totalWeightKg <= Number(tier.maxKg),
-	);
+	const dhlOnlyTiers = [...(dhlTiers || [])]
+		.filter((tier) => tier.id !== "cod")
+		.filter((tier) => Number.isFinite(Number(tier.maxKg)))
+		.sort((a, b) => Number(a.maxKg) - Number(b.maxKg));
 
-	return recommendedTier?.id || sortedTiers[sortedTiers.length - 1]?.id || "";
+	const recommendedTier = dhlOnlyTiers.find((tier) => {
+		const maxKg = Number(tier.maxKg);
+		const boxWeightKg = getBoxWeightForTier(tier);
+		const totalWithBoxKg = totalWeightKg + boxWeightKg;
+
+		return totalWithBoxKg <= maxKg;
+	});
+
+	return (
+		recommendedTier?.id ||
+		dhlOnlyTiers[dhlOnlyTiers.length - 1]?.id ||
+		codTier?.id ||
+		""
+	);
 };

@@ -11,7 +11,7 @@ import { totalPriceWithCustoms } from "../../utils/checkoutHelper";
  * - totalAmountIDR: final total in IDR
  * - eurToIdrRate: exchange rate used for conversion
  * - dhlAddonEnabled: whether Germany DHL addon section is active
- * - selectedDhlAddon: selected DHL addon tier
+ * - dhlAddonObject: selected DHL addon tier object
  * - dhlAddonPriceEUR: selected DHL addon price in EUR
  */
 const OrderSummary = ({
@@ -20,7 +20,7 @@ const OrderSummary = ({
 	totalAmountIDR,
 	eurToIdrRate,
 	dhlAddonEnabled = false,
-	selectedDhlAddon = null,
+	dhlAddonObject = null,
 	dhlAddonPriceEUR = 0,
 }) => {
 	return (
@@ -80,7 +80,7 @@ const OrderSummary = ({
 				})}
 			</div>
 
-			{dhlAddonEnabled && selectedDhlAddon && (
+			{dhlAddonEnabled && dhlAddonObject && (
 				<div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50/70 p-3">
 					<div className="flex items-center justify-between gap-3">
 						<div>
@@ -88,7 +88,7 @@ const OrderSummary = ({
 								Germany DHL delivery
 							</div>
 							<div className="subtext mt-0.5 text-xs text-gray-600">
-								{selectedDhlAddon.label}
+								{dhlAddonObject.label}
 							</div>
 						</div>
 

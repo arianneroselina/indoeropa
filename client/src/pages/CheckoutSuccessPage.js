@@ -333,31 +333,50 @@ const CheckoutSuccessPage = () => {
 									</div>
 								)}
 
-								<div className="mt-5 border-t pt-4">
-									<div className="grid grid-cols-1 gap-y-2 text-sm sm:grid-cols-2 sm:gap-x-10 lg:gap-x-16">
+								<div className="mt-5 border-t pt-5">
+									<h3 className="mb-3 text-sm font-semibold text-gray-900">
+										Totals
+									</h3>
+
+									<div className="space-y-3 text-sm">
 										<div className="flex justify-between gap-4">
 											<span className="text-gray-600">
-												Total EUR
+												Subtotal sipments
 											</span>
 											<span className="subtext font-semibold text-gray-900">
-												{successPayload.totalAmountEUR !=
-												null
-													? `€${Number(successPayload.totalAmountEUR).toFixed(2)}`
-													: "-"}
+												{formatOptionalEUR(
+													Number(
+														successPayload.totalAmountEUR ||
+															0,
+													) -
+														Number(
+															successPayload
+																.dhlAddon
+																?.priceEUR ??
+																successPayload.dhlAddonPriceEUR ??
+																0,
+														),
+												)}
 											</span>
 										</div>
 
-										<div className="flex justify-between gap-4">
-											<span className="text-gray-600">
-												Total IDR
-											</span>
-											<span className="subtext font-semibold text-gray-900">
-												{successPayload.totalAmountIDR !=
-												null
-													? `IDR ${Number(successPayload.totalAmountIDR).toLocaleString()}`
-													: "-"}
-											</span>
-										</div>
+										{successPayload.dhlAddon && (
+											<div className="flex justify-between gap-4">
+												<span className="text-gray-600">
+													{successPayload.dhlAddon
+														.label ||
+														"Selected option"}
+												</span>
+
+												<span className="subtext font-semibold text-gray-900">
+													{formatOptionalEUR(
+														successPayload.dhlAddon
+															?.priceEUR ??
+															successPayload.dhlAddonPriceEUR,
+													)}
+												</span>
+											</div>
+										)}
 
 										<div className="flex justify-between gap-4">
 											<span className="text-gray-600">
@@ -367,6 +386,35 @@ const CheckoutSuccessPage = () => {
 												{successPayload.paidViaLabel ||
 													"-"}
 											</span>
+										</div>
+
+										<div className="border-t pt-3">
+											<div className="flex justify-between gap-4">
+												<span className="text-base font-semibold text-gray-900">
+													Total EUR
+												</span>
+
+												<span className="subtext text-base font-bold text-gray-900">
+													{formatOptionalEUR(
+														successPayload.totalAmountEUR,
+													)}
+												</span>
+											</div>
+
+											<div className="mt-1 flex justify-between gap-4 text-xs">
+												<span className="text-gray-500">
+													Total IDR
+												</span>
+
+												<span className="subtext font-semibold text-gray-700">
+													{successPayload.totalAmountIDR !=
+													null
+														? `IDR ${Number(
+																successPayload.totalAmountIDR,
+															).toLocaleString()}`
+														: "-"}
+												</span>
+											</div>
 										</div>
 									</div>
 								</div>
