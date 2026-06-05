@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
-import { CART_KEY, CHECKOUT_SUCCESS_KEY } from "../utils/constants";
+import {
+	CART_KEY,
+	CHECKOUT_SUCCESS_KEY,
+	ORDER_ID_KEY,
+} from "../utils/constants";
 import { PAYMENT_STATUS_MAP } from "../utils/notionMappers";
 import CheckoutForm from "../components/checkout/CheckoutForm";
 import OrderSummary from "../components/checkout/OrderSummary";
@@ -77,6 +81,18 @@ const CheckoutPage = () => {
 			localStorage.removeItem(CART_KEY);
 		}
 	}, []);
+
+	// =========================
+	// Order ID
+	// =========================
+	const getOrCreateOrderId = () => {
+		const existing = sessionStorage.getItem(ORDER_ID_KEY);
+		if (existing) return existing;
+
+		const newOrderId = `ORD-${Date.now()}`;
+		sessionStorage.setItem(ORDER_ID_KEY, newOrderId);
+		return newOrderId;
+	};
 
 	// =========================
 	// Germany DHL Addon
@@ -158,7 +174,7 @@ const CheckoutPage = () => {
 		setErrorMessage("");
 
 		try {
-			const orderId = `ORD-${Date.now()}`;
+			const orderId = getOrCreateOrderId();
 			const submittedAt = new Date().toISOString();
 			const today = submittedAt.slice(0, 10);
 
@@ -225,7 +241,7 @@ const CheckoutPage = () => {
 			await createOrderHistory({
 				orderId,
 				buyerFullName,
-                buyerEmail,
+				buyerEmail,
 				buyerPhone,
 				buyerAddress,
 				deliveryFullName,
@@ -281,7 +297,7 @@ const CheckoutPage = () => {
 
 				await createPengirimanLokal({
 					dataSourceId: pengirimanLokalDataSourceId,
-					orderId,
+					shipmentId: shipment.shipmentId,
 					deliveryFullName,
 					deliveryEmail,
 					deliveryPhone,
@@ -290,7 +306,7 @@ const CheckoutPage = () => {
 
 				await createPenerimaanBarang({
 					dataSourceId: penerimaanBarangDataSourceId,
-					orderId,
+					shipmentId: shipment.shipmentId,
 					buyerFullName,
 					buyerEmail,
 					buyerPhone,
@@ -301,7 +317,7 @@ const CheckoutPage = () => {
 
 				await createPembayaran({
 					dataSourceId: pembayaranDataSourceId,
-					orderId,
+					shipmentId: shipment.shipmentId,
 					buyerFullName,
 					buyerEmail,
 					buyerPhone,
@@ -317,6 +333,7 @@ const CheckoutPage = () => {
 				});
 			}
 
+			sessionStorage.removeItem(ORDER_ID_KEY);
 			localStorage.removeItem(CART_KEY);
 			setCartItems([]);
 

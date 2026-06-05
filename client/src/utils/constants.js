@@ -28,6 +28,7 @@ export const API_BASE =
 
 export const CART_KEY = "shipping_cart_items";
 export const CHECKOUT_SUCCESS_KEY = "last_checkout_success";
+export const ORDER_ID_KEY = "checkout_order_id";
 
 export const PAYMENT_DETAILS = {
 	paypal: {

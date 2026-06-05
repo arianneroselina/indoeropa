@@ -46,7 +46,7 @@ export const createOrGetOrderRouteDatabases = async ({ datePageId }) => {
 
 export const createPenerimaanBarang = async ({
 	dataSourceId,
-	orderId,
+	shipmentId,
 	buyerFullName,
 	buyerEmail,
 	buyerPhone,
@@ -59,7 +59,7 @@ export const createPenerimaanBarang = async ({
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
 			dataSourceId,
-			orderId,
+			shipmentId,
 			buyerFullName,
 			buyerEmail,
 			buyerPhone,
@@ -82,7 +82,7 @@ export const createPenerimaanBarang = async ({
 
 export const createPembayaran = async ({
 	dataSourceId,
-	orderId,
+	shipmentId,
 	buyerFullName,
 	buyerEmail,
 	buyerPhone,
@@ -99,7 +99,7 @@ export const createPembayaran = async ({
 	const formData = new FormData();
 
 	formData.append("dataSourceId", dataSourceId);
-	formData.append("orderId", orderId);
+	formData.append("shipmentId", shipmentId);
 	formData.append("buyerFullName", buyerFullName);
 	formData.append("buyerEmail", buyerEmail);
 	formData.append("buyerPhone", buyerPhone);
@@ -137,7 +137,7 @@ export const createPembayaran = async ({
 
 export const createPengirimanLokal = async ({
 	dataSourceId,
-	orderId,
+	shipmentId,
 	deliveryFullName,
 	deliveryEmail,
 	deliveryPhone,
@@ -148,7 +148,7 @@ export const createPengirimanLokal = async ({
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
 			dataSourceId,
-			orderId,
+			shipmentId,
 			deliveryFullName,
 			deliveryEmail,
 			deliveryPhone,
