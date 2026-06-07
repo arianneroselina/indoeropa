@@ -26,11 +26,25 @@ export async function createOrGetOrderRoutePage({
         title: routeTitle,
     });
 
+    if (routeResult.created) {
+        await notion.pages.update({
+            page_id: routeResult.page.id,
+            is_locked: true,
+        });
+    }
+
     const dateResult = await findOrCreateChildPage({
         notion,
         parentPageId: routeResult.page.id,
         title: dateTitle,
     });
+
+    if (dateResult.created) {
+        await notion.pages.update({
+            page_id: dateResult.page.id,
+            is_locked: true,
+        });
+    }
 
     return {
         ok: true,
