@@ -121,8 +121,12 @@ export default function Shipment({ variant = "default" }) {
 	}, [selectedPackageTypeId, packageTypes]);
 
 	const isVolume = selectedPackageType?.pricing.type === "perKg";
-	const isDocument = selectedPackageType?.pricing.type === "document";
-	const isHat = selectedPackageType?.pricing.type === "perPiece";
+	const isDocument = selectedPackageTypeId === "documents";
+	const isHat = selectedPackageTypeId === "hat";
+	const needsDimensions = ["standard", "pkg_1_vol", "pkg_1_super"].includes(
+		selectedPackageTypeId,
+	);
+	const needsWeight = !["hat", "documents"].includes(selectedPackageTypeId);
 
 	// =========================================================
 	// Weights / dimensions
@@ -231,23 +235,17 @@ export default function Shipment({ variant = "default" }) {
 	// =========================================================
 	// Dimension acceptance
 	useEffect(() => {
-		if (isDocument || isHat) {
+		if (!needsWeight || !needsDimensions || !recommendedPackageTypeId) {
 			setDimensionAccepted(true);
 			return;
 		}
-
-		if (!recommendedPackageTypeId) {
-			setDimensionAccepted(true);
-			return;
-		}
-
 		setDimensionAccepted(false);
-	}, [isDocument, isHat, selectedPackageTypeId, recommendedPackageTypeId]);
+	}, [needsWeight, needsDimensions, recommendedPackageTypeId]);
 
 	// Recommendation modal
 	useEffect(() => {
-		if (isDocument || isHat) return;
-		if (!recommendedPackageTypeId) return;
+		if (!needsWeight || !needsDimensions || !recommendedPackageTypeId)
+			return;
 
 		// show modal only when user has entered dims + weight
 		const hasDims =
@@ -264,8 +262,8 @@ export default function Shipment({ variant = "default" }) {
 			setRecModalOpen(true);
 		}
 	}, [
-		isDocument,
-		isHat,
+		needsWeight,
+		needsDimensions,
 		recommendedPackageTypeId,
 		selectedPackageTypeId,
 		lengthCm,
@@ -284,7 +282,7 @@ export default function Shipment({ variant = "default" }) {
 	useEffect(() => {
 		if (progressStep < 1) return;
 
-		const okWeight = !isDocument && !isHat && roundedWeight > 0;
+		const okWeight = needsWeight && roundedWeight > 0;
 		const okPages = isDocument && Number(documentPages) > 0;
 		const okHatQty = isHat && Number(hatQuantity) > 0;
 
@@ -293,6 +291,7 @@ export default function Shipment({ variant = "default" }) {
 		}
 	}, [
 		progressStep,
+		needsWeight,
 		isDocument,
 		isHat,
 		roundedWeight,
@@ -302,22 +301,28 @@ export default function Shipment({ variant = "default" }) {
 
 	useEffect(() => {
 		if (progressStep < 2) return;
-		if (isDocument || isHat) return;
+		if (!needsWeight || !needsDimensions) return;
 
 		const hasDims =
 			Number(lengthCm) > 0 && Number(widthCm) > 0 && Number(heightCm) > 0;
 		if (hasDims && progressStep < 3) {
 			setProgressStep(3);
 		}
-	}, [progressStep, isDocument, isHat, lengthCm, widthCm, heightCm]);
+	}, [
+		progressStep,
+		needsWeight,
+		needsDimensions,
+		lengthCm,
+		widthCm,
+		heightCm,
+	]);
 
 	// =========================================================
 	// Validation
 	// =========================================================
 	const canAddToCart = useMemo(() => {
-		if (!canShowShipment) return false;
-		if (!selectedPackageType) return false;
-		if (!shipmentDate) return false;
+		if (!canShowShipment || !selectedPackageType || !shipmentDate)
+			return false;
 
 		if (isDocument) {
 			const pages = Number(documentPages);
@@ -330,15 +335,17 @@ export default function Shipment({ variant = "default" }) {
 
 		if (roundedWeight <= 0) return false;
 
-		if (
-			Number(lengthCm) <= 0 ||
-			Number(widthCm) <= 0 ||
-			Number(heightCm) <= 0
-		) {
-			return false;
-		}
+		if (needsDimensions) {
+			if (
+				Number(lengthCm) <= 0 ||
+				Number(widthCm) <= 0 ||
+				Number(heightCm) <= 0
+			) {
+				return false;
+			}
 
-		if (!dimensionAccepted) return false;
+			if (!dimensionAccepted) return false;
+		}
 
 		return true;
 	}, [
@@ -349,6 +356,7 @@ export default function Shipment({ variant = "default" }) {
 		documentPages,
 		hatQuantity,
 		roundedWeight,
+		needsDimensions,
 		lengthCm,
 		widthCm,
 		heightCm,
@@ -416,7 +424,7 @@ export default function Shipment({ variant = "default" }) {
 			shipmentDate,
 			weightKg: Number(weight),
 			billedWeightKg: roundedWeight,
-			dimensionsCm: { ...dims },
+			dimensionsCm: needsDimensions ? { ...dims } : undefined,
 			packageTypeId: selectedPackageTypeId,
 			packageTypeLabel: selectedPackageType?.label ?? "",
 			priceEUR: priceResult.total,
@@ -433,9 +441,9 @@ export default function Shipment({ variant = "default" }) {
 			item.shipmentDate || "",
 			item.weightKg.toFixed(1),
 			item.packageTypeId,
-			item.dimensionsCm.l,
-			item.dimensionsCm.w,
-			item.dimensionsCm.h,
+			needsDimensions ? item.dimensionsCm.l : "",
+			needsDimensions ? item.dimensionsCm.w : "",
+			needsDimensions ? item.dimensionsCm.h : "",
 			isDocument ? `pages:${documentPages || ""}` : "",
 			isHat ? `pcs:${hatQuantity || ""}` : "",
 		].join("|");
@@ -662,21 +670,22 @@ export default function Shipment({ variant = "default" }) {
 								</div>
 
 								{/* Keep subtle inline note (still useful) */}
-								{recommendedPackageTypeId && (
-									<div className="hidden sm:block mb-4 rounded-xl border bg-amber-50 px-4 py-3">
-										<div className="text-sm font-semibold text-secondary">
-											Recommendation available
+								{needsDimensions &&
+									recommendedPackageTypeId && (
+										<div className="hidden sm:block mb-4 rounded-xl border bg-amber-50 px-4 py-3">
+											<div className="text-sm font-semibold text-secondary">
+												Recommendation available
+											</div>
+											<div className="subtext text-xs text-secondary/80 mt-1">
+												Your dimensions are large for
+												the entered weight. Recommended:{" "}
+												<span className="font-semibold">
+													{recommendedLabel}
+												</span>
+												.
+											</div>
 										</div>
-										<div className="subtext text-xs text-secondary/80 mt-1">
-											Your dimensions are large for the
-											entered weight. Recommended:{" "}
-											<span className="font-semibold">
-												{recommendedLabel}
-											</span>
-											.
-										</div>
-									</div>
-								)}
+									)}
 							</div>
 
 							<div className="px-4 pb-5 sm:px-6 sm:pb-6">
@@ -694,24 +703,19 @@ export default function Shipment({ variant = "default" }) {
 								<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 									{/* LEFT */}
 									<div className="space-y-4">
-										{progressStep >= 1 &&
-											!isDocument &&
-											!isHat && (
-												<WeightBlock
-													weight={weight}
-													handleWeightChange={
-														handleWeightChange
-													}
-													willBeRounded={
-														willBeRounded
-													}
-													isVolume={isVolume}
-												/>
-											)}
+										{progressStep >= 1 && needsWeight && (
+											<WeightBlock
+												weight={weight}
+												handleWeightChange={
+													handleWeightChange
+												}
+												willBeRounded={willBeRounded}
+												isVolume={isVolume}
+											/>
+										)}
 
 										{progressStep >= 2 &&
-											!isDocument &&
-											!isHat && (
+											needsDimensions && (
 												<div
 													ref={dimsRef}
 													className={[
@@ -785,7 +789,7 @@ export default function Shipment({ variant = "default" }) {
 									{/* RIGHT */}
 									<div className="space-y-4">
 										{progressStep >=
-											(isDocument || isHat ? 2 : 3) && (
+											(needsDimensions ? 3 : 2) && (
 											<Calendar
 												routeKey={routeKey}
 												shipmentDate={shipmentDate}
@@ -823,8 +827,7 @@ export default function Shipment({ variant = "default" }) {
 																Price
 																calculation
 															</div>
-															{!isDocument &&
-																!isHat &&
+															{needsWeight &&
 																willBeRounded && (
 																	<div className="subtext text-xs text-gray-600 mt-1">
 																		{
