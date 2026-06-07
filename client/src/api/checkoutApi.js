@@ -34,9 +34,9 @@ export const createOrGetOrderRouteDatabases = async ({
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
-            datePageId,
-            toCountry,
-        }),
+			datePageId,
+			toCountry,
+		}),
 	});
 
 	const data = await res.json().catch(() => ({}));

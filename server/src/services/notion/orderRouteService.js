@@ -1,7 +1,5 @@
 import {
     buildRouteName,
-    findOrCreateChildPage,
-    findOrCreateDatabaseInPage,
     formatRouteDate,
 } from "../../utils/helper.js";
 import {
@@ -10,7 +8,7 @@ import {
     pengirimanLokalDestDESchema,
     pengirimanLokalDestIDSchema
 } from "./databaseSchema.js";
-import { notion } from "./client.js";
+import { findOrCreateChildPage, findOrCreateDatabaseInPage, lockNotionPage } from "./pageService.js";
 
 export async function createOrGetOrderRoutePage({
                                                     fromCountry,
@@ -21,29 +19,21 @@ export async function createOrGetOrderRoutePage({
     const dateTitle = formatRouteDate(shipmentDate);
 
     const routeResult = await findOrCreateChildPage({
-        notion,
         parentPageId: process.env.NOTION_PAGE_ORDERS,
         title: routeTitle,
     });
 
     if (routeResult.created) {
-        await notion.pages.update({
-            page_id: routeResult.page.id,
-            is_locked: true,
-        });
+        await lockNotionPage(routeResult.page.id)
     }
 
     const dateResult = await findOrCreateChildPage({
-        notion,
         parentPageId: routeResult.page.id,
         title: dateTitle,
     });
 
     if (dateResult.created) {
-        await notion.pages.update({
-            page_id: dateResult.page.id,
-            is_locked: true,
-        });
+        await lockNotionPage(dateResult.page.id)
     }
 
     return {
@@ -61,21 +51,18 @@ export async function createOrGetOrderRouteDatabases({ datePageId,
                                                          toCountry,
                                                      }) {
     const penerimaan = await findOrCreateDatabaseInPage({
-        notion,
         pageId: datePageId,
         title: "Penerimaan Barang",
         properties: penerimaanBarangSchema,
     });
 
     const pembayaran = await findOrCreateDatabaseInPage({
-        notion,
         pageId: datePageId,
         title: "Pembayaran",
         properties: pembayaranSchema,
     });
 
     const pengiriman = await findOrCreateDatabaseInPage({
-        notion,
         pageId: datePageId,
         title: "Pengiriman Lokal",
         properties: toCountry === "DE" ? pengirimanLokalDestDESchema : pengirimanLokalDestIDSchema,
