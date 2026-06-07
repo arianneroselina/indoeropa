@@ -50,77 +50,77 @@ const dhlPackageOptions = [
 
 export const penerimaanBarangSchema = {
     "Shipment ID (WEB)": { title: {} },
-    "Nama Pembeli (WEB)": { rich_text: {} },
-    "Email Pembeli (WEB)": { email: {} },
-    "Telepon Pembeli (WEB)": { phone_number: {} },
-    "Jenis Item (WEB)": {
-        select: {
-            options: jenisItemOptions,
-        },
-    },
-    "Jumlah Pembelian per Unit (WEB)": { number: { format: "number" } },
-    "Penerimaan Barang (M)": {
+    "01 Nama Pembeli (WEB)": { rich_text: {} },
+    "02 Telepon Pembeli (WEB)": { phone_number: {} },
+    "03 Jumlah Pembelian per Unit (WEB)": { number: { format: "number" } },
+    "04 Berat Asli (P)": { number: { format: "number" } },
+    "05 Penerimaan Barang (M)": {
         select: {
             options: penerimaanBarangOptions,
         },
     },
-    "Kesesuaian Barang (M)": { checkbox: {} },
-    "Berat Asli (P)": { number: { format: "number" } },
-    "Request Khusus (WEB)": { rich_text: {} },
-    "Tanggal Bongkar (M)": { date: {} },
-};
-
-export const pembayaranSchema = {
-    "Shipment ID (WEB)": { title: {} },
-    "Nama Pembayar (WEB)": { rich_text: {} },
-    "Email Pembayar (WEB)": { email: {} },
-    "Telepon Pembayar (WEB)": { phone_number: {} },
-    "Alamat Tagihan (WEB)": { rich_text: {} },
-    "Jenis Item (WEB)": {
+    "06 Jenis Item (WEB)": {
         select: {
             options: jenisItemOptions,
         },
     },
-    "Jumlah Pembelian per Unit (WEB)": { number: { format: "number" } },
-    "Total Harga (WEB)": { number: { format: "euro" } },
-    "Price Breakdown (WEB)": { rich_text: {} },
-    "Bukti Pembelian Barang (WEB)": { files: {} },
-    "Status Pembayaran (WEB)": {
+    "07 Tanggal Bongkar (M)": { date: {} },
+    "08 Kesesuaian Barang (M)": { checkbox: {} },
+    "09 Request Khusus (WEB)": { rich_text: {} },
+    "10 Email Pembeli (WEB)": { email: {} },
+};
+
+export const pembayaranSchema = {
+    "Shipment ID (WEB)": { title: {} },
+    "01 Nama Pembayar (WEB)": { rich_text: {} },
+    "02 Telepon Pembayar (WEB)": { phone_number: {} },
+    "03 Jumlah Pembelian per Unit (WEB)": { number: { format: "number" } },
+    "04 Price Breakdown (WEB)": { rich_text: {} },
+    "05 Total Harga (WEB)": { number: { format: "euro" } },
+    "06 Bukti Pembayaran (WEB)": { files: {} },
+    "07 Status Pembayaran (WEB)": {
         select: {
             options: statusPembayaranOptions,
         },
     },
-    "Tanggal Pembayaran (WEB)": { date: {} },
-    "Bukti Pembayaran (WEB)": { files: {} },
+    "08 Bukti Pembelian Barang (WEB)": { files: {} },
+    "09 Jenis Item (WEB)": {
+        select: {
+            options: jenisItemOptions,
+        },
+    },
+    "10 Tanggal Pembayaran (WEB)": { date: {} },
+    "11 Email Pembayar (WEB)": { email: {} },
+    "12 Alamat Tagihan (WEB)": { rich_text: {} },
 };
 
 export const pengirimanLokalDestDESchema = {
     "Shipment ID (WEB)": { title: {} },
-    "Nama Penerima (WEB)": { rich_text: {} },
-    "Telepon Penerima (WEB)": { phone_number: {} },
-    "Email Penerima (WEB)": { email: {} },
-    "Alamat Tujuan (WEB)": { rich_text: {} },
-    "DHL Package (WEB)": {
+    "01 Nama Penerima (WEB)": { rich_text: {} },
+    "02 Alamat Tujuan (WEB)": { rich_text: {} },
+    "03 Email Penerima (WEB)": { email: {} },
+    "04 Pembayaran Ongkir (M)": { checkbox: {} },
+    "05 DHL Package (WEB)": {
         select: {
             options: dhlPackageOptions,
         },
     },
-    "Status Pengiriman (M)": { status: {} },
-    "Pembayaran Ongkir (M)": { checkbox: {} },
+    "07 Status Pengiriman (M)": { status: {} },
+    "08 Telepon Penerima (WEB)": { phone_number: {} },
 };
 
 export const pengirimanLokalDestIDSchema = {
     "Shipment ID (WEB)": { title: {} },
-    "Nama Penerima (WEB)": { rich_text: {} },
-    "Telepon Penerima (WEB)": { phone_number: {} },
-    "Email Penerima (WEB)": { email: {} },
-    "Alamat Tujuan (WEB)": { rich_text: {} },
-    "Pengiriman di Indo (WEB)": {
+    "01 Nama Penerima (WEB)": { rich_text: {} },
+    "02 Alamat Tujuan (WEB)": { rich_text: {} },
+    "03 Email Penerima (WEB)": { email: {} },
+    "04 Total Ongkir (M)": { number: { format: "rupiah" } },
+    "05 Pembayaran Ongkir (M)": { checkbox: {} },
+    "06 Pengiriman di Indo (WEB)": {
         select: {
             options: pengirimanDiIndoOptions,
         },
     },
-    "Status Pengiriman (M)": { status: {} },
-    "Pembayaran Ongkir (M)": { checkbox: {} },
-    "Total Ongkir (M)": { number: { format: "rupiah" } },
+    "07 Status Pengiriman (M)": { status: {} },
+    "08 Telepon Penerima (WEB)": { phone_number: {} },
 };

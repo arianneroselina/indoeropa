@@ -92,12 +92,12 @@ router.post("/penerimaan-barang", async (req, res) => {
             titleValue: shipmentId,
             properties: {
                 "Shipment ID (WEB)": notionTitle(shipmentId),
-                "Nama Pembeli (WEB)": notionText(buyerFullName),
-                "Email Pembeli (WEB)": notionEmail(buyerEmail),
-                "Telepon Pembeli (WEB)": notionPhone(buyerPhone),
-                "Jenis Item (WEB)": notionSelect(packageType),
-                "Jumlah Pembelian per Unit (WEB)": notionNumber(quantity),
-                "Request Khusus (WEB)": notionText(request),
+                "01 Nama Pembeli (WEB)": notionText(buyerFullName),
+                "02 Telepon Pembeli (WEB)": notionPhone(buyerPhone),
+                "03 Jumlah Pembelian per Unit (WEB)": notionNumber(quantity),
+                "06 Jenis Item (WEB)": notionSelect(packageType),
+                "09 Request Khusus (WEB)": notionText(request),
+                "10 Email Pembeli (WEB)": notionEmail(buyerEmail),
             },
         });
 
@@ -151,26 +151,26 @@ router.post(
 
             const properties = {
                 "Shipment ID (WEB)": notionTitle(shipmentId),
-                "Nama Pembayar (WEB)": notionText(buyerFullName),
-                "Email Pembayar (WEB)": notionEmail(buyerEmail),
-                "Telepon Pembayar (WEB)": notionPhone(buyerPhone),
-                "Alamat Tagihan (WEB)": notionText(buyerAddress),
-                "Jenis Item (WEB)": notionSelect(packageType),
-                "Total Harga (WEB)": notionNumber(totalEUR),
-                "Price Breakdown (WEB)": notionText(priceBreakdown),
-                "Jumlah Pembelian per Unit (WEB)": notionNumber(quantity),
-                "Status Pembayaran (WEB)": notionSelect(paymentStatus),
-                "Tanggal Pembayaran (WEB)": notionDate(paymentDate),
+                "01 Nama Pembayar (WEB)": notionText(buyerFullName),
+                "02 Telepon Pembayar (WEB)": notionPhone(buyerPhone),
+                "03 Jumlah Pembelian per Unit (WEB)": notionNumber(quantity),
+                "04 Price Breakdown (WEB)": notionText(priceBreakdown),
+                "05 Total Harga (WEB)": notionNumber(totalEUR),
+                "07 Status Pembayaran (WEB)": notionSelect(paymentStatus),
+                "09 Jenis Item (WEB)": notionSelect(packageType),
+                "10 Tanggal Pembayaran (WEB)": notionDate(paymentDate),
+                "11 Email Pembayar (WEB)": notionEmail(buyerEmail),
+                "12 Alamat Tagihan (WEB)": notionText(buyerAddress),
             };
 
-            if (invoiceProofFiles.length > 0) {
-                properties["Bukti Pembelian Barang (WEB)"] =
-                    notionFiles(invoiceProofFiles);
+            if (paymentProofFiles.length > 0) {
+                properties["06 Bukti Pembayaran (WEB)"] =
+                    notionFiles(paymentProofFiles);
             }
 
-            if (paymentProofFiles.length > 0) {
-                properties["Bukti Pembayaran (WEB)"] =
-                    notionFiles(paymentProofFiles);
+            if (invoiceProofFiles.length > 0) {
+                properties["08 Bukti Pembelian Barang (WEB)"] =
+                    notionFiles(invoiceProofFiles);
             }
 
             const result = await upsertPageByTitle({
@@ -179,8 +179,8 @@ router.post(
                 titleValue: shipmentId,
                 properties,
                 propertiesOnCreate: {
-                    "Bukti Pembelian Barang (WEB)": notionFiles(invoiceProofFiles),
-                    "Bukti Pembayaran (WEB)": notionFiles(paymentProofFiles),
+                    "06 Bukti Pembayaran (WEB)": notionFiles(paymentProofFiles),
+                    "08 Bukti Pembelian Barang (WEB)": notionFiles(invoiceProofFiles),
                 },
             });
 
@@ -218,14 +218,14 @@ router.post("/pengiriman-lokal", async (req, res) => {
 
         const properties = {
             "Shipment ID (WEB)": notionTitle(shipmentId),
-            "Nama Penerima (WEB)": notionText(deliveryFullName),
-            "Email Penerima (WEB)": notionEmail(deliveryEmail),
-            "Telepon Penerima (WEB)": notionPhone(deliveryPhone),
-            "Alamat Tujuan (WEB)": notionText(deliveryAddress),
+            "01 Nama Penerima (WEB)": notionText(deliveryFullName),
+            "02 Alamat Tujuan (WEB)": notionText(deliveryAddress),
+            "03 Email Penerima (WEB)": notionEmail(deliveryEmail),
+            "08 Telepon Penerima (WEB)": notionPhone(deliveryPhone),
         };
 
         if (dhlAddon) {
-            properties["DHL Package (WEB)"] = notionSelect(dhlAddon);
+            properties["05 DHL Package (WEB)"] = notionSelect(dhlAddon);
         }
 
         const result = await upsertPageByTitle({
