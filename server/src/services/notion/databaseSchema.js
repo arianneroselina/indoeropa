@@ -99,8 +99,7 @@ export const pengirimanLokalDestDESchema = {
     "01 Nama Penerima (WEB)": { rich_text: {} },
     "02 Alamat Tujuan (WEB)": { rich_text: {} },
     "03 Email Penerima (WEB)": { email: {} },
-    "04 Pembayaran Ongkir (M)": { checkbox: {} },
-    "05 DHL Package (WEB)": {
+    "04 DHL Package (WEB)": {
         select: {
             options: dhlPackageOptions,
         },
