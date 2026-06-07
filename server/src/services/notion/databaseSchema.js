@@ -40,6 +40,14 @@ const statusPembayaranOptions = [
     { name: "Pengiriman Lokal" },
 ]
 
+const dhlPackageOptions = [
+    { name: "cod" },
+    { name: "dhl_2kg" },
+    { name: "dhl_5kg" },
+    { name: "dhl_10kg" },
+    { name: "dhl_20kg" },
+];
+
 export const penerimaanBarangSchema = {
     "Shipment ID (WEB)": { title: {} },
     "Nama Pembeli (WEB)": { rich_text: {} },
@@ -86,7 +94,22 @@ export const pembayaranSchema = {
     "Bukti Pembayaran (WEB)": { files: {} },
 };
 
-export const pengirimanLokalSchema = {
+export const pengirimanLokalDestDESchema = {
+    "Shipment ID (WEB)": { title: {} },
+    "Nama Penerima (WEB)": { rich_text: {} },
+    "Telepon Penerima (WEB)": { phone_number: {} },
+    "Email Penerima (WEB)": { email: {} },
+    "Alamat Tujuan (WEB)": { rich_text: {} },
+    "DHL Package (WEB)": {
+        select: {
+            options: dhlPackageOptions,
+        },
+    },
+    "Status Pengiriman (M)": { status: {} },
+    "Pembayaran Ongkir (M)": { checkbox: {} },
+};
+
+export const pengirimanLokalDestIDSchema = {
     "Shipment ID (WEB)": { title: {} },
     "Nama Penerima (WEB)": { rich_text: {} },
     "Telepon Penerima (WEB)": { phone_number: {} },

@@ -26,11 +26,17 @@ export const createOrGetOrderRoutePage = async ({
 	return data;
 };
 
-export const createOrGetOrderRouteDatabases = async ({ datePageId }) => {
+export const createOrGetOrderRouteDatabases = async ({
+	datePageId,
+	toCountry,
+}) => {
 	const res = await fetch(`${API_BASE}/api/notion/order-route-databases`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ datePageId }),
+		body: JSON.stringify({
+            datePageId,
+            toCountry,
+        }),
 	});
 
 	const data = await res.json().catch(() => ({}));
@@ -142,6 +148,7 @@ export const createPengirimanLokal = async ({
 	deliveryEmail,
 	deliveryPhone,
 	deliveryAddress,
+	dhlAddon,
 }) => {
 	const res = await fetch(`${API_BASE}/api/notion/pengiriman-lokal`, {
 		method: "POST",
@@ -153,6 +160,7 @@ export const createPengirimanLokal = async ({
 			deliveryEmail,
 			deliveryPhone,
 			deliveryAddress,
+			dhlAddon,
 		}),
 	});
 

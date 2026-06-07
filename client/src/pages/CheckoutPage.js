@@ -285,6 +285,7 @@ const CheckoutPage = () => {
 
 				const routeDbs = await createOrGetOrderRouteDatabases({
 					datePageId: routePage.datePageId,
+					toCountry: shipment.toCountry,
 				});
 
 				const penerimaanBarangDataSourceId =
@@ -311,6 +312,7 @@ const CheckoutPage = () => {
 					deliveryEmail,
 					deliveryPhone,
 					deliveryAddress,
+					dhlAddon: dhlAddonObject?.id,
 				});
 
 				await createPenerimaanBarang({

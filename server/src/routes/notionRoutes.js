@@ -2,7 +2,7 @@ import express from "express";
 
 import { upload } from "../middleware/upload.js";
 import { requireFields, sendError } from "../utils/http.js";
-import {createNotionPage, upsertPageByTitle} from "../services/notion/pageService.js";
+import { upsertPageByTitle } from "../services/notion/pageService.js";
 import { uploadNotionFile } from "../services/notion/fileService.js";
 import {
     createOrGetOrderRouteDatabases,
@@ -20,7 +20,6 @@ import {
     notionText,
     notionTitle,
 } from "../services/notion/properties.js";
-import {notion} from "../services/notion/client.js";
 
 const router = express.Router();
 
@@ -50,7 +49,11 @@ router.post("/order-route-page", async (req, res) => {
 
 router.post("/order-route-databases", async (req, res) => {
     try {
-        if (!requireFields(res, req.body, ["datePageId"])) {
+        if (!requireFields(res, req.body, [
+            "datePageId",
+            "toCountry",
+            ])
+        ) {
             return;
         }
 
@@ -206,23 +209,30 @@ router.post("/pengiriman-lokal", async (req, res) => {
             deliveryEmail,
             deliveryPhone,
             deliveryAddress,
+            dhlAddon,
         } = req.body;
 
         if (!requireFields(res, req.body, ["dataSourceId", "deliveryFullName"])) {
             return;
         }
 
+        const properties = {
+            "Shipment ID (WEB)": notionTitle(shipmentId),
+            "Nama Penerima (WEB)": notionText(deliveryFullName),
+            "Email Penerima (WEB)": notionEmail(deliveryEmail),
+            "Telepon Penerima (WEB)": notionPhone(deliveryPhone),
+            "Alamat Tujuan (WEB)": notionText(deliveryAddress),
+        };
+
+        if (dhlAddon) {
+            properties["DHL Package (WEB)"] = notionSelect(dhlAddon);
+        }
+
         const result = await upsertPageByTitle({
             dataSourceId,
             titleProperty: "Shipment ID (WEB)",
             titleValue: shipmentId,
-            properties: {
-                "Shipment ID (WEB)": notionTitle(shipmentId),
-                "Nama Penerima (WEB)": notionText(deliveryFullName),
-                "Email Penerima (WEB)": notionEmail(deliveryEmail),
-                "Telepon Penerima (WEB)": notionPhone(deliveryPhone),
-                "Alamat Tujuan (WEB)": notionText(deliveryAddress),
-            },
+            properties,
         });
 
         return res.json({

@@ -7,7 +7,8 @@ import {
 import {
     pembayaranSchema,
     penerimaanBarangSchema,
-    pengirimanLokalSchema,
+    pengirimanLokalDestDESchema,
+    pengirimanLokalDestIDSchema
 } from "./databaseSchema.js";
 import { notion } from "./client.js";
 
@@ -42,7 +43,9 @@ export async function createOrGetOrderRoutePage({
     };
 }
 
-export async function createOrGetOrderRouteDatabases({ datePageId }) {
+export async function createOrGetOrderRouteDatabases({ datePageId,
+                                                         toCountry,
+                                                     }) {
     const penerimaan = await findOrCreateDatabaseInPage({
         notion,
         pageId: datePageId,
@@ -61,7 +64,7 @@ export async function createOrGetOrderRouteDatabases({ datePageId }) {
         notion,
         pageId: datePageId,
         title: "Pengiriman Lokal",
-        properties: pengirimanLokalSchema,
+        properties: toCountry === "DE" ? pengirimanLokalDestDESchema : pengirimanLokalDestIDSchema,
     });
 
     return {
