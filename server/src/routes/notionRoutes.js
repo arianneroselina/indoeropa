@@ -225,7 +225,7 @@ router.post("/pengiriman-lokal", async (req, res) => {
         };
 
         if (dhlAddon) {
-            properties["05 DHL Package (WEB)"] = notionSelect(dhlAddon);
+            properties["04 DHL Package (WEB)"] = notionSelect(dhlAddon);
         }
 
         const result = await upsertPageByTitle({
