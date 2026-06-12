@@ -4,24 +4,24 @@ import { escapeHtml } from "../utils.js";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendContactEmail = async ({
-                                           name,
-                                           email,
-                                           phone,
-                                           subject,
-                                           message,
-                                       }) => {
-    const safeName = escapeHtml(name);
-    const safeEmail = escapeHtml(email);
-    const safePhone = escapeHtml(phone || "-");
-    const safeSubject = escapeHtml(subject);
-    const safeMessage = escapeHtml(message);
+	name,
+	email,
+	phone,
+	subject,
+	message,
+}) => {
+	const safeName = escapeHtml(name);
+	const safeEmail = escapeHtml(email);
+	const safePhone = escapeHtml(phone || "-");
+	const safeSubject = escapeHtml(subject);
+	const safeMessage = escapeHtml(message);
 
-    await resend.emails.send({
-        from: process.env.MAIL_FROM,
-        to: process.env.SERVICE_MAIL,
-        replyTo: email,
-        subject: `[Contact Form] ${subject}`,
-        text: `
+	await resend.emails.send({
+		from: process.env.MAIL_FROM,
+		to: process.env.SERVICE_MAIL,
+		replyTo: email,
+		subject: `[Contact Form] ${subject}`,
+		text: `
 New contact form submission
 
 Name: ${name}
@@ -32,7 +32,7 @@ Subject: ${subject}
 Message:
 ${message}
         `.trim(),
-        html: `
+		html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -98,5 +98,5 @@ ${message}
 </body>
 </html>
         `,
-    });
+	});
 };

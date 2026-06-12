@@ -1,33 +1,32 @@
-
 export function getPlainText(prop) {
-    if (!prop) return "";
+	if (!prop) return "";
 
-    if (prop.type === "title") {
-        return prop.title?.map((t) => t.plain_text).join("") || "";
-    }
+	if (prop.type === "title") {
+		return prop.title?.map((t) => t.plain_text).join("") || "";
+	}
 
-    if (prop.type === "rich_text") {
-        return prop.rich_text?.map((t) => t.plain_text).join("") || "";
-    }
+	if (prop.type === "rich_text") {
+		return prop.rich_text?.map((t) => t.plain_text).join("") || "";
+	}
 
-    return "";
+	return "";
 }
 
 export function getNumber(prop) {
-    return prop?.number ?? null;
+	return prop?.number ?? null;
 }
 
 export function getCheckbox(prop, fallback = true) {
-    if (!prop) return fallback;
-    return prop.checkbox ?? fallback;
+	if (!prop) return fallback;
+	return prop.checkbox ?? fallback;
 }
 
 export function getSelectName(prop) {
-    return prop?.select?.name || "";
+	return prop?.select?.name || "";
 }
 
 export function getDateStart(prop) {
-    return prop?.date?.start || null;
+	return prop?.date?.start || null;
 }
 
 /**
@@ -38,14 +37,14 @@ export function getDateStart(prop) {
  * - Active (checkbox)
  */
 export function mapCountries(rows) {
-    return rows
-        .filter((row) => getCheckbox(row.properties["Active"], true))
-        .map((row) => ({
-            number: getNumber(row.properties["Number"]) ?? 9999,
-            id: getPlainText(row.properties["Code"]),
-            name: getPlainText(row.properties["Name"]),
-        }))
-        .sort((a, b) => a.number - b.number);
+	return rows
+		.filter((row) => getCheckbox(row.properties["Active"], true))
+		.map((row) => ({
+			number: getNumber(row.properties["Number"]) ?? 9999,
+			id: getPlainText(row.properties["Code"]),
+			name: getPlainText(row.properties["Name"]),
+		}))
+		.sort((a, b) => a.number - b.number);
 }
 
 /**
@@ -65,42 +64,44 @@ export function mapCountries(rows) {
  * - Active (checkbox)
  */
 export function mapPackageTypes(rows) {
-    return rows
-        .filter((row) => getCheckbox(row.properties["Active"], true))
-        .map((row) => {
-            const p = row.properties;
-            const pricingType = getSelectName(p["Pricing Type"]);
+	return rows
+		.filter((row) => getCheckbox(row.properties["Active"], true))
+		.map((row) => {
+			const p = row.properties;
+			const pricingType = getSelectName(p["Pricing Type"]);
 
-            let pricing;
-            if (pricingType === "document") {
-                pricing = {
-                    type: "document",
-                    price: {
-                        1_10: getNumber(p["Price (pages < 11)"]) ?? 0,
-                        11_50: getNumber(p["Price (pages < 51)"]) ?? 0,
-                        51_100: getNumber(p["Price (pages < 101)"]) ?? 0,
-                    },
-                };
-            } else {
-                pricing = {
-                    type: pricingType,
-                    price: getNumber(p["Price"]) ?? 0,
-                    priceHalfAddon: getNumber(p["Price (half addons)"]) ?? 0,
-                };
-            }
+			let pricing;
+			if (pricingType === "document") {
+				pricing = {
+					type: "document",
+					price: {
+						1_10: getNumber(p["Price (pages < 11)"]) ?? 0,
+						11_50: getNumber(p["Price (pages < 51)"]) ?? 0,
+						51_100: getNumber(p["Price (pages < 101)"]) ?? 0,
+					},
+				};
+			} else {
+				pricing = {
+					type: pricingType,
+					price: getNumber(p["Price"]) ?? 0,
+					priceHalfAddon: getNumber(p["Price (half addons)"]) ?? 0,
+				};
+			}
 
-            const iconProp = "Icon (choose from https://react-icons.github.io/react-icons/icons/fa/)"
-            return {
-                number: getNumber(p["Number"]) ?? 9999,
-                id: getPlainText(p["ID"]),
-                label: getPlainText(p["Label"]),
-                description: getPlainText(p["Description"]),
-                iconKey: getSelectName(p[iconProp]) || getPlainText(p[iconProp]),
-                pricing,
-                duty: getCheckbox(p["Duty"]) ?? false,
-            };
-        })
-        .sort((a, b) => a.number - b.number);
+			const iconProp =
+				"Icon (choose from https://react-icons.github.io/react-icons/icons/fa/)";
+			return {
+				number: getNumber(p["Number"]) ?? 9999,
+				id: getPlainText(p["ID"]),
+				label: getPlainText(p["Label"]),
+				description: getPlainText(p["Description"]),
+				iconKey:
+					getSelectName(p[iconProp]) || getPlainText(p[iconProp]),
+				pricing,
+				duty: getCheckbox(p["Duty"]) ?? false,
+			};
+		})
+		.sort((a, b) => a.number - b.number);
 }
 
 /**
@@ -114,19 +115,19 @@ export function mapPackageTypes(rows) {
  * - Active (checkbox)
  */
 export function mapSizePresets(rows) {
-    return rows
-        .filter((row) => getCheckbox(row.properties["Active"], true))
-        .map((row) => ({
-            number: getNumber(row.properties["Number"]) ?? 9999,
-            id: getPlainText(row.properties["ID"]),
-            label: getPlainText(row.properties["Label"]),
-            dims: {
-                l: getNumber(row.properties["Length (cm)"]) ?? 0,
-                w: getNumber(row.properties["Width (cm)"]) ?? 0,
-                h: getNumber(row.properties["Height (cm)"]) ?? 0,
-            },
-        }))
-        .sort((a, b) => a.number - b.number);
+	return rows
+		.filter((row) => getCheckbox(row.properties["Active"], true))
+		.map((row) => ({
+			number: getNumber(row.properties["Number"]) ?? 9999,
+			id: getPlainText(row.properties["ID"]),
+			label: getPlainText(row.properties["Label"]),
+			dims: {
+				l: getNumber(row.properties["Length (cm)"]) ?? 0,
+				w: getNumber(row.properties["Width (cm)"]) ?? 0,
+				h: getNumber(row.properties["Height (cm)"]) ?? 0,
+			},
+		}))
+		.sort((a, b) => a.number - b.number);
 }
 
 /**
@@ -139,16 +140,16 @@ export function mapSizePresets(rows) {
  * - Active (checkbox)
  */
 export function mapDhlTiers(rows) {
-    return rows
-        .filter((row) => getCheckbox(row.properties["Active"], true))
-        .map((row) => ({
-            number: getNumber(row.properties["Number"]) ?? 9999,
-            id: getPlainText(row.properties["ID"]),
-            label: getPlainText(row.properties["Label"]),
-            maxKg: getNumber(row.properties["Max Kg"]) ?? 0,
-            price: getNumber(row.properties["Price"]) ?? 0,
-        }))
-        .sort((a, b) => a.number - b.number);
+	return rows
+		.filter((row) => getCheckbox(row.properties["Active"], true))
+		.map((row) => ({
+			number: getNumber(row.properties["Number"]) ?? 9999,
+			id: getPlainText(row.properties["ID"]),
+			label: getPlainText(row.properties["Label"]),
+			maxKg: getNumber(row.properties["Max Kg"]) ?? 0,
+			price: getNumber(row.properties["Price"]) ?? 0,
+		}))
+		.sort((a, b) => a.number - b.number);
 }
 
 /**
@@ -159,33 +160,33 @@ export function mapDhlTiers(rows) {
  * - Active (checkbox)
  */
 export function mapRouteDates(rows) {
-    const grouped = {};
+	const grouped = {};
 
-    for (const row of rows) {
-        if (!getCheckbox(row.properties["Active"], true)) continue;
+	for (const row of rows) {
+		if (!getCheckbox(row.properties["Active"], true)) continue;
 
-        const from = getSelectName(row.properties["From"]);
-        const to = getSelectName(row.properties["To"]);
-        const dateProp = row.properties["Date"];
-        const start = getDateStart(dateProp);
-        const end = dateProp?.date?.end ?? null;
+		const from = getSelectName(row.properties["From"]);
+		const to = getSelectName(row.properties["To"]);
+		const dateProp = row.properties["Date"];
+		const start = getDateStart(dateProp);
+		const end = dateProp?.date?.end ?? null;
 
-        if (!from || !to || !start) continue;
+		if (!from || !to || !start) continue;
 
-        const key = `${from}_${to}`;
-        if (!grouped[key]) grouped[key] = [];
+		const key = `${from}_${to}`;
+		if (!grouped[key]) grouped[key] = [];
 
-        grouped[key].push({
-            start,
-            end,
-        });
-    }
+		grouped[key].push({
+			start,
+			end,
+		});
+	}
 
-    Object.keys(grouped).forEach((key) =>
-        grouped[key].sort((a, b) => a.start.localeCompare(b.start)),
-    );
+	Object.keys(grouped).forEach((key) =>
+		grouped[key].sort((a, b) => a.start.localeCompare(b.start)),
+	);
 
-    return grouped;
+	return grouped;
 }
 
 /**
@@ -194,16 +195,16 @@ export function mapRouteDates(rows) {
  * - Value (number)
  */
 export function mapSettings(rows) {
-    const settings = {};
+	const settings = {};
 
-    for (const row of rows) {
-        const key = getPlainText(row.properties["Key"]);
-        const value = getNumber(row.properties["Value"]);
+	for (const row of rows) {
+		const key = getPlainText(row.properties["Key"]);
+		const value = getNumber(row.properties["Value"]);
 
-        if (key) {
-            settings[key] = value;
-        }
-    }
+		if (key) {
+			settings[key] = value;
+		}
+	}
 
-    return settings;
+	return settings;
 }

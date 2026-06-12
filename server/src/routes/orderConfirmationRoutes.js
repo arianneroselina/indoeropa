@@ -1,7 +1,7 @@
 import express from "express";
 import {
-    downloadOrderConfirmationPdfController,
-    sendOrderConfirmationEmailController,
+	downloadOrderConfirmationPdfController,
+	sendOrderConfirmationEmailController,
 } from "../controllers/orderConfirmationController.js";
 
 const router = express.Router();

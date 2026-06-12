@@ -1,26 +1,26 @@
 import { Resend } from "resend";
 import {
-    escapeHtml,
-    formatDisplayDate,
-    formatEUR,
-    formatIDR,
-    formatWeight,
+	escapeHtml,
+	formatDisplayDate,
+	formatEUR,
+	formatIDR,
+	formatWeight,
 } from "../utils.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const formatEmailDate = (value) => {
-    if (!value || value === "-") return "-";
+	if (!value || value === "-") return "-";
 
-    try {
-        return formatDisplayDate(value, {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-        });
-    } catch {
-        return value;
-    }
+	try {
+		return formatDisplayDate(value, {
+			day: "2-digit",
+			month: "long",
+			year: "numeric",
+		});
+	} catch {
+		return value;
+	}
 };
 
 const renderSmallLine = (value) => `
@@ -39,25 +39,25 @@ const renderEmailContactColumn = (title, lines = []) => `
 `;
 
 const renderEmailShipmentItems = (items = []) => {
-    if (!Array.isArray(items) || items.length === 0) {
-        return `
+	if (!Array.isArray(items) || items.length === 0) {
+		return `
 			<tr>
 				<td style="padding:12px 0; font-size:13px; color:#777777;">
 					No shipment item details available.
 				</td>
 			</tr>
 		`;
-    }
+	}
 
-    return items
-        .map((item, index) => {
-            const shipmentDate = formatEmailDate(item.shipmentDate);
-            const billedWeight =
-                item.billedWeightKg != null
-                    ? ` · ${formatWeight(item.billedWeightKg)} billed`
-                    : "";
+	return items
+		.map((item, index) => {
+			const shipmentDate = formatEmailDate(item.shipmentDate);
+			const billedWeight =
+				item.billedWeightKg != null
+					? ` · ${formatWeight(item.billedWeightKg)} billed`
+					: "";
 
-            return `
+			return `
 				<tr>
 					<td style="padding:12px 0; border-top:1px solid #e5e7eb;">
 						<table role="presentation" width="100%" cellspacing="0" cellpadding="0">
@@ -79,14 +79,14 @@ const renderEmailShipmentItems = (items = []) => {
 									</div>
 
 									${
-                item.priceBreakdown
-                    ? `
+										item.priceBreakdown
+											? `
 												<div style="margin-top:6px; font-size:11px; color:#777777;">
 													Price details: ${escapeHtml(item.priceBreakdown)}
 												</div>
 											`
-                    : ""
-            }
+											: ""
+									}
 								</td>
 
 								<td valign="top" align="right" style="font-size:14px; font-weight:bold; color:#111111; white-space:nowrap;">
@@ -97,8 +97,8 @@ const renderEmailShipmentItems = (items = []) => {
 					</td>
 				</tr>
 			`;
-        })
-        .join("");
+		})
+		.join("");
 };
 
 /**
@@ -106,13 +106,13 @@ const renderEmailShipmentItems = (items = []) => {
  * @returns {string}
  */
 const renderEmailOrderSummary = (successPayload) => {
-    const items = successPayload.items || [];
-    const itemTotal = items.length || successPayload.itemsCount || 0;
-    const dhlAddonPriceEUR = Number(successPayload.dhlAddon?.priceEUR || 0);
-    const totalAmountEUR = Number(successPayload.totalAmountEUR || 0);
-    const shipmentSubtotalEUR = Math.max(totalAmountEUR - dhlAddonPriceEUR, 0);
+	const items = successPayload.items || [];
+	const itemTotal = items.length || successPayload.itemsCount || 0;
+	const dhlAddonPriceEUR = Number(successPayload.dhlAddon?.priceEUR || 0);
+	const totalAmountEUR = Number(successPayload.totalAmountEUR || 0);
+	const shipmentSubtotalEUR = Math.max(totalAmountEUR - dhlAddonPriceEUR, 0);
 
-    return `
+	return `
 		<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse; margin:24px 0; background:#fafafa; border:1px solid #d9e2ec; border-radius:12px;">
 			<tr>
 				<td style="padding:16px 20px; font-size:16px; font-weight:bold; color:#111111; border-bottom:1px solid #d9e2ec; background:#f3f6fa;">
@@ -125,18 +125,18 @@ const renderEmailOrderSummary = (successPayload) => {
 					<table role="presentation" width="100%" cellspacing="0" cellpadding="0">
 						<tr>
 							${renderEmailContactColumn("Buyer / Billing Information", [
-        successPayload.buyerFullName,
-        successPayload.buyerEmail,
-        successPayload.buyerPhone,
-        successPayload.buyerAddress,
-    ])}
+								successPayload.buyerFullName,
+								successPayload.buyerEmail,
+								successPayload.buyerPhone,
+								successPayload.buyerAddress,
+							])}
 
 							${renderEmailContactColumn("Delivery Information", [
-        successPayload.deliveryFullName,
-        successPayload.deliveryEmail,
-        successPayload.deliveryPhone,
-        successPayload.deliveryAddress,
-    ])}
+								successPayload.deliveryFullName,
+								successPayload.deliveryEmail,
+								successPayload.deliveryPhone,
+								successPayload.deliveryAddress,
+							])}
 						</tr>
 					</table>
 				</td>
@@ -179,8 +179,8 @@ const renderEmailOrderSummary = (successPayload) => {
                         </tr>
                     
                         ${
-                            successPayload.dhlAddon
-                                ? `
+							successPayload.dhlAddon
+								? `
                                     <tr>
                                         <td style="padding:4px 24px 4px 0; font-size:13px; color:#555555;">
                                             ${escapeHtml(successPayload.dhlAddon.label)}
@@ -190,8 +190,8 @@ const renderEmailOrderSummary = (successPayload) => {
                                         </td>
                                     </tr>
                                 `
-                                : ""
-                        }
+								: ""
+						}
                     
                         <tr>
                             <td colspan="2" style="padding:8px 0 4px;">
@@ -262,31 +262,31 @@ const renderEmailOrderSummary = (successPayload) => {
  * @returns {Promise<void>}
  */
 export const sendOrderConfirmationEmail = async ({
-                                                     to,
-                                                     pdfBuffer,
-                                                     successPayload,
-                                                 }) => {
-    const {
-        orderId,
-        buyerFullName,
-        itemsCount,
-        dhlAddon,
-        totalAmountEUR,
-        totalAmountIDR,
-    } = successPayload;
+	to,
+	pdfBuffer,
+	successPayload,
+}) => {
+	const {
+		orderId,
+		buyerFullName,
+		itemsCount,
+		dhlAddon,
+		totalAmountEUR,
+		totalAmountIDR,
+	} = successPayload;
 
-    const safeCustomerName = escapeHtml(buyerFullName || "");
-    const safeOrderId = escapeHtml(orderId || "");
+	const safeCustomerName = escapeHtml(buyerFullName || "");
+	const safeOrderId = escapeHtml(orderId || "");
 
-    const pdfBase64 = Buffer.from(pdfBuffer).toString("base64");
+	const pdfBase64 = Buffer.from(pdfBuffer).toString("base64");
 
-    await resend.emails.send({
-        from: process.env.MAIL_FROM,
-        to,
-        bcc: process.env.SERVICE_MAIL,
-        replyTo: process.env.SERVICE_MAIL,
-        subject: `Your Order Confirmation #${orderId}`,
-        text: `
+	await resend.emails.send({
+		from: process.env.MAIL_FROM,
+		to,
+		bcc: process.env.SERVICE_MAIL,
+		replyTo: process.env.SERVICE_MAIL,
+		subject: `Your Order Confirmation #${orderId}`,
+		text: `
 Hello${buyerFullName ? ` ${buyerFullName}` : ""},
 
 Thank you for your order.
@@ -296,9 +296,11 @@ Your order confirmation PDF is attached to this email.
 Order details:
 - Order ID: ${orderId}
 - Total shipments: ${itemsCount}
-${dhlAddon
-            ? `- Local delivery: ${dhlAddon.label || "-"} (${formatEUR(dhlAddon.priceEUR || 0)})`
-            : ""}
+${
+	dhlAddon
+		? `- Local delivery: ${dhlAddon.label || "-"} (${formatEUR(dhlAddon.priceEUR || 0)})`
+		: ""
+}
 ${totalAmountEUR ? `- Total amount (EUR): ${formatEUR(totalAmountEUR)}` : ""}
 ${totalAmountIDR ? `- Total amount (IDR): ${formatIDR(totalAmountIDR)}` : ""}
 
@@ -313,7 +315,7 @@ If you have any questions, contact us at diontransport@hotmail.com.
 Thank you for choosing us.
 		`.trim(),
 
-        html: `
+		html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -397,12 +399,12 @@ Thank you for choosing us.
 </html>
 		`,
 
-        attachments: [
-            {
-                filename: `INDOEROPA-order-confirmation-${orderId}.pdf`,
-                content: pdfBase64,
-                contentType: "application/pdf",
-            },
-        ],
-    });
+		attachments: [
+			{
+				filename: `INDOEROPA-order-confirmation-${orderId}.pdf`,
+				content: pdfBase64,
+				contentType: "application/pdf",
+			},
+		],
+	});
 };

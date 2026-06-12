@@ -27,6 +27,7 @@ lint:
 
 fmt:
 	cd $(CLIENT_DIR) && npx prettier --write .
+	cd $(SERVER_DIR) && npx prettier --write .
 
 clean:
 	cd $(CLIENT_DIR) && rm -rf node_modules build dist

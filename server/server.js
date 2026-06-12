@@ -13,11 +13,11 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-    res.send("Server is running ✅");
+	res.send("Server is running ✅");
 });
 
 app.get("/api/health", (req, res) => {
-    res.json({ ok: true });
+	res.json({ ok: true });
 });
 
 app.use("/api/notion", notionRoutes);
@@ -25,5 +25,5 @@ app.use("/api/order-confirmation", orderConfirmationRoutes);
 app.use("/api/contact", contactRoutes);
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+	console.log(`Server running on port ${PORT}`);
 });

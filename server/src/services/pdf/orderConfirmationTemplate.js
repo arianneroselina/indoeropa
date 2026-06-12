@@ -1,9 +1,9 @@
 import {
-    escapeHtml,
-    formatDisplayDate,
-    formatEUR,
-    formatIDR,
-    formatWeight,
+	escapeHtml,
+	formatDisplayDate,
+	formatEUR,
+	formatIDR,
+	formatWeight,
 } from "../utils.js";
 
 /**
@@ -13,13 +13,13 @@ import {
  */
 
 const formatPdfDate = (value, options) => {
-    if (!value || value === "-") return "-";
+	if (!value || value === "-") return "-";
 
-    try {
-        return formatDisplayDate(value, options);
-    } catch {
-        return value;
-    }
+	try {
+		return formatDisplayDate(value, options);
+	} catch {
+		return value;
+	}
 };
 
 const renderInfoLine = (label, value) => `
@@ -29,24 +29,24 @@ const renderInfoLine = (label, value) => `
 `;
 
 const renderShipmentCards = (items = []) => {
-    if (!Array.isArray(items) || items.length === 0) {
-        return `
+	if (!Array.isArray(items) || items.length === 0) {
+		return `
 			<div class="empty-box">
 				No shipment item details available.
 			</div>
 		`;
-    }
+	}
 
-    return items
-        .map((item) => {
-            const shipmentDate = formatPdfDate(item.shipmentDate, {
-                weekday: "short",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-            });
+	return items
+		.map((item) => {
+			const shipmentDate = formatPdfDate(item.shipmentDate, {
+				weekday: "short",
+				day: "2-digit",
+				month: "long",
+				year: "numeric",
+			});
 
-            return `
+			return `
 				<div class="shipment-card">
 					<div class="shipment-card-header">
 						<div class="shipment-card-title">
@@ -92,8 +92,8 @@ const renderShipmentCards = (items = []) => {
 					</div>
 
 					${
-                item?.priceBreakdown
-                    ? `
+						item?.priceBreakdown
+							? `
 								<div class="breakdown">
 									<div class="breakdown-title">Price Breakdown</div>
 									<div class="breakdown-line">
@@ -102,12 +102,12 @@ const renderShipmentCards = (items = []) => {
 									</div>
 								</div>
 							`
-                    : ""
-            }
+							: ""
+					}
 				</div>
 			`;
-        })
-        .join("");
+		})
+		.join("");
 };
 
 /**
@@ -115,21 +115,21 @@ const renderShipmentCards = (items = []) => {
  * @returns {string}
  */
 export const renderOrderConfirmationHtml = (successPayload) => {
-    const submitDate = formatPdfDate(successPayload.submittedAt, {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-    });
+	const submitDate = formatPdfDate(successPayload.submittedAt, {
+		day: "2-digit",
+		month: "long",
+		year: "numeric",
+	});
 
-    const items = successPayload.items || [];
-    const itemsCount = successPayload.itemsCount ?? items.length;
-    const shipmentCards = renderShipmentCards(items);
+	const items = successPayload.items || [];
+	const itemsCount = successPayload.itemsCount ?? items.length;
+	const shipmentCards = renderShipmentCards(items);
 
-    const dhlAddonPriceEUR = Number(successPayload.dhlAddon?.priceEUR || 0);
-    const totalAmountEUR = Number(successPayload.totalAmountEUR || 0);
-    const shipmentSubtotalEUR = Math.max(totalAmountEUR - dhlAddonPriceEUR, 0);
+	const dhlAddonPriceEUR = Number(successPayload.dhlAddon?.priceEUR || 0);
+	const totalAmountEUR = Number(successPayload.totalAmountEUR || 0);
+	const shipmentSubtotalEUR = Math.max(totalAmountEUR - dhlAddonPriceEUR, 0);
 
-    return `
+	return `
 		<!doctype html>
 		<html>
 			<head>
@@ -507,10 +507,10 @@ export const renderOrderConfirmationHtml = (successPayload) => {
 					<div class="topbar">
 						<div class="brand-left">
 							${
-        successPayload.logoDataUrl
-            ? `<img src="${successPayload.logoDataUrl}" alt="Indoeropa Logo" class="logo" />`
-            : ""
-    }
+								successPayload.logoDataUrl
+									? `<img src="${successPayload.logoDataUrl}" alt="Indoeropa Logo" class="logo" />`
+									: ""
+							}
 
 							<div class="brand-copy">
 								<h1 class="title">Order Confirmation</h1>
@@ -566,9 +566,9 @@ export const renderOrderConfirmationHtml = (successPayload) => {
 							${renderInfoLine("Phone", "+49 175 4513280")}
 							${renderInfoLine("Instagram", "@indoeropa_com")}
 							${renderInfoLine(
-        "Address",
-        "Jl. Utama 2 No.14-15 Komp. Perumahan Dasana Indah, Bojong Nangka, Kecamatan Kelapa Dua, Kabupaten Tangerang, Banten 15810",
-    )}
+								"Address",
+								"Jl. Utama 2 No.14-15 Komp. Perumahan Dasana Indah, Bojong Nangka, Kecamatan Kelapa Dua, Kabupaten Tangerang, Banten 15810",
+							)}
 						</div>
 					</div>
 
@@ -588,15 +588,15 @@ export const renderOrderConfirmationHtml = (successPayload) => {
                                 </div>
                         
                                 ${
-                                successPayload.dhlAddon
-                                    ? `
+									successPayload.dhlAddon
+										? `
                                             <div class="total-line">
                                                 <span>${escapeHtml(successPayload.dhlAddon.label)}</span>
                                                 <span>${formatEUR(dhlAddonPriceEUR)}</span>
                                             </div>
                                         `
-                                    : ""
-                            }
+										: ""
+								}
                         
                                 <div class="total-divider"></div>
                         
