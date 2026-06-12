@@ -1,3 +1,5 @@
+import { formatOptionalEUR } from "./formatters";
+
 export const totalPriceWithCustoms = (item) => {
 	const transportAmountEUR = Number(item.priceEUR) || 0;
 	const customsAmountEUR =
@@ -6,11 +8,12 @@ export const totalPriceWithCustoms = (item) => {
 	const itemTotalEUR = transportAmountEUR + customsAmountEUR;
 
 	const baseBreakdown =
-		item.priceBreakdown || `Shipping ${transportAmountEUR.toFixed(2)}€`;
+		item.priceBreakdown ||
+		`Shipping ${formatOptionalEUR(transportAmountEUR)}`;
 
 	const priceBreakdown =
 		customsAmountEUR > 0
-			? `${baseBreakdown} + customs ${customsAmountEUR.toFixed(2)}€`
+			? `${baseBreakdown} + customs ${formatOptionalEUR(customsAmountEUR)}`
 			: baseBreakdown;
 
 	return {
@@ -34,19 +37,6 @@ export const getItemQuantity = (item) => {
 	return { value: 1, unit: "item" };
 };
 
-export const getItemQuantityLabel = (item) => {
-	if (Number(item.billedWeightKg) > 0) {
-		return `${Number(item.billedWeightKg)} kg`;
-	}
-	if (Number(item.hatQuantity) > 0) {
-		return `${Number(item.hatQuantity)} pcs`;
-	}
-	if (Number(item.documentPages) > 0) {
-		return `${Number(item.documentPages)} pages`;
-	}
-	return "1 item";
-};
-
 const BOX_WEIGHT_BY_LABEL_KG = {
 	2: 0.3,
 	5: 0.4,
@@ -59,6 +49,7 @@ const getBoxWeightForTier = (tier) => {
 	return BOX_WEIGHT_BY_LABEL_KG[maxKg] ?? 0;
 };
 
+// TODO: add more logic for package without weights (e.g. documents, bags, etc.)
 export const getRecommendedDhlAddon = (totalWeightKg, dhlTiers) => {
 	if (!Number.isFinite(totalWeightKg) || totalWeightKg <= 0) {
 		return dhlTiers?.find((tier) => tier.id === "cod")?.id || "";

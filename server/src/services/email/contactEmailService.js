@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { escapeHtml } from "../utils.js";
+import { escapeHtml } from "../../utils/formatters.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

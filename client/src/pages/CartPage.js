@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaTrash } from "react-icons/fa";
 import { CART_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
+import { formatOptionalEUR } from "../utils/formatters";
 
 const CartPage = () => {
 	const navigate = useNavigate();
@@ -106,10 +107,9 @@ const CartPage = () => {
 
 										<div className="text-right">
 											<div className="text-lg font-bold text-gray-900">
-												€
-												{(
-													Number(item.priceEUR) || 0
-												).toFixed(2)}
+												{formatOptionalEUR(
+													item.priceEUR,
+												)}
 											</div>
 										</div>
 
@@ -129,7 +129,8 @@ const CartPage = () => {
 
 						<div className="flex justify-end mt-6">
 							<p className="text-xl font-semibold">
-								Total: €{calculateTotalPrice()?.toFixed(2)}
+								Total:{" "}
+								{formatOptionalEUR(calculateTotalPrice())}
 							</p>
 						</div>
 

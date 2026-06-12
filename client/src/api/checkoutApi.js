@@ -1,11 +1,11 @@
 import { API_BASE } from "../utils/constants";
 
-export const createOrGetOrderRoutePage = async ({
+export const createOrGetOrderRouteDatabase = async ({
 	fromCountry,
 	toCountry,
 	shipmentDate,
 }) => {
-	const res = await fetch(`${API_BASE}/api/notion/order-route-page`, {
+	const res = await fetch(`${API_BASE}/api/notion/order-route-database`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -19,31 +19,9 @@ export const createOrGetOrderRoutePage = async ({
 
 	if (!res.ok) {
 		throw new Error(
-			data?.message || data?.error || "Failed to create/find route page.",
-		);
-	}
-
-	return data;
-};
-
-export const createOrGetOrderRouteDatabases = async ({
-	datePageId,
-	toCountry,
-}) => {
-	const res = await fetch(`${API_BASE}/api/notion/order-route-databases`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			datePageId,
-			toCountry,
-		}),
-	});
-
-	const data = await res.json().catch(() => ({}));
-
-	if (!res.ok) {
-		throw new Error(
-			data?.message || data?.error || "Failed to create route databases.",
+			data?.message ||
+				data?.error ||
+				"Failed to create/find route database.",
 		);
 	}
 

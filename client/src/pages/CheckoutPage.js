@@ -12,17 +12,16 @@ import OrderSummary from "../components/checkout/OrderSummary";
 import {
 	totalPriceWithCustoms,
 	getItemQuantity,
-	getItemQuantityLabel,
 	getRecommendedDhlAddon,
 } from "../utils/checkoutHelper";
 import {
-	createOrGetOrderRoutePage,
+	createOrGetOrderRouteDatabase,
 	createPengirimanLokal,
 	createPenerimaanBarang,
 	createPembayaran,
-	createOrGetOrderRouteDatabases,
 	createOrderHistory,
 } from "../api/checkoutApi";
+import { formatQuantityLabel } from "../utils/formatters";
 import { useShippingData } from "../hooks/useShippingData";
 
 const CheckoutPage = () => {
@@ -277,36 +276,22 @@ const CheckoutPage = () => {
 				const { packageType, quantity, totalEUR, priceBreakdown } =
 					shipment;
 
-				const routePage = await createOrGetOrderRoutePage({
+				const routeDb = await createOrGetOrderRouteDatabase({
 					fromCountry: shipment.fromCountry,
 					toCountry: shipment.toCountry,
 					shipmentDate: shipment.shipmentDate,
 				});
 
-				const routeDbs = await createOrGetOrderRouteDatabases({
-					datePageId: routePage.datePageId,
-					toCountry: shipment.toCountry,
-				});
+				const routeDataSourceId = routeDb.dataSourceId;
 
-				const penerimaanBarangDataSourceId =
-					routeDbs.databases.penerimaanBarang.dataSourceId;
-				const pembayaranDataSourceId =
-					routeDbs.databases.pembayaran.dataSourceId;
-				const pengirimanLokalDataSourceId =
-					routeDbs.databases.pengirimanLokal.dataSourceId;
-
-				if (
-					!penerimaanBarangDataSourceId ||
-					!pembayaranDataSourceId ||
-					!pengirimanLokalDataSourceId
-				) {
+				if (!routeDataSourceId) {
 					throw new Error(
-						"Missing route-specific Notion data source IDs.",
+						"Missing route-specific Notion data source ID.",
 					);
 				}
 
 				await createPengirimanLokal({
-					dataSourceId: pengirimanLokalDataSourceId,
+					dataSourceId: routeDataSourceId,
 					shipmentId: shipment.shipmentId,
 					deliveryFullName,
 					deliveryEmail,
@@ -316,7 +301,7 @@ const CheckoutPage = () => {
 				});
 
 				await createPenerimaanBarang({
-					dataSourceId: penerimaanBarangDataSourceId,
+					dataSourceId: routeDataSourceId,
 					shipmentId: shipment.shipmentId,
 					buyerFullName,
 					buyerEmail,
@@ -327,7 +312,7 @@ const CheckoutPage = () => {
 				});
 
 				await createPembayaran({
-					dataSourceId: pembayaranDataSourceId,
+					dataSourceId: routeDataSourceId,
 					shipmentId: shipment.shipmentId,
 					buyerFullName,
 					buyerEmail,
@@ -361,6 +346,7 @@ const CheckoutPage = () => {
 				deliveryPhone,
 				totalAmountEUR,
 				totalAmountIDR,
+				eurToIdrRate,
 				itemsCount: cartItems.length,
 				paidViaLabel: paymentMethod?.toUpperCase() || "",
 				hasPaymentProof: Boolean(paymentProof),
@@ -377,7 +363,7 @@ const CheckoutPage = () => {
 					lineNumber: index + 1,
 					description: shipment.packageType || "Shipment",
 					packageType: shipment.packageType || "-",
-					quantityLabel: getItemQuantityLabel(shipment.item),
+					quantityLabel: formatQuantityLabel(shipment.item),
 					weightKg: shipment.item.weightKg ?? null,
 					billedWeightKg: shipment.item.billedWeightKg ?? null,
 					fromCountry: shipment.fromCountry || "-",
@@ -489,7 +475,6 @@ const CheckoutPage = () => {
 									cartItems={cartItems}
 									totalAmountEUR={totalAmountEUR}
 									totalAmountIDR={totalAmountIDR}
-									eurToIdrRate={eurToIdrRate}
 									dhlAddonEnabled={dhlAddonEnabled}
 									dhlAddonObject={dhlAddonObject}
 									dhlAddonPriceEUR={dhlAddonPriceEUR}

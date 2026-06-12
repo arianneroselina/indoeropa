@@ -20,7 +20,7 @@ async function listAllChildBlocks({ blockId }) {
 	return results;
 }
 
-async function findChildPageByTitle({ parentPageId, title }) {
+export async function findChildPageByTitle({ parentPageId, title }) {
 	const children = await listAllChildBlocks({ blockId: parentPageId });
 
 	return (

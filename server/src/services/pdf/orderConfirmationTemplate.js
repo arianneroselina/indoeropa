@@ -1,26 +1,15 @@
 import {
 	escapeHtml,
-	formatDisplayDate,
 	formatEUR,
 	formatIDR,
-	formatWeight,
-} from "../utils.js";
+	formatPdfDate,
+} from "../../utils/formatters.js";
 
 /**
  * @typedef {SuccessPayload & {
  *   logoDataUrl?: string
  * }} OrderConfirmationTemplateData
  */
-
-const formatPdfDate = (value, options) => {
-	if (!value || value === "-") return "-";
-
-	try {
-		return formatDisplayDate(value, options);
-	} catch {
-		return value;
-	}
-};
 
 const renderInfoLine = (label, value) => `
 	<p class="info-line">
@@ -50,7 +39,7 @@ const renderShipmentCards = (items = []) => {
 				<div class="shipment-card">
 					<div class="shipment-card-header">
 						<div class="shipment-card-title">
-							Shipment ${escapeHtml(item.lineNumber ?? "-")} — ${escapeHtml(item.description || "Shipment")}
+							Shipment ${escapeHtml(item.lineNumber ?? "-")} - ${escapeHtml(item.description || "Shipment")}
 						</div>
 						<div class="shipment-card-amount">
 							${formatEUR(item.amountEUR)}
@@ -66,16 +55,6 @@ const renderShipmentCards = (items = []) => {
 						<div class="shipment-field">
 							<div class="field-label">Quantity</div>
 							<div class="field-value">${escapeHtml(item.quantityLabel || "-")}</div>
-						</div>
-
-						<div class="shipment-field">
-							<div class="field-label">Weight</div>
-							<div class="field-value">${formatWeight(item.weightKg)}</div>
-						</div>
-
-						<div class="shipment-field">
-							<div class="field-label">Billed Weight</div>
-							<div class="field-value">${formatWeight(item.billedWeightKg)}</div>
 						</div>
 
 						<div class="shipment-field">
@@ -606,13 +585,18 @@ export const renderOrderConfirmationHtml = (successPayload) => {
                                 </div>
                         
                                 <div class="total-line secondary-total">
-                                    <span>Total Rupiah</span>
+                                    <span>Total IDR</span>
                                     <span>${formatIDR(successPayload.totalAmountIDR)}</span>
+                                </div>
+                        
+                                <div class="total-line secondary-total">
+                                    <span>Exchange rate</span>
+                                    <span>${escapeHtml(`1 EUR = ${formatIDR(successPayload.eurToIdrRate)}`)}</span>
                                 </div>
                         
                                 <div class="total-meta">
                                     <div class="total-line small">
-                                        <span>Total Shipments</span>
+                                        <span>Total Shipment(s)</span>
                                         <span>${escapeHtml(itemsCount ?? "-")}</span>
                                     </div>
                         

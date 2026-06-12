@@ -1,27 +1,12 @@
 import { Resend } from "resend";
 import {
 	escapeHtml,
-	formatDisplayDate,
+	formatEmailDate,
 	formatEUR,
 	formatIDR,
-	formatWeight,
-} from "../utils.js";
+} from "../../utils/formatters.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-const formatEmailDate = (value) => {
-	if (!value || value === "-") return "-";
-
-	try {
-		return formatDisplayDate(value, {
-			day: "2-digit",
-			month: "long",
-			year: "numeric",
-		});
-	} catch {
-		return value;
-	}
-};
 
 const renderSmallLine = (value) => `
 	<div style="margin-top:4px; font-size:13px; line-height:1.45; color:#555555;">
@@ -51,11 +36,12 @@ const renderEmailShipmentItems = (items = []) => {
 
 	return items
 		.map((item, index) => {
-			const shipmentDate = formatEmailDate(item.shipmentDate);
-			const billedWeight =
-				item.billedWeightKg != null
-					? ` · ${formatWeight(item.billedWeightKg)} billed`
-					: "";
+			const itemDetails = [
+				escapeHtml(item.packageType || "-"),
+				item.quantityLabel ? escapeHtml(item.quantityLabel) : null,
+			]
+				.filter(Boolean)
+				.join(" · ");
 
 			return `
 				<tr>
@@ -70,13 +56,13 @@ const renderEmailShipmentItems = (items = []) => {
 									<div style="margin-top:5px; font-size:12px; color:#555555;">
 										${escapeHtml(item.fromCountry || "-")} → ${escapeHtml(item.toCountry || "-")}
 										<span style="display:inline-block; margin-left:6px; padding:2px 7px; border-radius:999px; background:#fff7ed; color:#b45309; font-weight:bold; border:1px solid #fed7aa;">
-											${escapeHtml(shipmentDate)}
+											${escapeHtml(formatEmailDate(item.shipmentDate))}
 										</span>
 									</div>
 
 									<div style="margin-top:5px; font-size:12px; color:#555555;">
-										${escapeHtml(item.packageType || "-")} · ${escapeHtml(item.quantityLabel || "-")}${escapeHtml(billedWeight)}
-									</div>
+                                        ${itemDetails}
+                                    </div>
 
 									${
 										item.priceBreakdown
@@ -151,7 +137,7 @@ const renderEmailOrderSummary = (successPayload) => {
 									Shipments
 								</td>
 								<td align="right" style="font-size:12px; color:#777777;">
-									${escapeHtml(itemTotal)} item${Number(itemTotal) === 1 ? "" : "s"}
+									${itemTotal} item${Number(itemTotal) === 1 ? "" : "s"}
 								</td>
 							</tr>
 							${renderEmailShipmentItems(items)}
@@ -209,11 +195,20 @@ const renderEmailOrderSummary = (successPayload) => {
                         </tr>
                     
                         <tr>
-                            <td style="padding:2px 24px 10px 0; font-size:12px; color:#777777;">
+                            <td style="padding:6px 24px 2px 0; font-size:12px; color:#777777;">
                                 Total IDR
                             </td>
-                            <td align="right" style="padding:2px 0 10px; font-size:12px; font-weight:bold; color:#555555; white-space:nowrap;">
+                            <td align="right" style="padding:6px 0 2px; font-size:12px; font-weight:bold; color:#555555; white-space:nowrap;">
                                 ${formatIDR(successPayload.totalAmountIDR)}
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td style="padding:2px 24px 10px 0; font-size:12px; color:#777777;">
+                                Exchange rate
+                            </td>
+                            <td align="right" style="padding:2px 0 10px; font-size:12px; font-weight:bold; color:#555555; white-space:nowrap;">
+                                ${escapeHtml(`1 EUR = ${formatIDR(successPayload.eurToIdrRate)}`)}
                             </td>
                         </tr>
                     
@@ -223,10 +218,10 @@ const renderEmailOrderSummary = (successPayload) => {
                     
                         <tr>
                             <td style="padding:3px 24px 3px 0; font-size:12px; color:#777777;">
-                                Total Shipments
+                                Total Shipment(s)
                             </td>
                             <td align="right" style="padding:3px 0; font-size:12px; font-weight:bold; color:#555555;">
-                                ${escapeHtml(itemTotal)}
+                                ${itemTotal}
                             </td>
                         </tr>
                     

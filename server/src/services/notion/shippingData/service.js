@@ -6,7 +6,7 @@ import {
 	mapSettings,
 	mapSizePresets,
 } from "./mappers.js";
-import { queryAllDataSourceRows } from "./pageService.js";
+import { queryAllDataSourceRows } from "../core/pageService.js";
 
 export async function getShippingData() {
 	const [

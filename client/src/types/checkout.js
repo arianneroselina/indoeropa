@@ -27,6 +27,7 @@
  * @property {string} deliveryPhone
  * @property {number} totalAmountEUR
  * @property {number} totalAmountIDR
+ * @property {number} eurToIdrRate
  * @property {number} itemsCount
  * @property {string} paidViaLabel
  * @property {boolean} hasPaymentProof

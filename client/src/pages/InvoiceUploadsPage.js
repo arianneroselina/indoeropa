@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaInfoCircle } from "react-icons/fa";
 import { CART_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
+import { formatOptionalEUR } from "../utils/formatters";
 
 const limit = 125;
 const customsFee = 0.025; // 2.5%
@@ -12,7 +13,7 @@ const customsFee = 0.025; // 2.5%
  */
 const calculateCustomsFee = (value) =>
 	Number.isFinite(value) && value > limit
-		? Number((value * customsFee).toFixed(2))
+		? formatOptionalEUR(value * customsFee)
 		: undefined;
 
 const InvoiceUploadsPage = () => {
@@ -283,10 +284,6 @@ const InvoiceUploadsPage = () => {
 									(!Number.isFinite(originalValueNum) ||
 										originalValueNum <= limit);
 
-								const fee = Number(
-									item.customsFeeEUR || 0,
-								).toFixed(2);
-
 								return (
 									<div
 										key={item.key}
@@ -423,7 +420,9 @@ const InvoiceUploadsPage = () => {
 															Customs handling
 															fee:{" "}
 															<span className="font-semibold text-gray-800">
-																€{fee}
+																{formatOptionalEUR(
+																	item.customsFeeEUR,
+																)}
 															</span>{" "}
 															will be added to the
 															transport price.

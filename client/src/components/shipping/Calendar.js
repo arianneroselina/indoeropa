@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { formatDateToISO, formatDateToDDMMYYYY } from "../../utils/formatDate";
+import { formatDateToISO, formatDateToDDMMYYYY } from "../../utils/formatters";
 import { useShippingData } from "../../hooks/useShippingData";
 
 const Calendar = ({ routeKey, shipmentDate, setShipmentDate }) => {

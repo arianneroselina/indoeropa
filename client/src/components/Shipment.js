@@ -7,8 +7,6 @@ import {
 } from "react-icons/fa";
 import { CART_KEY } from "../utils/constants";
 
-import { getBilledWeight, calcPrice } from "../utils/shipmentPricing";
-
 import Calendar from "../components/shipping/Calendar";
 import PackageTypePicker from "../components/shipping/PackageTypePicker";
 import WeightBlock from "../components/shipping/WeightBlock";
@@ -16,8 +14,13 @@ import DimensionsBlock from "../components/shipping/DimensionsBlock";
 import DocumentsBlock from "../components/shipping/DocumentsBlock";
 import HatsBlock from "../components/shipping/HatsBlock";
 import { Link } from "react-router-dom";
-import { formatDateToDDMMYYYY } from "../utils/formatDate";
+import {
+	formatDateToDDMMYYYY,
+	formatOptionalEUR,
+	formatQuantityLabel,
+} from "../utils/formatters";
 import { useShippingData } from "../hooks/useShippingData";
+import { getBilledWeight, calcPrice } from "../utils/shipmentPricing";
 
 export default function Shipment({ variant = "default" }) {
 	// =========================
@@ -60,17 +63,10 @@ export default function Shipment({ variant = "default" }) {
 	// Data
 	// =========================================================
 	const { data } = useShippingData();
-	//console.log("loading:", loading);
-	//console.log("error:", error);
-	//console.log("data:", data);
 
 	const countries = useMemo(() => data?.COUNTRIES ?? [], [data]);
 	const packageTypes = useMemo(() => data?.PACKAGE_TYPES ?? [], [data]);
 	const sizePresets = useMemo(() => data?.SIZE_PRESETS ?? [], [data]);
-
-	//console.log("countries:", countries);
-	//console.log("packageTypes:", packageTypes);
-	//console.log("sizePresets:", sizePresets);
 
 	// =========================================================
 	// Initial cart load
@@ -226,9 +222,7 @@ export default function Shipment({ variant = "default" }) {
 		return `${Number(weight).toFixed(1)} kg → billed as ${roundedWeight.toFixed(1)} kg`;
 	}, [weight, roundedWeight]);
 
-	const priceLabel = priceResult.total
-		? `€${priceResult.total.toFixed(2)}`
-		: "-";
+	const priceLabel = formatOptionalEUR(priceResult.total);
 
 	// =========================================================
 	// Use Effects
@@ -465,14 +459,8 @@ export default function Shipment({ variant = "default" }) {
 			toLabel,
 			shipmentDate: shipmentDate ?? "-",
 			packageLabel: selectedPackageType?.label ?? "-",
-			billed: isDocument
-				? `${documentPages || "-"} pages`
-				: isHat
-					? `${hatQuantity || "-"} pcs`
-					: `${roundedWeight ? roundedWeight.toFixed(1) : "-"} kg`,
-			priceLabel: priceResult.total
-				? `€${priceResult.total.toFixed(2)}`
-				: "-",
+			billed: formatQuantityLabel(item),
+			priceLabel: formatOptionalEUR(priceResult.total),
 		});
 
 		setFeedbackVisible(true);
@@ -925,9 +913,9 @@ export default function Shipment({ variant = "default" }) {
 														feedbackItem.shipmentDate,
 													)}
 													{" • "}
-													{feedbackItem.billed}
-													{" • "}
 													{feedbackItem.packageLabel}
+													{" • "}
+													{feedbackItem.billed}
 													{" • "}
 													<span className="font-semibold">
 														{

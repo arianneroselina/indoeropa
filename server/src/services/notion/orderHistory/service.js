@@ -1,6 +1,6 @@
-import { badRequest } from "../../utils/http.js";
-import { uploadNotionFile } from "./fileService.js";
-import { upsertPageByTitle } from "./pageService.js";
+import { badRequest } from "../../../utils/http.js";
+import { uploadNotionFile } from "../core/fileService.js";
+import { upsertPageByTitle } from "../core/pageService.js";
 import {
 	notionDate,
 	notionEmail,
@@ -11,7 +11,7 @@ import {
 	notionSelect,
 	notionText,
 	notionTitle,
-} from "./properties.js";
+} from "../core/properties.js";
 
 function parseShipments(shipments) {
 	try {

@@ -7,18 +7,47 @@ import React, {
 } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-	FaCheckCircle,
 	FaArrowRight,
-	FaReceipt,
+	FaCheckCircle,
 	FaDownload,
+	FaReceipt,
 } from "react-icons/fa";
+
 import { CART_KEY, CHECKOUT_SUCCESS_KEY } from "../utils/constants";
-import { formatDateToDDMMYYYY } from "../utils/formatDate";
+import {
+	formatOptionalIDR,
+	formatOptionalEUR,
+	formatOptionalDate,
+} from "../utils/formatters";
 import {
 	downloadOrderConfirmationPdf,
 	sendOrderConfirmationEmail,
 } from "../api/orderConfirmationApi";
 import { EMPTY_SUCCESS_PAYLOAD } from "../types/checkout";
+
+const NEXT_STEPS = [
+	"You'll receive your order confirmation per email in a few minutes.",
+	"Our team will review your payment details.",
+	"We’ll confirm your shipment schedule as we process your order.",
+	"We’ll send the warehouse address and delivery instructions via WhatsApp.",
+];
+
+function hasSuccessSummary(payload) {
+	return Boolean(
+		payload.orderId ||
+		payload.buyerFullName ||
+		payload.buyerEmail ||
+		payload.buyerPhone ||
+		payload.buyerAddress ||
+		payload.deliveryFullName ||
+		payload.deliveryAddress ||
+		payload.deliveryEmail ||
+		payload.deliveryPhone ||
+		payload.totalAmountEUR != null ||
+		payload.totalAmountIDR != null ||
+		(payload.items || []).length > 0,
+	);
+}
 
 const CheckoutSuccessPage = () => {
 	const navigate = useNavigate();
@@ -44,33 +73,13 @@ const CheckoutSuccessPage = () => {
 		return location.state || fallbackState || EMPTY_SUCCESS_PAYLOAD;
 	}, [location.state, fallbackState]);
 
-	useEffect(() => {
-		localStorage.removeItem(CART_KEY);
-	}, []);
+	const items = successPayload.items || [];
+	const hasSummary = hasSuccessSummary(successPayload);
 
-	const hasSummary =
-		successPayload.orderId ||
-		successPayload.buyerFullName ||
-		successPayload.buyerEmail ||
-		successPayload.buyerPhone ||
-		successPayload.buyerAddress ||
-		successPayload.deliveryFullName ||
-		successPayload.deliveryAddress ||
-		successPayload.deliveryEmail ||
-		successPayload.deliveryPhone ||
-		successPayload.totalAmountEUR != null ||
-		successPayload.totalAmountIDR != null ||
-		successPayload.items.length > 0;
-
-	const nextSteps = useMemo(
-		() => [
-			"You'll receive your order confirmation per email in a few minutes.",
-			"Our team will review your payment details.",
-			"We’ll confirm your shipment schedule as we process your order.",
-			"We’ll send the warehouse address and delivery instructions via WhatsApp.",
-		],
-		[],
-	);
+	const dhlAddon = successPayload.dhlAddon;
+	const dhlAddonPriceEUR = Number(dhlAddon?.priceEUR ?? 0);
+	const subtotalShipmentsEUR =
+		Number(successPayload.totalAmountEUR || 0) - dhlAddonPriceEUR;
 
 	const handleDownloadPdf = async () => {
 		try {
@@ -95,9 +104,7 @@ const CheckoutSuccessPage = () => {
 				return;
 			}
 
-			const emailSentKey = successPayload.orderId
-				? `order-confirmation-email-sent-${successPayload.orderId}`
-				: "order-confirmation-email-sent-current";
+			const emailSentKey = `order-confirmation-email-sent-${successPayload.orderId}`;
 
 			try {
 				setSendingEmail(true);
@@ -125,6 +132,10 @@ const CheckoutSuccessPage = () => {
 	);
 
 	useEffect(() => {
+		localStorage.removeItem(CART_KEY);
+	}, []);
+
+	useEffect(() => {
 		if (
 			!hasSummary ||
 			!successPayload.buyerEmail ||
@@ -133,9 +144,7 @@ const CheckoutSuccessPage = () => {
 			return;
 		}
 
-		const emailSentKey = successPayload.orderId
-			? `order-confirmation-email-sent-${successPayload.orderId}`
-			: "order-confirmation-email-sent-current";
+		const emailSentKey = `order-confirmation-email-sent-${successPayload.orderId}`;
 
 		if (sessionStorage.getItem(emailSentKey) === "true") {
 			setEmailSent(true);
@@ -143,27 +152,8 @@ const CheckoutSuccessPage = () => {
 		}
 
 		hasAutoSentEmailRef.current = true;
-
 		handleSendConfirmationEmail();
 	}, [hasSummary, successPayload, handleSendConfirmationEmail]);
-
-	const formatOptionalDate = (value) => {
-		if (!value || value === "-") return "-";
-
-		try {
-			return formatDateToDDMMYYYY(value);
-		} catch {
-			return value;
-		}
-	};
-
-	const formatOptionalEUR = (value) => {
-		const numberValue = Number(value);
-
-		if (!Number.isFinite(numberValue)) return "-";
-
-		return `€${numberValue.toFixed(2)}`;
-	};
 
 	return (
 		<section className="py-24 bg-gray-100">
@@ -171,9 +161,11 @@ const CheckoutSuccessPage = () => {
 				<div className="max-w-screen-md mx-auto bg-white rounded-2xl shadow-md p-8">
 					<div className="flex flex-col items-center text-center">
 						<FaCheckCircle className="text-green-800 text-6xl" />
+
 						<h1 className="text-3xl font-semibold text-gray-900 mt-4">
 							Checkout successful
 						</h1>
+
 						<p className="subtext text-gray-600 mt-2 max-w-2xl">
 							We received your shipment request and saved your
 							order successfully.
@@ -201,6 +193,7 @@ const CheckoutSuccessPage = () => {
 										<h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
 											Buyer / Billing Information
 										</h3>
+
 										<div className="mt-2 space-y-1 text-sm">
 											<p className="subtext font-semibold text-gray-900">
 												{successPayload.buyerFullName ||
@@ -225,6 +218,7 @@ const CheckoutSuccessPage = () => {
 										<h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
 											Delivery Information
 										</h3>
+
 										<div className="mt-2 space-y-1 text-sm">
 											<p className="subtext font-semibold text-gray-900">
 												{successPayload.deliveryFullName ||
@@ -246,37 +240,39 @@ const CheckoutSuccessPage = () => {
 									</div>
 								</div>
 
-								{successPayload.items.length > 0 && (
+								{items.length > 0 ? (
 									<div className="mt-5 border-t pt-4">
 										<div className="mb-3 flex items-center justify-between gap-4">
 											<h3 className="text-sm font-semibold text-gray-900">
 												Shipments
 											</h3>
+
 											<span className="text-xs text-gray-500">
-												{successPayload.items.length}{" "}
-												item
-												{successPayload.items.length ===
-												1
-													? ""
-													: "s"}
+												{items.length} item
+												{items.length === 1 ? "" : "s"}
 											</span>
 										</div>
 
 										<div className="divide-y rounded-xl border bg-white">
-											{successPayload.items.map(
-												(item, index) => (
+											{items.map((item, index) => {
+												const shipmentNumber =
+													item.lineNumber ||
+													index + 1;
+
+												return (
 													<div
-														key={`${item.lineNumber || index}-${item.shipmentDate || ""}`}
+														key={`${shipmentNumber}-${item.shipmentDate || ""}`}
 														className="p-3"
 													>
 														<div className="flex items-start justify-between gap-4">
 															<div>
 																<p className="text-sm font-semibold text-gray-900">
 																	Shipment{" "}
-																	{item.lineNumber ||
-																		index +
-																			1}
+																	{
+																		shipmentNumber
+																	}
 																</p>
+
 																<p className="subtext flex flex-wrap items-center gap-1 mt-2 text-xs text-gray-600">
 																	<span>
 																		{item.fromCountry ||
@@ -296,13 +292,16 @@ const CheckoutSuccessPage = () => {
 																		)}
 																	</span>
 																</p>
+
 																<p className="subtext text-xs mt-2 text-gray-600">
-																	{item.packageType ||
-																		"-"}
-																	{item.billedWeightKg !=
-																	null
-																		? ` · ${Number(item.billedWeightKg).toFixed(1)} kg`
-																		: ""}
+																	{[
+																		item.packageType ||
+																			"-",
+																		item.quantityLabel ||
+																			"-",
+																	].join(
+																		" · ",
+																	)}
 																</p>
 															</div>
 
@@ -313,25 +312,26 @@ const CheckoutSuccessPage = () => {
 															</div>
 														</div>
 
-														{item.priceBreakdown && (
+														{item.priceBreakdown ? (
 															<details className="mt-2">
 																<summary className="cursor-pointer text-xs font-medium text-gray-500">
 																	Price
 																	details
 																</summary>
+
 																<p className="subtext mt-1 text-xs text-gray-600">
 																	{
 																		item.priceBreakdown
 																	}
 																</p>
 															</details>
-														)}
+														) : null}
 													</div>
-												),
-											)}
+												);
+											})}
 										</div>
 									</div>
-								)}
+								) : null}
 
 								<div className="mt-5 border-t pt-5">
 									<h3 className="mb-3 text-sm font-semibold text-gray-900">
@@ -341,47 +341,36 @@ const CheckoutSuccessPage = () => {
 									<div className="space-y-3 text-sm">
 										<div className="flex justify-between gap-4">
 											<span className="text-gray-600">
-												Subtotal sipments
+												Subtotal shipments
 											</span>
+
 											<span className="subtext font-semibold text-gray-900">
 												{formatOptionalEUR(
-													Number(
-														successPayload.totalAmountEUR ||
-															0,
-													) -
-														Number(
-															successPayload
-																.dhlAddon
-																?.priceEUR ??
-																successPayload.dhlAddonPriceEUR ??
-																0,
-														),
+													subtotalShipmentsEUR,
 												)}
 											</span>
 										</div>
 
-										{successPayload.dhlAddon && (
+										{dhlAddon ? (
 											<div className="flex justify-between gap-4">
 												<span className="text-gray-600">
-													{successPayload.dhlAddon
-														.label ||
+													{dhlAddon.label ||
 														"Selected option"}
 												</span>
 
 												<span className="subtext font-semibold text-gray-900">
 													{formatOptionalEUR(
-														successPayload.dhlAddon
-															?.priceEUR ??
-															successPayload.dhlAddonPriceEUR,
+														dhlAddonPriceEUR,
 													)}
 												</span>
 											</div>
-										)}
+										) : null}
 
 										<div className="flex justify-between gap-4">
 											<span className="text-gray-600">
 												Payment method
 											</span>
+
 											<span className="subtext font-semibold text-gray-900">
 												{successPayload.paidViaLabel ||
 													"-"}
@@ -407,11 +396,21 @@ const CheckoutSuccessPage = () => {
 												</span>
 
 												<span className="subtext font-semibold text-gray-700">
-													{successPayload.totalAmountIDR !=
-													null
-														? `IDR ${Number(
-																successPayload.totalAmountIDR,
-															).toLocaleString()}`
+													{formatOptionalIDR(
+														successPayload.totalAmountIDR,
+													)}
+												</span>
+											</div>
+
+											<div className="mt-1 flex justify-between gap-4 text-xs">
+												<span className="text-gray-500">
+													Exchange rate
+												</span>
+
+												<span className="subtext font-semibold text-gray-700">
+													{successPayload.eurToIdrRate >
+													0
+														? `1 EUR = ${formatOptionalIDR(successPayload.eurToIdrRate)}`
 														: "-"}
 												</span>
 											</div>
@@ -421,7 +420,7 @@ const CheckoutSuccessPage = () => {
 							</div>
 
 							<div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center">
-								{sendingEmail && (
+								{sendingEmail ? (
 									<p className="mt-3 text-sm text-gray-600">
 										Sending confirmation email to{" "}
 										<span className="font-semibold text-gray-800">
@@ -430,9 +429,9 @@ const CheckoutSuccessPage = () => {
 										</span>
 										...
 									</p>
-								)}
+								) : null}
 
-								{emailSent && (
+								{emailSent ? (
 									<p className="mt-3 text-sm text-green-700">
 										Confirmation email sent to{" "}
 										<span className="font-semibold text-gray-800">
@@ -441,13 +440,13 @@ const CheckoutSuccessPage = () => {
 										</span>
 										.
 									</p>
-								)}
+								) : null}
 
-								{actionError && (
+								{actionError ? (
 									<p className="mt-2 text-xs text-red-700">
 										{actionError}
 									</p>
-								)}
+								) : null}
 
 								<div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row">
 									<button
@@ -493,14 +492,15 @@ const CheckoutSuccessPage = () => {
 								</h2>
 
 								<div className="mt-4 space-y-3">
-									{nextSteps.map((step, index) => (
+									{NEXT_STEPS.map((step, index) => (
 										<div
-											key={index}
+											key={step}
 											className="flex items-start gap-3"
 										>
 											<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-900 text-xs font-semibold text-white">
 												{index + 1}
 											</div>
+
 											<p className="text-sm subtext text-gray-700">
 												{step}
 											</p>

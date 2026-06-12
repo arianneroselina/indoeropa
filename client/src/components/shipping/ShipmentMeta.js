@@ -1,5 +1,7 @@
-import { formatDateToDDMMYYYY } from "../../utils/formatDate";
-import { getItemQuantityLabel } from "../../utils/checkoutHelper";
+import {
+	formatDateToDDMMYYYY,
+	formatQuantityLabel,
+} from "../../utils/formatters";
 
 export const ShipmentMeta = ({
 	item,
@@ -19,7 +21,7 @@ export const ShipmentMeta = ({
 		? "subtext text-xs text-gray-500 mt-1"
 		: "mt-2";
 
-	const detail = getItemQuantityLabel(item);
+	const detail = formatQuantityLabel(item);
 
 	return (
 		<div className="min-w-0">
