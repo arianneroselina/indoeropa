@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaArrowRight } from "react-icons/fa";
 import {
 	CART_KEY,
+	CHECKOUT_CART_KEY,
 	CHECKOUT_SUCCESS_KEY,
 	ORDER_ID_KEY,
 } from "../utils/constants";
@@ -24,6 +25,27 @@ import {
 import { formatQuantityLabel } from "../utils/formatters";
 import { useShippingData } from "../hooks/useShippingData";
 
+const removeCheckedOutItemsFromCart = (checkedOutItems) => {
+	try {
+		const savedCart = localStorage.getItem(CART_KEY);
+		if (!savedCart) return;
+
+		const fullCart = JSON.parse(savedCart);
+
+		const checkedOutKeys = new Set(
+			checkedOutItems.map((item) => item.key).filter(Boolean),
+		);
+
+		const updatedCart = fullCart.filter(
+			(item) => !checkedOutKeys.has(item.key),
+		);
+
+		localStorage.setItem(CART_KEY, JSON.stringify(updatedCart));
+	} catch (err) {
+		console.error("Failed to remove checked-out items from cart", err);
+	}
+};
+
 const CheckoutPage = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -31,7 +53,7 @@ const CheckoutPage = () => {
 	// =========================
 	// Local state
 	// =========================
-	const [cartItems, setCartItems] = useState([]);
+	const [checkoutItems, setCheckoutItems] = useState([]);
 
 	// Buyer info
 	const [buyerFirstName, setBuyerFirstName] = useState("");
@@ -74,11 +96,10 @@ const CheckoutPage = () => {
 	// =========================
 	useEffect(() => {
 		try {
-			const savedCartItems = localStorage.getItem(CART_KEY);
-			if (savedCartItems) setCartItems(JSON.parse(savedCartItems));
+			const savedCartItems = localStorage.getItem(CHECKOUT_CART_KEY);
+			if (savedCartItems) setCheckoutItems(JSON.parse(savedCartItems));
 		} catch (err) {
 			console.error("Failed to parse local storage checkout data", err);
-			localStorage.removeItem(CART_KEY);
 		}
 	}, []);
 
@@ -125,14 +146,14 @@ const CheckoutPage = () => {
 	// =========================
 	const COD_DHL_ADDON_ID = "cod";
 
-	const dhlAddonEnabled = cartItems[0]?.toCountry === "DE";
+	const dhlAddonEnabled = checkoutItems[0]?.toCountry === "DE";
 
 	const totalBilledWeightKg = useMemo(() => {
-		return cartItems.reduce(
+		return checkoutItems.reduce(
 			(sum, item) => sum + Number(item?.billedWeightKg || 0),
 			0,
 		);
-	}, [cartItems]);
+	}, [checkoutItems]);
 
 	const recommendedDhlAddonId = useMemo(() => {
 		if (!dhlAddonEnabled || !dhlTiers.length) return "";
@@ -177,19 +198,19 @@ const CheckoutPage = () => {
 	// =========================
 	const totalAmountEUR = useMemo(() => {
 		return (
-			cartItems.reduce(
+			checkoutItems.reduce(
 				(sum, item) => sum + totalPriceWithCustoms(item).itemTotalEUR,
 				0,
 			) + dhlAddonPriceEUR
 		);
-	}, [cartItems, dhlAddonPriceEUR]);
+	}, [checkoutItems, dhlAddonPriceEUR]);
 
 	const totalAmountIDR = useMemo(
 		() => totalAmountEUR * eurToIdrRate,
 		[totalAmountEUR, eurToIdrRate],
 	);
 
-	const hasDutyItems = cartItems.some((item) => item?.duty === true);
+	const hasDutyItems = checkoutItems.some((item) => item?.duty === true);
 	const backTo = hasDutyItems ? "/invoices" : "/cart";
 	const backLabel = hasDutyItems ? "Back to Invoices" : "Back to Cart";
 
@@ -236,7 +257,7 @@ const CheckoutPage = () => {
 				.filter(Boolean)
 				.join(", ");
 
-			const shipments = cartItems.map((item, index) => {
+			const shipments = checkoutItems.map((item, index) => {
 				if (
 					!item.fromCountry ||
 					!item.toCountry ||
@@ -356,9 +377,11 @@ const CheckoutPage = () => {
 				});
 			}
 
+			removeCheckedOutItemsFromCart(checkoutItems);
+
 			sessionStorage.removeItem(ORDER_ID_KEY);
-			localStorage.removeItem(CART_KEY);
-			setCartItems([]);
+			localStorage.removeItem(CHECKOUT_CART_KEY);
+			setCheckoutItems([]);
 
 			/** @type {SuccessPayload} */
 			const successPayload = {
@@ -374,7 +397,7 @@ const CheckoutPage = () => {
 				totalAmountEUR,
 				totalAmountIDR,
 				eurToIdrRate,
-				itemsCount: cartItems.length,
+				itemsCount: checkoutItems.length,
 				paidViaLabel: paymentMethod?.toUpperCase() || "",
 				hasPaymentProof: Boolean(paymentProof),
 				submittedAt,
@@ -436,7 +459,7 @@ const CheckoutPage = () => {
 				</div>
 
 				<div className="rounded-lg bg-white p-8 shadow-md">
-					{cartItems.length === 0 ? (
+					{checkoutItems.length === 0 ? (
 						<div className="text-center text-lg text-gray-600">
 							Your cart is empty.{" "}
 							<Link
@@ -501,7 +524,7 @@ const CheckoutPage = () => {
 
 							<aside className="h-fit lg:sticky lg:top-24">
 								<OrderSummary
-									cartItems={cartItems}
+									checkoutItems={checkoutItems}
 									totalAmountEUR={totalAmountEUR}
 									totalAmountIDR={totalAmountIDR}
 									dhlAddonEnabled={dhlAddonEnabled}

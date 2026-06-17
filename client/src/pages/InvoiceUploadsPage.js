@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaArrowRight, FaInfoCircle } from "react-icons/fa";
-import { CART_KEY } from "../utils/constants";
+import { CHECKOUT_CART_KEY } from "../utils/constants";
 import { ShipmentMeta } from "../components/shipping/ShipmentMeta";
 import { formatOptionalEUR } from "../utils/formatters";
 
@@ -18,7 +18,7 @@ const calculateCustomsFee = (value) =>
 
 const InvoiceUploadsPage = () => {
 	const navigate = useNavigate();
-	const [cartItems, setCartItems] = useState([]);
+	const [checkoutItems, setCheckoutItems] = useState([]);
 
 	// session-only upload state (NOT persisted)
 	const [originalValueInputs, setOriginalValueInputs] = useState({});
@@ -27,7 +27,7 @@ const InvoiceUploadsPage = () => {
 	const [errorMessage, setErrorMessage] = useState("");
 
 	useEffect(() => {
-		const savedCartItems = localStorage.getItem(CART_KEY);
+		const savedCartItems = localStorage.getItem(CHECKOUT_CART_KEY);
 		if (!savedCartItems) return;
 
 		const parsed = JSON.parse(savedCartItems);
@@ -55,7 +55,7 @@ const InvoiceUploadsPage = () => {
 			invoiceProofName: item?.invoiceProofName || undefined,
 		}));
 
-		setCartItems(cleaned);
+		setCheckoutItems(cleaned);
 
 		setOriginalValueInputs(
 			Object.fromEntries(
@@ -73,31 +73,31 @@ const InvoiceUploadsPage = () => {
 				cleaned.map((item) => [item.key, !!item.hasInvoiceProof]),
 			),
 		);
-		localStorage.setItem(CART_KEY, JSON.stringify(cleaned));
+		localStorage.setItem(CHECKOUT_CART_KEY, JSON.stringify(cleaned));
 	}, []);
 
 	const relevant = useMemo(
-		() => cartItems.filter((item) => item?.duty === true),
-		[cartItems],
+		() => checkoutItems.filter((item) => item?.duty === true),
+		[checkoutItems],
 	);
 
 	useEffect(() => {
-		if (cartItems.length > 0 && relevant.length === 0) {
+		if (checkoutItems.length > 0 && relevant.length === 0) {
 			navigate("/checkout", { replace: true });
 		}
-	}, [cartItems.length, relevant.length, navigate]);
+	}, [checkoutItems.length, relevant.length, navigate]);
 
 	/**
 	 * @param {string} itemKey
 	 * @param {(item: any) => any} updater
 	 */
 	const updateCartItem = (itemKey, updater) => {
-		setCartItems((prev) => {
+		setCheckoutItems((prev) => {
 			const next = prev.map((item) =>
 				item.key === itemKey ? updater(item) : item,
 			);
 
-			localStorage.setItem(CART_KEY, JSON.stringify(next));
+			localStorage.setItem(CHECKOUT_CART_KEY, JSON.stringify(next));
 			return next;
 		});
 	};

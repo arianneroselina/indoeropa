@@ -13,7 +13,7 @@ import {
 	FaReceipt,
 } from "react-icons/fa";
 
-import { CART_KEY, CHECKOUT_SUCCESS_KEY } from "../utils/constants";
+import { CHECKOUT_SUCCESS_KEY } from "../utils/constants";
 import {
 	formatOptionalIDR,
 	formatOptionalEUR,
@@ -130,10 +130,6 @@ const CheckoutSuccessPage = () => {
 		},
 		[successPayload],
 	);
-
-	useEffect(() => {
-		localStorage.removeItem(CART_KEY);
-	}, []);
 
 	useEffect(() => {
 		if (

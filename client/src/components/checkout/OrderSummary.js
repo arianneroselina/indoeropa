@@ -9,7 +9,7 @@ import { useMemo } from "react";
  * OrderSummary
  *
  * Props:
- * - cartItems: array of cart/shipment items shown in the summary
+ * - checkoutItems: array of cart/shipment items shown in the summary
  * - totalAmountEUR: final total in EUR (including customs / addons)
  * - totalAmountIDR: final total in IDR
  * - dhlAddonEnabled: whether Germany DHL addon section is active
@@ -17,7 +17,7 @@ import { useMemo } from "react";
  * - dhlAddonPriceEUR: selected DHL addon price in EUR
  */
 const OrderSummary = ({
-	cartItems,
+	checkoutItems,
 	totalAmountEUR,
 	totalAmountIDR,
 	dhlAddonEnabled = false,
@@ -35,8 +35,8 @@ const OrderSummary = ({
 						Order summary
 					</h3>
 					<p className="subtext mt-1 text-xs text-gray-600">
-						{cartItems.length} shipment
-						{cartItems.length === 1 ? "" : "s"}
+						{checkoutItems.length} shipment
+						{checkoutItems.length === 1 ? "" : "s"}
 					</p>
 				</div>
 
@@ -49,7 +49,7 @@ const OrderSummary = ({
 			</div>
 
 			<div className="mt-4 space-y-3">
-				{cartItems.map((item) => {
+				{checkoutItems.map((item) => {
 					const { customsAmountEUR, itemTotalEUR } =
 						totalPriceWithCustoms(item);
 
