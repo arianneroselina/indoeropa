@@ -105,8 +105,18 @@ export const renderOrderConfirmationHtml = (successPayload) => {
 	const shipmentCards = renderShipmentCards(items);
 
 	const dhlAddonPriceEUR = Number(successPayload.dhlAddon?.priceEUR || 0);
+	const bubbleWrapPriceEUR = Number(successPayload.bubbleWrapPriceEUR || 0);
 	const totalAmountEUR = Number(successPayload.totalAmountEUR || 0);
-	const shipmentSubtotalEUR = Math.max(totalAmountEUR - dhlAddonPriceEUR, 0);
+
+	const shipmentSubtotalEUR = Math.max(
+		totalAmountEUR - dhlAddonPriceEUR - bubbleWrapPriceEUR,
+		0,
+	);
+
+	const indoLocalDeliveryIsCOD =
+		String(successPayload.indoLocalDelivery || "")
+			.trim()
+			.toLowerCase() === "cod";
 
 	return `
 		<!doctype html>
@@ -574,6 +584,29 @@ export const renderOrderConfirmationHtml = (successPayload) => {
                                                 <span>${formatEUR(dhlAddonPriceEUR)}</span>
                                             </div>
                                         `
+										: ""
+								}
+                                
+                                ${
+									successPayload.indoLocalDelivery
+										? `
+            <div class="total-line">
+                <span>
+                    Indonesia local delivery
+                    <div style="margin-top:2px; font-size:12px; font-weight:400; color:#6b7280;">
+                        ${escapeHtml(successPayload.indoLocalDelivery)}
+                        ${indoLocalDeliveryIsCOD ? "" : " · includes Bubble Wrap"}
+                    </div>
+                </span>
+
+                <span>
+                    ${formatEUR(bubbleWrapPriceEUR || 0)}
+                    <div style="margin-top:2px; font-size:11px; font-weight:400; color:#6b7280;">
+                        ${indoLocalDeliveryIsCOD ? "" : "delivery paid later"}
+                    </div>
+                </span>
+            </div>
+        `
 										: ""
 								}
                         

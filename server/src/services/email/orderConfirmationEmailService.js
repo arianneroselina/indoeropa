@@ -94,9 +94,20 @@ const renderEmailShipmentItems = (items = []) => {
 const renderEmailOrderSummary = (successPayload) => {
 	const items = successPayload.items || [];
 	const itemTotal = items.length || successPayload.itemsCount || 0;
+
 	const dhlAddonPriceEUR = Number(successPayload.dhlAddon?.priceEUR || 0);
+	const bubbleWrapPriceEUR = Number(successPayload.bubbleWrapPriceEUR || 0);
 	const totalAmountEUR = Number(successPayload.totalAmountEUR || 0);
-	const shipmentSubtotalEUR = Math.max(totalAmountEUR - dhlAddonPriceEUR, 0);
+
+	const shipmentSubtotalEUR = Math.max(
+		totalAmountEUR - dhlAddonPriceEUR - bubbleWrapPriceEUR,
+		0,
+	);
+
+	const indoLocalDeliveryIsCOD =
+		String(successPayload.indoLocalDelivery || "")
+			.trim()
+			.toLowerCase() === "cod";
 
 	return `
 		<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse; margin:24px 0; background:#fafafa; border:1px solid #d9e2ec; border-radius:12px;">
@@ -176,6 +187,29 @@ const renderEmailOrderSummary = (successPayload) => {
                                         </td>
                                     </tr>
                                 `
+								: ""
+						}
+                        
+                        ${
+							successPayload.indoLocalDelivery
+								? `
+            <tr>
+                <td style="padding:4px 24px 2px 0; font-size:13px; color:#555555;">
+                    Indonesia local delivery
+                    <div style="margin-top:2px; font-size:12px; color:#777777;">
+                        ${escapeHtml(successPayload.indoLocalDelivery)}
+                        ${indoLocalDeliveryIsCOD ? "" : " · includes Bubble Wrap"}
+                    </div>
+                </td>
+
+                <td align="right" style="padding:4px 0 2px; font-size:13px; font-weight:bold; color:#111111; white-space:nowrap;">
+                    ${formatEUR(bubbleWrapPriceEUR || 0)}
+                    <div style="margin-top:2px; font-size:11px; font-weight:normal; color:#777777;">
+                        ${indoLocalDeliveryIsCOD ? "" : "delivery paid later"}
+                    </div>
+                </td>
+            </tr>
+        `
 								: ""
 						}
                     
@@ -266,6 +300,8 @@ export const sendOrderConfirmationEmail = async ({
 		buyerFullName,
 		itemsCount,
 		dhlAddon,
+		indoLocalDelivery,
+		bubbleWrapPriceEUR,
 		totalAmountEUR,
 		totalAmountIDR,
 	} = successPayload;
@@ -274,6 +310,11 @@ export const sendOrderConfirmationEmail = async ({
 	const safeOrderId = escapeHtml(orderId || "");
 
 	const pdfBase64 = Buffer.from(pdfBuffer).toString("base64");
+
+	const indoLocalDeliveryIsCOD =
+		String(indoLocalDelivery || "")
+			.trim()
+			.toLowerCase() === "cod";
 
 	await resend.emails.send({
 		from: process.env.MAIL_FROM,
@@ -294,6 +335,13 @@ Order details:
 ${
 	dhlAddon
 		? `- Local delivery: ${dhlAddon.label || "-"} (${formatEUR(dhlAddon.priceEUR || 0)})`
+		: ""
+}
+${
+	indoLocalDelivery
+		? indoLocalDeliveryIsCOD
+			? `- Indonesia local delivery: ${indoLocalDelivery}`
+			: `- Indonesia local delivery: ${indoLocalDelivery} incl. Bubble Wrap (${formatEUR(bubbleWrapPriceEUR || 0)}; delivery payment later)`
 		: ""
 }
 ${totalAmountEUR ? `- Total amount (EUR): ${formatEUR(totalAmountEUR)}` : ""}

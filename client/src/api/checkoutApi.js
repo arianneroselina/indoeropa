@@ -127,6 +127,7 @@ export const createPengirimanLokal = async ({
 	deliveryPhone,
 	deliveryAddress,
 	dhlAddon,
+	indoLocalDelivery,
 }) => {
 	const res = await fetch(`${API_BASE}/api/notion/pengiriman-lokal`, {
 		method: "POST",
@@ -139,6 +140,7 @@ export const createPengirimanLokal = async ({
 			deliveryPhone,
 			deliveryAddress,
 			dhlAddon,
+			indoLocalDelivery,
 		}),
 	});
 
@@ -165,6 +167,8 @@ export const createOrderHistory = async ({
 	deliveryAddress,
 	dhlAddon,
 	dhlAddonPriceEUR,
+	indoLocalDelivery,
+	bubbleWrapPriceEUR,
 	totalAmountEUR,
 	totalAmountIDR,
 	paymentStatus,
@@ -187,6 +191,8 @@ export const createOrderHistory = async ({
 	formData.append("deliveryAddress", deliveryAddress);
 	formData.append("dhlAddon", dhlAddon);
 	formData.append("dhlAddonPriceEUR", dhlAddonPriceEUR);
+	formData.append("indoLocalDelivery", indoLocalDelivery);
+	formData.append("bubbleWrapPriceEUR", bubbleWrapPriceEUR);
 	formData.append("totalAmountEUR", totalAmountEUR);
 	formData.append("totalAmountIDR", totalAmountIDR);
 	formData.append("paymentStatus", paymentStatus || "");

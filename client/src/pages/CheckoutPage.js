@@ -14,6 +14,8 @@ import {
 	totalPriceWithCustoms,
 	getItemQuantity,
 	getRecommendedDhlAddon,
+	COD_DHL_ADDON_ID,
+	BUBBLE_WRAP_PRICE_EUR,
 } from "../utils/checkoutHelper";
 import {
 	createOrGetOrderRouteDatabase,
@@ -77,6 +79,8 @@ const CheckoutPage = () => {
 	const [deliveryCountry, setDeliveryCountry] = useState("");
 
 	const [dhlAddon, setDhlAddon] = useState("");
+	const [indoLocalDelivery, setIndoLocalDelivery] = useState("");
+
 	const [paymentMethod, setPaymentMethod] = useState("");
 	const [paymentProof, setPaymentProof] = useState(null);
 	const [notes, setNotes] = useState("");
@@ -144,8 +148,6 @@ const CheckoutPage = () => {
 	// =========================
 	// Germany DHL Addon
 	// =========================
-	const COD_DHL_ADDON_ID = "cod";
-
 	const dhlAddonEnabled = checkoutItems[0]?.toCountry === "DE";
 
 	const totalBilledWeightKg = useMemo(() => {
@@ -194,6 +196,26 @@ const CheckoutPage = () => {
 	}, [dhlAddonEnabled, recommendedDhlAddonId]);
 
 	// =========================
+	// Indo Local Delivery
+	// =========================
+	const indoLocalDeliveryEnabled = checkoutItems[0]?.toCountry === "ID";
+	const indoLocalDeliveryIsCOD =
+		String(indoLocalDelivery || "")
+			.trim()
+			.toLowerCase() === COD_DHL_ADDON_ID;
+
+	const bubbleWrapPriceEUR =
+		indoLocalDeliveryEnabled && indoLocalDelivery && !indoLocalDeliveryIsCOD
+			? BUBBLE_WRAP_PRICE_EUR
+			: 0;
+
+	useEffect(() => {
+		if (!indoLocalDeliveryEnabled) {
+			setIndoLocalDelivery("");
+		}
+	}, [indoLocalDeliveryEnabled]);
+
+	// =========================
 	// Derived pricing
 	// =========================
 	const totalAmountEUR = useMemo(() => {
@@ -201,9 +223,11 @@ const CheckoutPage = () => {
 			checkoutItems.reduce(
 				(sum, item) => sum + totalPriceWithCustoms(item).itemTotalEUR,
 				0,
-			) + dhlAddonPriceEUR
+			) +
+			dhlAddonPriceEUR +
+			bubbleWrapPriceEUR
 		);
-	}, [checkoutItems, dhlAddonPriceEUR]);
+	}, [checkoutItems, dhlAddonPriceEUR, bubbleWrapPriceEUR]);
 
 	const totalAmountIDR = useMemo(
 		() => totalAmountEUR * eurToIdrRate,
@@ -237,6 +261,12 @@ const CheckoutPage = () => {
 			const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
 			if (!paymentStatus) {
 				throw new Error("Invalid payment method.");
+			}
+
+			if (indoLocalDeliveryEnabled && !indoLocalDelivery) {
+				throw new Error(
+					"Please select an Indonesian local delivery option.",
+				);
 			}
 
 			const deliveryAddress = [
@@ -306,6 +336,8 @@ const CheckoutPage = () => {
 				deliveryAddress,
 				dhlAddon: dhlAddonObject?.id,
 				dhlAddonPriceEUR,
+				indoLocalDelivery,
+				bubbleWrapPriceEUR,
 				totalAmountEUR,
 				totalAmountIDR,
 				paymentStatus,
@@ -346,6 +378,7 @@ const CheckoutPage = () => {
 					deliveryPhone,
 					deliveryAddress,
 					dhlAddon: dhlAddonObject?.id,
+					indoLocalDelivery,
 				});
 
 				await createPenerimaanBarang({
@@ -409,6 +442,8 @@ const CheckoutPage = () => {
 								priceEUR: dhlAddonPriceEUR,
 							}
 						: null,
+				indoLocalDelivery,
+				bubbleWrapPriceEUR,
 				items: shipments.map((shipment, index) => ({
 					lineNumber: index + 1,
 					description: shipment.packageType || "Shipment",
@@ -512,6 +547,12 @@ const CheckoutPage = () => {
 								availableDhlAddons={availableDhlAddons}
 								dhlAddon={dhlAddon}
 								setDhlAddon={setDhlAddon}
+								indoLocalDeliveryEnabled={
+									indoLocalDeliveryEnabled
+								}
+								indoLocalDelivery={indoLocalDelivery}
+								setIndoLocalDelivery={setIndoLocalDelivery}
+								bubbleWrapPriceEUR={bubbleWrapPriceEUR}
 								paymentMethod={paymentMethod}
 								setPaymentMethod={setPaymentMethod}
 								setPaymentProof={setPaymentProof}
@@ -530,6 +571,11 @@ const CheckoutPage = () => {
 									dhlAddonEnabled={dhlAddonEnabled}
 									dhlAddonObject={dhlAddonObject}
 									dhlAddonPriceEUR={dhlAddonPriceEUR}
+									indoLocalDeliveryEnabled={
+										indoLocalDeliveryEnabled
+									}
+									indoLocalDelivery={indoLocalDelivery}
+									bubbleWrapPriceEUR={bubbleWrapPriceEUR}
 								/>
 							</aside>
 

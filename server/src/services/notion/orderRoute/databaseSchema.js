@@ -20,12 +20,13 @@ const penerimaanBarangOptions = [
 const pengirimanDiIndoOptions = [
 	{ name: "Pickup ke Warehouse" },
 	{ name: "PAXEL" },
-	{ name: "GOJEK" },
+	{ name: "Gojek / Grab / Online Taxi" },
 	{ name: "JNE" },
 	{ name: "TRAVEL" },
 	{ name: "JNT" },
 	{ name: "LALAMOVE" },
 	{ name: "Susulan next kiriman" },
+	{ name: "COD" },
 ];
 
 const statusPembayaranOptions = [

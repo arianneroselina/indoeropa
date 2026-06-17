@@ -34,6 +34,8 @@
  * @property {string} submittedAt
  * @property {string} status
  * @property {Object} dhlAddon
+ * @property {string} indoLocalDelivery
+ * @property {number} bubbleWrapPriceEUR
  * @property {SuccessPayloadItem[]} items
  */
 

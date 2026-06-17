@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import { ShipmentMeta } from "../shipping/ShipmentMeta";
-import { totalPriceWithCustoms } from "../../utils/checkoutHelper";
+import {
+	COD_DHL_ADDON_ID,
+	totalPriceWithCustoms,
+} from "../../utils/checkoutHelper";
 import { formatOptionalEUR, formatOptionalIDR } from "../../utils/formatters";
 import { useShippingData } from "../../hooks/useShippingData";
 import { useMemo } from "react";
@@ -15,6 +18,9 @@ import { useMemo } from "react";
  * - dhlAddonEnabled: whether Germany DHL addon section is active
  * - dhlAddonObject: selected DHL addon tier object
  * - dhlAddonPriceEUR: selected DHL addon price in EUR
+ * - indoLocalDeliveryEnabled: whether IndoLocalDelivery addon section is active
+ * - indoLocalDelivery: selected IndoLocalDelivery addon tier
+ * - bubbleWrapPriceEUR: selected BubbleWrap addon price in EUR
  */
 const OrderSummary = ({
 	checkoutItems,
@@ -23,9 +29,16 @@ const OrderSummary = ({
 	dhlAddonEnabled = false,
 	dhlAddonObject = null,
 	dhlAddonPriceEUR = 0,
+	indoLocalDeliveryEnabled = false,
+	indoLocalDelivery = "",
+	bubbleWrapPriceEUR = 0,
 }) => {
 	const { data } = useShippingData();
 	const eurToIdrRate = useMemo(() => data?.EUR_TO_IDR_RATE ?? 0, [data]);
+	const indoLocalDeliveryIsCOD =
+		String(indoLocalDelivery || "")
+			.trim()
+			.toLowerCase() === COD_DHL_ADDON_ID;
 
 	return (
 		<aside className="rounded-2xl border bg-white p-5 shadow-lg">
@@ -100,6 +113,37 @@ const OrderSummary = ({
 
 						<div className="text-sm font-semibold text-gray-900">
 							{formatOptionalEUR(dhlAddonPriceEUR)}
+						</div>
+					</div>
+				</div>
+			)}
+
+			{indoLocalDeliveryEnabled && indoLocalDelivery !== "" && (
+				<div className="mt-4 rounded-xl border border-yellow-200 bg-yellow-50/70 px-3 py-2">
+					<div className="flex items-center justify-between gap-4">
+						<div className="min-w-0">
+							<div className="text-sm font-semibold text-gray-900">
+								Indonesia local delivery
+							</div>
+
+							<div className="subtext mt-0.5 truncate text-xs text-gray-600">
+								{indoLocalDelivery}
+								{indoLocalDeliveryIsCOD
+									? ""
+									: " · includes Bubble Wrap"}
+							</div>
+						</div>
+
+						<div className="shrink-0 text-right">
+							<div className="text-sm font-semibold text-gray-900">
+								{formatOptionalEUR(bubbleWrapPriceEUR)}
+							</div>
+
+							<div className="subtext text-xs text-gray-500">
+								{indoLocalDeliveryIsCOD
+									? ""
+									: "delivery paid later"}
+							</div>
 						</div>
 					</div>
 				</div>

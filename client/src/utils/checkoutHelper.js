@@ -77,3 +77,13 @@ export const getRecommendedDhlAddon = (totalWeightKg, dhlTiers) => {
 		""
 	);
 };
+
+export const COD_DHL_ADDON_ID = "cod";
+
+export const INDONESIA_LOCAL_DELIVERY_OPTIONS = [
+	"Gojek / Grab / Online Taxi",
+	"JNE",
+	"COD",
+];
+
+export const BUBBLE_WRAP_PRICE_EUR = 1;

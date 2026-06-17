@@ -24,6 +24,7 @@ import {
 	sendOrderConfirmationEmail,
 } from "../api/orderConfirmationApi";
 import { EMPTY_SUCCESS_PAYLOAD } from "../types/checkout";
+import { COD_DHL_ADDON_ID } from "../utils/checkoutHelper";
 
 const NEXT_STEPS = [
 	"You'll receive your order confirmation per email in a few minutes.",
@@ -79,7 +80,14 @@ const CheckoutSuccessPage = () => {
 	const dhlAddon = successPayload.dhlAddon;
 	const dhlAddonPriceEUR = Number(dhlAddon?.priceEUR ?? 0);
 	const subtotalShipmentsEUR =
-		Number(successPayload.totalAmountEUR || 0) - dhlAddonPriceEUR;
+		Number(successPayload.totalAmountEUR || 0) -
+		dhlAddonPriceEUR -
+		successPayload.bubbleWrapPriceEUR;
+
+	const indoLocalDeliveryIsCOD =
+		String(successPayload.indoLocalDelivery || "")
+			.trim()
+			.toLowerCase() === COD_DHL_ADDON_ID;
 
 	const handleDownloadPdf = async () => {
 		try {
@@ -359,6 +367,42 @@ const CheckoutSuccessPage = () => {
 														dhlAddonPriceEUR,
 													)}
 												</span>
+											</div>
+										) : null}
+
+										{successPayload.indoLocalDelivery ? (
+											<div className="space-y-1">
+												<div className="flex justify-between gap-4">
+													<div className="min-w-0">
+														<span className="text-gray-600">
+															Indonesia local
+															delivery
+														</span>
+
+														<div className="subtext mt-0.5 text-xs text-gray-500">
+															{
+																successPayload.indoLocalDelivery
+															}
+															{indoLocalDeliveryIsCOD
+																? ""
+																: " · includes Bubble wrap"}
+														</div>
+													</div>
+
+													<div className="shrink-0 text-right">
+														<div className="subtext font-semibold text-gray-900">
+															{formatOptionalEUR(
+																successPayload.bubbleWrapPriceEUR,
+															)}
+														</div>
+
+														<div className="subtext text-xs text-gray-500">
+															{indoLocalDeliveryIsCOD
+																? ""
+																: "delivery paid later"}
+														</div>
+													</div>
+												</div>
 											</div>
 										) : null}
 

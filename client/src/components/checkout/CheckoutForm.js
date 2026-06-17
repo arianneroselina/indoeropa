@@ -5,6 +5,11 @@ import { Link } from "react-router-dom";
 import SectionCard from "./SectionCard";
 import Input from "./InputField";
 import { PAYMENT_DETAILS } from "../../utils/constants";
+import {
+	COD_DHL_ADDON_ID,
+	INDONESIA_LOCAL_DELIVERY_OPTIONS,
+} from "../../utils/checkoutHelper";
+import { formatOptionalEUR } from "../../utils/formatters";
 
 const PhoneInputField = ({
 	label,
@@ -60,6 +65,11 @@ const PhoneInputField = ({
  *   dhlAddonEnabled,
  *   availableDhlAddons,
  *   dhlAddon, setDhlAddon,
+ * - indonesia local delivery:
+ *   indoLocalDeliveryEnabled,
+ *   indoLocalDelivery,
+ *   setIndoLocalDelivery,
+ *   bubbleWrapPriceEUR,
  * - payment:
  *   paymentMethod, setPaymentMethod, setPaymentProof
  * - notes:
@@ -110,6 +120,10 @@ const CheckoutForm = ({
 	availableDhlAddons,
 	dhlAddon,
 	setDhlAddon,
+	indoLocalDeliveryEnabled,
+	indoLocalDelivery,
+	setIndoLocalDelivery,
+	bubbleWrapPriceEUR,
 
 	paymentMethod,
 	setPaymentMethod,
@@ -120,8 +134,13 @@ const CheckoutForm = ({
 	setTermsAccepted,
 	submitting,
 }) => {
-	const paymentStep = dhlAddonEnabled ? 4 : 3;
+	const hasLocalDeliveryStep = dhlAddonEnabled || indoLocalDeliveryEnabled;
+	const paymentStep = hasLocalDeliveryStep ? 4 : 3;
 	const selectedPaymentDetails = PAYMENT_DETAILS[paymentMethod];
+	const indoLocalDeliveryIsCOD =
+		String(indoLocalDelivery || "")
+			.trim()
+			.toLowerCase() === COD_DHL_ADDON_ID;
 
 	return (
 		<div>
@@ -399,6 +418,116 @@ const CheckoutForm = ({
 										})
 									)}
 								</div>
+							</div>
+						</SectionCard>
+					)}
+
+					{indoLocalDeliveryEnabled && (
+						<SectionCard
+							step={3}
+							title="Indonesia Local Delivery"
+							tooltip="Choose the local delivery method for delivery in Indonesia."
+						>
+							<div>
+								<label className="mb-1.5 block text-sm font-semibold text-gray-800">
+									Local delivery option{" "}
+									<span className="text-secondary">*</span>
+								</label>
+
+								<div className="space-y-3">
+									{INDONESIA_LOCAL_DELIVERY_OPTIONS.map(
+										(option) => {
+											const isSelected =
+												indoLocalDelivery === option;
+											const optionIsCOD =
+												String(option || "")
+													.trim()
+													.toLowerCase() ===
+												COD_DHL_ADDON_ID;
+
+											return (
+												<label
+													key={option}
+													className={`flex cursor-pointer items-start gap-3 rounded-xl border bg-white p-4 transition ${
+														isSelected
+															? "border-primary ring-1 ring-primary"
+															: "border-gray-200 hover:border-gray-400"
+													}`}
+												>
+													<input
+														type="radio"
+														name="indoLocalDelivery"
+														value={option}
+														checked={isSelected}
+														onChange={() =>
+															setIndoLocalDelivery(
+																option,
+															)
+														}
+														required
+														className="mt-1"
+													/>
+
+													<div className="flex-1">
+														<div className="flex items-start justify-between gap-4">
+															<div>
+																<div className="flex flex-wrap items-center gap-2">
+																	<span className="subtext text-sm text-gray-900">
+																		{option}
+																	</span>
+																</div>
+
+																<p className="subtext mt-1 text-xs text-gray-600">
+																	{optionIsCOD
+																		? ""
+																		: "includes Bubble Wrap"}
+																</p>
+															</div>
+
+															<div className="shrink-0 text-right">
+																<div className="subtext whitespace-nowrap text-sm font-semibold text-gray-900">
+																	{optionIsCOD
+																		? "€0.00"
+																		: "€1.00"}
+																</div>
+
+																<div className="subtext mt-0.5 text-xs text-gray-500">
+																	{optionIsCOD
+																		? ""
+																		: "delivery paid later"}
+																</div>
+															</div>
+														</div>
+													</div>
+												</label>
+											);
+										},
+									)}
+								</div>
+
+								{indoLocalDelivery &&
+									!indoLocalDeliveryIsCOD && (
+										<div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
+											<div className="flex items-start justify-between gap-4">
+												<div>
+													<p className="text-sm text-gray-900">
+														Bubble Wrap
+													</p>
+
+													<p className="subtext mt-1 text-xs text-gray-600">
+														Automatically included
+														for this delivery option
+													</p>
+												</div>
+
+												<span className="subtext whitespace-nowrap text-gray-900">
+													{formatOptionalEUR(
+														bubbleWrapPriceEUR,
+													)}
+												</span>
+											</div>
+										</div>
+									)}
 							</div>
 						</SectionCard>
 					)}

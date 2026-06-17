@@ -207,6 +207,7 @@ router.post("/pengiriman-lokal", async (req, res) => {
 			deliveryPhone,
 			deliveryAddress,
 			dhlAddon,
+			indoLocalDelivery,
 		} = req.body;
 
 		if (
@@ -229,6 +230,11 @@ router.post("/pengiriman-lokal", async (req, res) => {
 
 		if (dhlAddon) {
 			properties["DHL Package (WEB)"] = notionSelect(dhlAddon);
+		}
+
+		if (indoLocalDelivery) {
+			properties["Pengiriman di Indo (WEB)"] =
+				notionSelect(indoLocalDelivery);
 		}
 
 		const result = await upsertPageByTitle({
