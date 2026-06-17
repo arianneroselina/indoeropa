@@ -44,7 +44,7 @@ const CheckoutPage = () => {
 	const [buyerCountry, setBuyerCountry] = useState("");
 
 	// Delivery info
-    const [sameAsBuyerInfo, setSameAsBuyerInfo] = useState(false);
+	const [sameAsBuyerInfo, setSameAsBuyerInfo] = useState(false);
 	const [deliveryFirstName, setDeliveryFirstName] = useState("");
 	const [deliveryLastName, setDeliveryLastName] = useState("");
 	const [deliveryEmail, setDeliveryEmail] = useState("");
@@ -82,31 +82,31 @@ const CheckoutPage = () => {
 		}
 	}, []);
 
-    // =========================
-    // Buyer same as Delivery
-    // =========================
-    useEffect(() => {
-        if (!sameAsBuyerInfo) return;
+	// =========================
+	// Buyer same as Delivery
+	// =========================
+	useEffect(() => {
+		if (!sameAsBuyerInfo) return;
 
-        setDeliveryFirstName(buyerFirstName);
-        setDeliveryLastName(buyerLastName);
-        setDeliveryEmail(buyerEmail);
-        setDeliveryPhone(buyerPhone);
-        setDeliveryStreet(buyerStreet);
-        setDeliveryPostalCode(buyerPostalCode);
-        setDeliveryCity(buyerCity);
-        setDeliveryCountry(buyerCountry);
-    }, [
-        sameAsBuyerInfo,
-        buyerFirstName,
-        buyerLastName,
-        buyerEmail,
-        buyerPhone,
-        buyerStreet,
-        buyerPostalCode,
-        buyerCity,
-        buyerCountry,
-    ]);
+		setDeliveryFirstName(buyerFirstName);
+		setDeliveryLastName(buyerLastName);
+		setDeliveryEmail(buyerEmail);
+		setDeliveryPhone(buyerPhone);
+		setDeliveryStreet(buyerStreet);
+		setDeliveryPostalCode(buyerPostalCode);
+		setDeliveryCity(buyerCity);
+		setDeliveryCountry(buyerCountry);
+	}, [
+		sameAsBuyerInfo,
+		buyerFirstName,
+		buyerLastName,
+		buyerEmail,
+		buyerPhone,
+		buyerStreet,
+		buyerPostalCode,
+		buyerCity,
+		buyerCountry,
+	]);
 
 	// =========================
 	// Order ID
@@ -467,8 +467,8 @@ const CheckoutPage = () => {
 								setBuyerCity={setBuyerCity}
 								buyerCountry={buyerCountry}
 								setBuyerCountry={setBuyerCountry}
-                                sameAsBuyerInfo={sameAsBuyerInfo}
-                                setSameAsBuyerInfo={setSameAsBuyerInfo}
+								sameAsBuyerInfo={sameAsBuyerInfo}
+								setSameAsBuyerInfo={setSameAsBuyerInfo}
 								deliveryFirstName={deliveryFirstName}
 								setDeliveryFirstName={setDeliveryFirstName}
 								deliveryLastName={deliveryLastName}

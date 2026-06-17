@@ -51,9 +51,9 @@ const getBoxWeightForTier = (tier) => {
 
 // TODO: add more logic for package without weights (e.g. documents, bags, etc.)
 export const getRecommendedDhlAddon = (totalWeightKg, dhlTiers) => {
-	if (!Number.isFinite(totalWeightKg) || totalWeightKg <= 0) {
-		return dhlTiers?.find((tier) => tier.id === "cod")?.id || "";
-	}
+	// treat non-finite or non-positive weights as 1 kg
+	const normalizedWeightKg =
+		Number.isFinite(totalWeightKg) && totalWeightKg > 0 ? totalWeightKg : 1;
 
 	const codTier = dhlTiers?.find((tier) => tier.id === "cod");
 
@@ -65,7 +65,7 @@ export const getRecommendedDhlAddon = (totalWeightKg, dhlTiers) => {
 	const recommendedTier = dhlOnlyTiers.find((tier) => {
 		const maxKg = Number(tier.maxKg);
 		const boxWeightKg = getBoxWeightForTier(tier);
-		const totalWithBoxKg = totalWeightKg + boxWeightKg;
+		const totalWithBoxKg = normalizedWeightKg + boxWeightKg;
 
 		return totalWithBoxKg <= maxKg;
 	});

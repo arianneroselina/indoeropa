@@ -87,8 +87,8 @@ const CheckoutForm = ({
 	buyerCountry,
 	setBuyerCountry,
 
-    sameAsBuyerInfo,
-    setSameAsBuyerInfo,
+	sameAsBuyerInfo,
+	setSameAsBuyerInfo,
 	deliveryFirstName,
 	setDeliveryFirstName,
 	deliveryLastName,
@@ -213,98 +213,115 @@ const CheckoutForm = ({
 						</div>
 					</SectionCard>
 
-                    <SectionCard
-                        step={2}
-                        title="Delivery Information"
-                        tooltip="Recipient details and final delivery destination."
-                    >
-                        <label className="mb-4 flex items-center gap-3 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 subtext text-sm text-gray-700">
-                            <input
-                                type="checkbox"
-                                checked={sameAsBuyerInfo}
-                                onChange={(e) => setSameAsBuyerInfo(e.target.checked)}
-                                className="h-4 w-4 rounded border-gray-300"
-                            />
-                            <span>Delivery information is the same as buyer / billing information</span>
-                        </label>
+					<SectionCard
+						step={2}
+						title="Delivery Information"
+						tooltip="Recipient details and final delivery destination."
+					>
+						<label className="mb-4 flex items-center gap-3 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 subtext text-sm text-gray-700">
+							<input
+								type="checkbox"
+								checked={sameAsBuyerInfo}
+								onChange={(e) =>
+									setSameAsBuyerInfo(e.target.checked)
+								}
+								className="h-4 w-4 rounded border-gray-300"
+							/>
+							<span>
+								Delivery information is the same as buyer /
+								billing information
+							</span>
+						</label>
 
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <Input
-                                label="Recipient First Name"
-                                required
-                                type="text"
-                                value={deliveryFirstName}
-                                disabled={sameAsBuyerInfo}
-                                onChange={(e) => setDeliveryFirstName(e.target.value)}
-                            />
-                            <Input
-                                label="Recipient Last Name"
-                                required
-                                type="text"
-                                value={deliveryLastName}
-                                disabled={sameAsBuyerInfo}
-                                onChange={(e) => setDeliveryLastName(e.target.value)}
-                            />
-                        </div>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<Input
+								label="Recipient First Name"
+								required
+								type="text"
+								value={deliveryFirstName}
+								disabled={sameAsBuyerInfo}
+								onChange={(e) =>
+									setDeliveryFirstName(e.target.value)
+								}
+							/>
+							<Input
+								label="Recipient Last Name"
+								required
+								type="text"
+								value={deliveryLastName}
+								disabled={sameAsBuyerInfo}
+								onChange={(e) =>
+									setDeliveryLastName(e.target.value)
+								}
+							/>
+						</div>
 
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <Input
-                                label="Recipient Email"
-                                required
-                                type="email"
-                                value={deliveryEmail}
-                                disabled={sameAsBuyerInfo}
-                                onChange={(e) => setDeliveryEmail(e.target.value)}
-                            />
-                            <PhoneInputField
-                                label="Recipient Phone"
-                                required
-                                value={deliveryPhone}
-                                disabled={sameAsBuyerInfo}
-                                onChange={setDeliveryPhone}
-                            />
-                        </div>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<Input
+								label="Recipient Email"
+								required
+								type="email"
+								value={deliveryEmail}
+								disabled={sameAsBuyerInfo}
+								onChange={(e) =>
+									setDeliveryEmail(e.target.value)
+								}
+							/>
+							<PhoneInputField
+								label="Recipient Phone"
+								required
+								value={deliveryPhone}
+								disabled={sameAsBuyerInfo}
+								onChange={setDeliveryPhone}
+							/>
+						</div>
 
-                        <Input
-                            label="Street Address"
-                            required
-                            type="text"
-                            placeholder="e.g. Musterstraße 12"
-                            value={deliveryStreet}
-                            disabled={sameAsBuyerInfo}
-                            onChange={(e) => setDeliveryStreet(e.target.value)}
-                        />
+						<Input
+							label="Street Address"
+							required
+							type="text"
+							placeholder="e.g. Musterstraße 12"
+							value={deliveryStreet}
+							disabled={sameAsBuyerInfo}
+							onChange={(e) => setDeliveryStreet(e.target.value)}
+						/>
 
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                            <Input
-                                label="Postal Code"
-                                required
-                                type="text"
-                                placeholder="e.g. 60311"
-                                value={deliveryPostalCode}
-                                disabled={sameAsBuyerInfo}
-                                onChange={(e) => setDeliveryPostalCode(e.target.value)}
-                            />
-                            <Input
-                                label="City"
-                                required
-                                type="text"
-                                placeholder="e.g. Frankfurt am Main"
-                                value={deliveryCity}
-                                disabled={sameAsBuyerInfo}
-                                onChange={(e) => setDeliveryCity(e.target.value)}
-                            />
-                            <Input
-                                label="Country"
-                                required
-                                type="text"
-                                placeholder="e.g. Germany"
-                                value={deliveryCountry}
-                                disabled={sameAsBuyerInfo}
-                                onChange={(e) => setDeliveryCountry(e.target.value)}
-                            />
-                        </div>
-                    </SectionCard>
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+							<Input
+								label="Postal Code"
+								required
+								type="text"
+								placeholder="e.g. 60311"
+								value={deliveryPostalCode}
+								disabled={sameAsBuyerInfo}
+								onChange={(e) =>
+									setDeliveryPostalCode(e.target.value)
+								}
+							/>
+							<Input
+								label="City"
+								required
+								type="text"
+								placeholder="e.g. Frankfurt am Main"
+								value={deliveryCity}
+								disabled={sameAsBuyerInfo}
+								onChange={(e) =>
+									setDeliveryCity(e.target.value)
+								}
+							/>
+							<Input
+								label="Country"
+								required
+								type="text"
+								placeholder="e.g. Germany"
+								value={deliveryCountry}
+								disabled={sameAsBuyerInfo}
+								onChange={(e) =>
+									setDeliveryCountry(e.target.value)
+								}
+							/>
+						</div>
+					</SectionCard>
 
 					{dhlAddonEnabled && (
 						<SectionCard
