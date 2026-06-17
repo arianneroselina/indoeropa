@@ -488,13 +488,7 @@ const CheckoutForm = ({
 																<div className="subtext whitespace-nowrap text-sm font-semibold text-gray-900">
 																	{optionIsCOD
 																		? "€0.00"
-																		: "€1.00"}
-																</div>
-
-																<div className="subtext mt-0.5 text-xs text-gray-500">
-																	{optionIsCOD
-																		? ""
-																		: "delivery paid later"}
+																		: "Payment later"}
 																</div>
 															</div>
 														</div>
@@ -520,7 +514,7 @@ const CheckoutForm = ({
 													</p>
 												</div>
 
-												<span className="subtext whitespace-nowrap text-gray-900">
+												<span className="subtext whitespace-nowrap font-semibold text-gray-900">
 													{formatOptionalEUR(
 														bubbleWrapPriceEUR,
 													)}
