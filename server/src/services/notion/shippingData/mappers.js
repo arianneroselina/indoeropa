@@ -190,6 +190,79 @@ export function mapRouteDates(rows) {
 }
 
 /**
+ * Expected Payment Methods properties:
+ * - ID (text) e.g. "paypal"
+ * - Method Title (text) e.g. "PayPal"
+ * - Detail Label (text) e.g. "PayPal Email"
+ * - Detail Value (text) e.g. "xxx@gmail.com"
+ * - Note (text)
+ * - Number (number)
+ * - Detail Order (number)
+ * - Payment Status (text) e.g. "Terbayar (Paypal)"
+ * - Active (checkbox)
+ */
+export function mapPaymentMethods(rows) {
+	const grouped = {};
+
+	for (const row of rows) {
+		if (!getCheckbox(row.properties["Active"], true)) continue;
+
+		const id = getPlainText(row.properties["ID"]);
+		const methodTitle = getPlainText(row.properties["Method Title"]);
+		const detailLabel = getPlainText(row.properties["Detail Label"]);
+		const detailValue = getPlainText(row.properties["Detail Value"]);
+		const note = getPlainText(row.properties["Note"]);
+		const status = getPlainText(row.properties["Payment Status"]);
+
+		const number = getNumber(row.properties["Number"], 999);
+		const detailOrder = getNumber(row.properties["Detail Order"], 999);
+
+		if (!id || !methodTitle || !detailLabel || !detailValue) continue;
+
+		if (!grouped[id]) {
+			grouped[id] = {
+				title: methodTitle,
+				rows: [],
+				note: note,
+				status: status,
+				order: number,
+			};
+		}
+
+		grouped[id].rows.push({
+			label: detailLabel,
+			value: detailValue,
+			order: detailOrder,
+		});
+
+		// In case the first row has no note / status but another one does.
+		if (!grouped[id].note && note) {
+			grouped[id].note = note;
+		}
+		if (!grouped[id].status && status) {
+			grouped[id].status = status;
+		}
+	}
+
+	const result = {};
+
+	Object.entries(grouped)
+		.sort(([, a], [, b]) => a.order - b.order)
+		.forEach(([key, method]) => {
+			method.rows.sort((a, b) => a.order - b.order);
+
+			result[key] = {
+				title: method.title,
+				rows: method.rows.map((row) => [row.label, row.value]),
+				note: method.note,
+				status: method.status,
+			};
+		});
+
+	return result;
+}
+
+/**
  * Expected Settings properties:
  * - Key (title)
  * - Value (number)

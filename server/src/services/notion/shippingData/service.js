@@ -2,6 +2,7 @@ import {
 	mapCountries,
 	mapDhlTiers,
 	mapPackageTypes,
+	mapPaymentMethods,
 	mapRouteDates,
 	mapSettings,
 	mapSizePresets,
@@ -15,6 +16,7 @@ export async function getShippingData() {
 		sizePresetRows,
 		dhlTierRows,
 		routeDateRows,
+		paymentMethodRows,
 		settingsRows,
 	] = await Promise.all([
 		queryAllDataSourceRows(process.env.NOTION_DB_COUNTRIES),
@@ -22,6 +24,7 @@ export async function getShippingData() {
 		queryAllDataSourceRows(process.env.NOTION_DB_SIZE_PRESETS),
 		queryAllDataSourceRows(process.env.NOTION_DB_DHL_TIERS),
 		queryAllDataSourceRows(process.env.NOTION_DB_ROUTE_DATES),
+		queryAllDataSourceRows(process.env.NOTION_DB_PAYMENT_METHODS),
 		queryAllDataSourceRows(process.env.NOTION_DB_SETTINGS),
 	]);
 
@@ -33,6 +36,7 @@ export async function getShippingData() {
 		SIZE_PRESETS: mapSizePresets(sizePresetRows),
 		DHL_TIERS: mapDhlTiers(dhlTierRows),
 		ROUTE_DATES: mapRouteDates(routeDateRows),
+		PAYMENTS_METHODS: mapPaymentMethods(paymentMethodRows),
 		EUR_TO_IDR_RATE: settings.EUR_TO_IDR_RATE ?? null,
 	};
 }

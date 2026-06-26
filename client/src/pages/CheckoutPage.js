@@ -7,7 +7,6 @@ import {
 	CHECKOUT_SUCCESS_KEY,
 	ORDER_ID_KEY,
 } from "../utils/constants";
-import { PAYMENT_STATUS_MAP } from "../utils/notionMappers";
 import CheckoutForm from "../components/checkout/CheckoutForm";
 import OrderSummary from "../components/checkout/OrderSummary";
 import {
@@ -81,7 +80,7 @@ const CheckoutPage = () => {
 	const [dhlAddon, setDhlAddon] = useState("");
 	const [indoLocalDelivery, setIndoLocalDelivery] = useState("");
 
-	const [paymentMethod, setPaymentMethod] = useState("");
+	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("");
 	const [paymentProof, setPaymentProof] = useState(null);
 	const [notes, setNotes] = useState("");
 	const [termsAccepted, setTermsAccepted] = useState(false);
@@ -92,6 +91,7 @@ const CheckoutPage = () => {
 	const { data } = useShippingData();
 	const eurToIdrRate = useMemo(() => data?.EUR_TO_IDR_RATE ?? 0, [data]);
 	const dhlTiers = useMemo(() => data?.DHL_TIERS ?? [], [data]);
+	const paymentMethods = useMemo(() => data?.PAYMENTS_METHODS ?? {}, [data]);
 
 	const invoiceProofFiles = location.state?.invoiceProofFiles || {};
 
@@ -258,9 +258,18 @@ const CheckoutPage = () => {
 			const submittedAt = new Date().toISOString();
 			const today = submittedAt.slice(0, 10);
 
-			const paymentStatus = PAYMENT_STATUS_MAP[paymentMethod] || "";
+			const selectedPaymentMethodObject =
+				paymentMethods[selectedPaymentMethod];
+			const paymentStatus =
+				selectedPaymentMethodObject?.status?.trim() || "";
+
+			if (!selectedPaymentMethodObject) {
+				throw new Error("Please select a valid payment method.");
+			}
 			if (!paymentStatus) {
-				throw new Error("Invalid payment method.");
+				throw new Error(
+					"Selected payment method is missing a Payment Status configuration.",
+				);
 			}
 
 			if (indoLocalDeliveryEnabled && !indoLocalDelivery) {
@@ -431,7 +440,7 @@ const CheckoutPage = () => {
 				totalAmountIDR,
 				eurToIdrRate,
 				itemsCount: checkoutItems.length,
-				paidViaLabel: paymentMethod?.toUpperCase() || "",
+				paidViaLabel: selectedPaymentMethod?.toUpperCase() || "",
 				hasPaymentProof: Boolean(paymentProof),
 				submittedAt,
 				status: "Order request received",
@@ -553,8 +562,11 @@ const CheckoutPage = () => {
 								indoLocalDelivery={indoLocalDelivery}
 								setIndoLocalDelivery={setIndoLocalDelivery}
 								bubbleWrapPriceEUR={bubbleWrapPriceEUR}
-								paymentMethod={paymentMethod}
-								setPaymentMethod={setPaymentMethod}
+								paymentMethods={paymentMethods}
+								selectedPaymentMethod={selectedPaymentMethod}
+								setSelectedPaymentMethod={
+									setSelectedPaymentMethod
+								}
 								setPaymentProof={setPaymentProof}
 								notes={notes}
 								setNotes={setNotes}

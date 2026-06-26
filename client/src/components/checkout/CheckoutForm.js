@@ -4,7 +4,6 @@ import "react-phone-number-input/style.css";
 import { Link } from "react-router-dom";
 import SectionCard from "./SectionCard";
 import Input from "./InputField";
-import { PAYMENT_DETAILS } from "../../utils/constants";
 import {
 	COD_DHL_ADDON_ID,
 	INDONESIA_LOCAL_DELIVERY_OPTIONS,
@@ -71,7 +70,7 @@ const PhoneInputField = ({
  *   setIndoLocalDelivery,
  *   bubbleWrapPriceEUR,
  * - payment:
- *   paymentMethod, setPaymentMethod, setPaymentProof
+ *   paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod, setPaymentProof
  * - notes:
  *   notes, setNotes
  * - terms:
@@ -125,8 +124,9 @@ const CheckoutForm = ({
 	setIndoLocalDelivery,
 	bubbleWrapPriceEUR,
 
-	paymentMethod,
-	setPaymentMethod,
+	paymentMethods = {},
+	selectedPaymentMethod,
+	setSelectedPaymentMethod,
 	setPaymentProof,
 	notes,
 	setNotes,
@@ -136,7 +136,8 @@ const CheckoutForm = ({
 }) => {
 	const hasLocalDeliveryStep = dhlAddonEnabled || indoLocalDeliveryEnabled;
 	const paymentStep = hasLocalDeliveryStep ? 4 : 3;
-	const selectedPaymentDetails = PAYMENT_DETAILS[paymentMethod];
+	const selectedPaymentDetails =
+		paymentMethods[selectedPaymentMethod] ?? null;
 	const indoLocalDeliveryIsCOD =
 		String(indoLocalDelivery || "")
 			.trim()
@@ -538,19 +539,21 @@ const CheckoutForm = ({
 							</label>
 							<select
 								className="subtext w-full rounded-xl border border-gray-300 bg-white p-3 text-gray-900 input-focus disabled:cursor-not-allowed disabled:bg-gray-100"
-								value={paymentMethod}
+								value={selectedPaymentMethod}
 								onChange={(e) =>
-									setPaymentMethod(e.target.value)
+									setSelectedPaymentMethod(e.target.value)
 								}
 								required
 							>
 								<option value="">Select Payment Method</option>
-								<option value="paypal">PayPal</option>
-								{/*<option value="iban">IBAN</option>
-								<option value="n26">N26</option>
-								<option value="bca">Bank BCA</option>
-								<option value="revolut">Bank Revolut</option>*/}
-								<option value="jenius">Bank Jenius/SMBC</option>
+
+								{Object.entries(paymentMethods).map(
+									([id, method]) => (
+										<option key={id} value={id}>
+											{method.title || id}
+										</option>
+									),
+								)}
 							</select>
 						</div>
 
